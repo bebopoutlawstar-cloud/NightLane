@@ -2067,25 +2067,26 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .face[class*="frame-"]{isolation:isolate}
 .face[class*="frame-"] .fi{z-index:1}
 .face[class*="frame-"]::before{content:"";position:absolute;inset:calc(-1 * max(3px,7%));z-index:0;clip-path:polygon(10% 0,100% 8%,90% 100%,0 92%);background:var(--fr,#fff);pointer-events:none}
-.face[class*="frame-"]::after{pointer-events:none}
+.face>.frx{position:absolute;inset:0;pointer-events:none;z-index:3}   /* frame extras (crowns, flames, ghosts…) get their own slot; ::after is the online dot */
+.face.frame-glitch>.frx,.face.frame-flame>.frx,.face.frame-phantom>.frx{z-index:-1}
 /* neon ring */
 .face.frame-neon{--fr:var(--cyan);animation:frneon 2.2s ease-in-out infinite}
 @keyframes frneon{0%,100%{filter:drop-shadow(0 0 3px var(--cyan))}50%{filter:drop-shadow(0 0 9px var(--cyan)) drop-shadow(0 0 3px #fff)}}
 /* glitch */
 .face.frame-glitch{--fr:linear-gradient(90deg,var(--cyan),var(--mag))}
-.face.frame-glitch::after{content:"";position:absolute;inset:calc(-1 * max(3px,7%));z-index:-1;clip-path:polygon(10% 0,100% 8%,90% 100%,0 92%);background:var(--mag);opacity:.7;animation:frghost 2.6s steps(1,end) infinite}
+.face.frame-glitch>.frx::after{content:"";position:absolute;inset:calc(-1 * max(3px,7%));z-index:-1;clip-path:polygon(10% 0,100% 8%,90% 100%,0 92%);background:var(--mag);opacity:.7;animation:frghost 2.6s steps(1,end) infinite}
 .face.frame-glitch .fi{animation:frglitch 3s steps(2,end) infinite}
 @keyframes frghost{0%{transform:translate(3px,-2px)}20%{transform:translate(-3px,2px);background:var(--cyan)}40%{transform:translate(2px,2px)}60%{transform:translate(-2px,-3px);background:var(--mag)}80%{transform:translate(4px,0)}}
 @keyframes frglitch{0%,90%,100%{transform:none}92%{transform:translate(-2px,1px) skewX(6deg)}95%{transform:translate(2px,-1px)}}
 /* flame */
 .face.frame-flame{--fr:linear-gradient(0deg,#ff2a00,#ff7a00,#ffd000,#ff7a00,#ff2a00);filter:drop-shadow(0 0 5px #ff6a00)}
 .face.frame-flame::before{background-size:100% 300%;animation:frfire 1.2s linear infinite}
-.face.frame-flame::after{content:"";position:absolute;left:4%;right:4%;top:-38%;height:55%;z-index:-1;background:radial-gradient(ellipse at 30% 100%,#ffb300 0 30%,transparent 60%),radial-gradient(ellipse at 70% 100%,#ff5a00 0 30%,transparent 62%),radial-gradient(ellipse at 50% 100%,#ffe066 0 22%,transparent 55%);filter:blur(2px);transform-origin:50% 100%;animation:frlick .5s ease-in-out infinite alternate}
+.face.frame-flame>.frx::after{content:"";position:absolute;left:4%;right:4%;top:-38%;height:55%;z-index:-1;background:radial-gradient(ellipse at 30% 100%,#ffb300 0 30%,transparent 60%),radial-gradient(ellipse at 70% 100%,#ff5a00 0 30%,transparent 62%),radial-gradient(ellipse at 50% 100%,#ffe066 0 22%,transparent 55%);filter:blur(2px);transform-origin:50% 100%;animation:frlick .5s ease-in-out infinite alternate}
 @keyframes frfire{to{background-position:0 -300%}}
 @keyframes frlick{from{transform:scaleY(.8) skewX(-4deg)}to{transform:scaleY(1.15) skewX(4deg)}}
 /* phantom (calling card) */
 .face.frame-phantom{--fr:#FF2E3F;filter:drop-shadow(3px 3px 0 #07041a)}
-.face.frame-phantom::after{content:"";position:absolute;inset:calc(-1 * max(6px,14%));z-index:-1;clip-path:polygon(8% 2%,100% 0,92% 100%,0 96%);background:linear-gradient(135deg,#F4F7FF 0 48%,#07041a 48% 52%,#F4F7FF 52%);transform:rotate(-4deg)}
+.face.frame-phantom>.frx::after{content:"";position:absolute;inset:calc(-1 * max(6px,14%));z-index:-1;clip-path:polygon(8% 2%,100% 0,92% 100%,0 96%);background:linear-gradient(135deg,#F4F7FF 0 48%,#07041a 48% 52%,#F4F7FF 52%);transform:rotate(-4deg)}
 /* pixel */
 .face.frame-pixel{--fr:repeating-conic-gradient(#fff 0 25%,#07041a 0 50%) 0 0/8px 8px}
 .face.frame-pixel::before{clip-path:polygon(0 12%,12% 12%,12% 0,88% 0,88% 12%,100% 12%,100% 88%,88% 88%,88% 100%,12% 100%,12% 88%,0 88%)}
@@ -2093,23 +2094,23 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 /* gold crown */
 .face.frame-gold{--fr:linear-gradient(110deg,#b8860b 0%,#ffd86b 35%,#fff6c8 50%,#ffd86b 65%,#b8860b 100%);filter:drop-shadow(0 0 6px rgba(255,216,107,.8))}
 .face.frame-gold::before{background-size:250% 100%;animation:frshine 2.4s linear infinite}
-.face.frame-gold::after{content:"👑";position:absolute;left:50%;top:-.8em;transform:translateX(-50%) rotate(-8deg);font-size:max(12px,.55em);z-index:3;filter:drop-shadow(0 0 4px #FFD86B)}
+.face.frame-gold>.frx::after{content:"👑";position:absolute;left:50%;top:-.8em;transform:translateX(-50%) rotate(-8deg);font-size:max(12px,.55em);z-index:3;filter:drop-shadow(0 0 4px #FFD86B)}
 @keyframes frshine{from{background-position:100% 0}to{background-position:-150% 0}}
 /* mythic */
 .face.frame-mythic{--fr:conic-gradient(#ff0055,#ffaa00,#aaff00,#00ffaa,#00aaff,#aa00ff,#ff0055);filter:drop-shadow(0 0 5px rgba(255,255,255,.7))}
 .face.frame-mythic::before{animation:frmyth 3s linear infinite}   /* only the border shifts color, never the picture */
-.face.frame-mythic::after{content:"✨";position:absolute;right:-.35em;top:-.45em;font-size:max(11px,.45em);z-index:3;animation:frtwinkle 1.6s ease-in-out infinite}
+.face.frame-mythic>.frx::after{content:"✨";position:absolute;right:-.35em;top:-.45em;font-size:max(11px,.45em);z-index:3;animation:frtwinkle 1.6s ease-in-out infinite}
 @keyframes frmyth{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 @keyframes frtwinkle{0%,100%{transform:scale(.6) rotate(0);opacity:.5}50%{transform:scale(1.15) rotate(20deg);opacity:1}}
 /* blazing (guts) */
 .face.frame-guts{--fr:linear-gradient(160deg,#ffcf3a,#ff7a1a 45%,#c81e00);animation:frember 1.4s ease-in-out infinite}
-.face.frame-guts::after{content:"🔥";position:absolute;right:-.35em;bottom:-.35em;font-size:max(11px,.45em);z-index:3}
+.face.frame-guts>.frx::after{content:"🔥";position:absolute;left:-.35em;top:-.4em;font-size:max(11px,.45em);z-index:3}
 @keyframes frember{0%,100%{filter:drop-shadow(0 0 3px #ff7a1a)}50%{filter:drop-shadow(0 0 10px #ff4a00)}}
 /* bonded */
 .face.frame-bonded{--fr:linear-gradient(135deg,#ff9ccc,#ff5aa8 50%,#d9267a);filter:drop-shadow(0 0 5px rgba(255,90,168,.7))}
-.face.frame-bonded::after{content:"💞";position:absolute;right:-.35em;top:-.4em;font-size:max(11px,.45em);z-index:3;animation:frbeat 1.2s ease-in-out infinite}
+.face.frame-bonded>.frx::after{content:"💞";position:absolute;right:-.35em;top:-.4em;font-size:max(11px,.45em);z-index:3;animation:frbeat 1.2s ease-in-out infinite}
 @keyframes frbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.18)}}
-@media (prefers-reduced-motion:reduce){.face[class*="frame-"],.face[class*="frame-"]::before,.face[class*="frame-"]::after,.face[class*="frame-"] .fi{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.face>.frx::after,.face[class*="frame-"],.face[class*="frame-"]::before,.face[class*="frame-"]::after,.face[class*="frame-"] .fi{animation:none!important}}
 /* ===== Rice's reference secrets ===== */
 .ein-dog{position:absolute;bottom:18%;left:-20%;font-size:clamp(60px,18vw,96px);animation:einrun 2.2s cubic-bezier(.4,0,.6,1) both;transform:scaleX(-1)}
 @keyframes einrun{0%{left:-20%}100%{left:110%}}
@@ -2256,6 +2257,131 @@ body.theme-mochi .send{background:#ff8fb8!important}
 .gl-shock{position:absolute;left:50%;top:50%;width:20px;height:20px;border:6px solid #fff;border-radius:50%;transform:translate(-50%,-50%);animation:glshock .6s ease-out both}
 @keyframes glshock{to{width:160vmax;height:160vmax;opacity:0;border-width:2px}}
 @media (prefers-reduced-motion:reduce){#chat.gl-charge{animation:none}.gl-speed,.gl-spiral-big{animation:none}}
+/* ===== new frames ===== */
+.face.frame-circuit{--fr:repeating-linear-gradient(90deg,#00f0ff 0 3px,#07041a 3px 7px),linear-gradient(#00f0ff,#00f0ff);animation:frcirc 2.4s ease-in-out infinite}
+.face.frame-circuit::before{background:repeating-linear-gradient(90deg,#00f0ff 0 3px,#0a3a4a 3px 7px),repeating-linear-gradient(0deg,#00f0ff 0 2px,transparent 2px 9px);background-blend-mode:screen;background-size:200% 100%,100% 100%;animation:frcircflow 3s linear infinite}
+@keyframes frcirc{0%,100%{filter:drop-shadow(0 0 2px #00f0ff)}50%{filter:drop-shadow(0 0 8px #00f0ff)}}
+@keyframes frcircflow{to{background-position:-200% 0,0 0}}
+.face.frame-frost{--fr:linear-gradient(135deg,#e8fbff,#7fdbff 40%,#c9f3ff 55%,#4aa8d8);filter:drop-shadow(0 0 6px rgba(127,219,255,.8))}
+.face.frame-frost::before{background-size:250% 250%;animation:frshine 3.2s linear infinite}
+.face.frame-frost>.frx::after{content:"❄️";position:absolute;left:-.35em;top:-.4em;font-size:max(11px,.45em);animation:frtwinkle 2.4s ease-in-out infinite}
+.face.frame-thunder{--fr:linear-gradient(135deg,#fff36b,#ffcf00 40%,#fff 50%,#ffcf00 60%,#b8860b);animation:frzap 1.8s steps(1) infinite}
+.face.frame-thunder>.frx::after{content:"⚡";position:absolute;left:-.3em;top:-.4em;font-size:max(11px,.48em)}
+@keyframes frzap{0%,60%,64%,100%{filter:drop-shadow(0 0 3px #ffcf00)}62%{filter:drop-shadow(0 0 12px #fff) drop-shadow(0 0 4px #ffcf00) brightness(1.6)}}
+.face.frame-galaxy{--fr:radial-gradient(circle at 30% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 75%,#fff 0 1px,transparent 2px),conic-gradient(from 0deg,#2a0a5a,#6a2fd6,#1c6fd6,#d6389b,#2a0a5a);filter:drop-shadow(0 0 6px rgba(160,90,255,.8))}
+.face.frame-galaxy::before{animation:frgal 8s linear infinite}
+@keyframes frgal{to{filter:hue-rotate(360deg)}}
+.face.frame-sakura{--fr:linear-gradient(135deg,#ffd6e7,#ff9ec4 50%,#ffc2d8);filter:drop-shadow(0 0 5px rgba(255,158,196,.8))}
+.face.frame-sakura>.frx::after{content:"🌸";position:absolute;right:-.2em;top:-.5em;font-size:max(11px,.45em);animation:frpetal 3.2s ease-in infinite}
+@keyframes frpetal{0%{transform:translate(0,0) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(-.9em,1.9em) rotate(220deg);opacity:0}}
+.face.frame-spiral{--fr:repeating-conic-gradient(from 0deg,#3dff8a 0 20deg,#0a3a1a 20deg 40deg);filter:drop-shadow(0 0 7px #3dff8a)}
+.face.frame-spiral::before{animation:frspin 2.4s linear infinite}
+@keyframes frspin{to{filter:hue-rotate(40deg) brightness(1.2)}}
+.face.frame-shadow{--fr:#07041a;animation:frsmoke 3s ease-in-out infinite}
+@keyframes frsmoke{0%,100%{filter:drop-shadow(0 0 4px #000) drop-shadow(0 0 10px rgba(80,0,120,.6))}50%{filter:drop-shadow(0 0 12px #000) drop-shadow(0 0 22px rgba(120,0,180,.9))}}
+.face.frame-heartbeat{--fr:linear-gradient(135deg,#ff5a78,#d81b3c);animation:frbeat2 1.1s ease-in-out infinite}
+.face.frame-heartbeat>.frx::after{content:"💓";position:absolute;left:-.3em;top:-.4em;font-size:max(11px,.45em);animation:frbeat 1.1s ease-in-out infinite}
+@keyframes frbeat2{0%,100%{filter:drop-shadow(0 0 3px #ff3d5a)}15%{filter:drop-shadow(0 0 10px #ff3d5a)}30%{filter:drop-shadow(0 0 3px #ff3d5a)}45%{filter:drop-shadow(0 0 8px #ff3d5a)}}
+/* ===== new online-status shapes ===== */
+.face.shape-moon::after{width:15px!important;height:15px!important;right:-5px!important;bottom:-5px!important;border-radius:50%;background:none!important;box-shadow:inset -5px -2px 0 0 currentColor!important;border:none!important;transform:rotate(-20deg);filter:drop-shadow(0 0 3px currentColor)}
+.face.shape-moon.status-online::after{color:#2ee66b}.face.shape-moon.status-idle::after{color:#ffcf3d}.face.shape-moon.status-dnd::after{color:#ff3d3d}
+.face.shape-square::after{border-radius:2px}
+.face.shape-triangle::after{border-radius:0;border:none;clip-path:polygon(50% 4%,100% 96%,0 96%)}
+.face.shape-bolt::after{border-radius:0;border:none;clip-path:polygon(58% 0,10% 58%,44% 58%,34% 100%,90% 38%,54% 38%)}
+.face.shape-sparkle::after{border-radius:0;border:none;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.face.shape-plus::after{border-radius:0;border:none;clip-path:polygon(35% 0,65% 0,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0 65%,0 35%,35% 35%)}
+.face.shape-pulse::after{border-radius:50%;animation:stpulse 1.6s ease-out infinite}
+@keyframes stpulse{0%{box-shadow:0 0 0 0 currentColor,0 0 6px currentColor}100%{box-shadow:0 0 0 7px transparent,0 0 6px currentColor}}
+.face.shape-pulse.status-online::after{color:#2ee66b}.face.shape-pulse.status-idle::after{color:#ffcf3d}.face.shape-pulse.status-dnd::after{color:#ff3d3d}
+@media (prefers-reduced-motion:reduce){.face.shape-pulse::after,.face.frame-sakura>.frx::after{animation:none}}
+/* ===== chat backgrounds: extra layer + upgrades + new scenes ===== */
+#chat>.bgfx{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#chat>.bgfx::before,#chat>.bgfx::after{content:"";position:absolute;inset:0;pointer-events:none}
+/* Stars: an occasional shooting star */
+#chat[data-bg="stars"]>.bgfx::after{inset:auto;left:-10%;top:12%;width:140px;height:2px;background:linear-gradient(90deg,transparent,#fff);border-radius:2px;box-shadow:0 0 8px #fff;transform:rotate(18deg);opacity:0;animation:shoot 9s ease-in 3s infinite}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(18deg)}2%{opacity:1}9%{opacity:0;transform:translate(120vw,39vw) rotate(18deg)}100%{opacity:0;transform:translate(120vw,39vw) rotate(18deg)}}
+/* Grid: a striped synthwave sun on the horizon */
+#chat[data-bg="grid"]>.bgfx::before{inset:auto;left:50%;top:55%;width:min(70vw,300px);aspect-ratio:1;transform:translate(-50%,-62%);border-radius:50%;background:linear-gradient(#ffe45c,#ff4fa3 70%);
+  -webkit-mask:linear-gradient(#000 45%,transparent 45% 50%,#000 50% 60%,transparent 60% 64%,#000 64% 72%,transparent 72% 75%,#000 75% 82%,transparent 82% 84%,#000 84% 92%,transparent 92%);mask:linear-gradient(#000 45%,transparent 45% 50%,#000 50% 60%,transparent 60% 64%,#000 64% 72%,transparent 72% 75%,#000 75% 82%,transparent 82% 84%,#000 84% 92%,transparent 92%);
+  filter:drop-shadow(0 0 30px #ff4fa3);opacity:.85;clip-path:inset(0 0 38% 0)}
+/* Rain: a second, closer layer of rain + lightning */
+#chat[data-bg="rain"]>.bgfx::before{background:repeating-linear-gradient(104deg,transparent 0 40px,rgba(180,230,255,.28) 40px 41px,transparent 41px 90px);background-size:180px 180px;animation:rainfall2 .45s linear infinite}
+@keyframes rainfall2{to{background-position:-40px 180px}}
+#chat[data-bg="rain"]>.bgfx::after{background:#dff4ff;opacity:0;animation:lightning 11s linear infinite}
+@keyframes lightning{0%,91%,93%,95%,100%{opacity:0}92%{opacity:.35}94%{opacity:.2}}
+/* Sunset: drifting clouds + light on the water */
+#chat[data-bg="sunset"]>.bgfx::before{top:18%;bottom:auto;height:22%;background:radial-gradient(ellipse at 20% 50%,rgba(255,150,200,.35),transparent 40%),radial-gradient(ellipse at 70% 40%,rgba(255,200,150,.3),transparent 35%);filter:blur(6px);animation:clouddrift 26s linear infinite alternate}
+@keyframes clouddrift{to{transform:translateX(12%)}}
+#chat[data-bg="sunset"]>.bgfx::after{top:auto;height:14%;background:repeating-linear-gradient(0deg,rgba(255,228,92,.35) 0 2px,transparent 2px 8px);-webkit-mask:radial-gradient(ellipse at 50% 0,#000 20%,transparent 60%);mask:radial-gradient(ellipse at 50% 0,#000 20%,transparent 60%);animation:shimmer 3s ease-in-out infinite alternate}
+@keyframes shimmer{to{transform:scaleX(1.15);opacity:.6}}
+/* Aurora: glowing curtains that sway */
+#chat[data-bg="aurora"]>.bgfx::before{inset:-10% -20% 40% -20%;background:radial-gradient(ellipse at 30% 60%,rgba(61,255,160,.45),transparent 45%),radial-gradient(ellipse at 70% 40%,rgba(120,80,255,.4),transparent 45%);filter:blur(18px);animation:curtain 9s ease-in-out infinite alternate}
+@keyframes curtain{0%{transform:translateX(-6%) skewX(-6deg)}100%{transform:translateX(6%) skewX(6deg)}}
+/* Void: slow drifting dust */
+#chat[data-bg="void"]>.bgfx::before{background-image:radial-gradient(circle,rgba(255,255,255,.5) 0 1px,transparent 1.5px),radial-gradient(circle,rgba(180,140,255,.4) 0 1px,transparent 1.5px);background-size:90px 110px,140px 160px;animation:dust 40s linear infinite}
+@keyframes dust{to{background-position:90px -220px,-140px -320px}}
+/* NEW: Ocean */
+#chat[data-bg="ocean"]::before,.bgtile[data-bg="ocean"]{background:linear-gradient(180deg,#0a4a7a 0%,#06325a 45%,#03172e 100%)}
+#chat[data-bg="ocean"]::after{background:radial-gradient(ellipse at 20% 10%,rgba(160,230,255,.25),transparent 35%),radial-gradient(ellipse at 70% 20%,rgba(160,230,255,.2),transparent 30%),radial-gradient(ellipse at 45% 5%,rgba(200,245,255,.2),transparent 25%);background-size:200% 200%;animation:caustic 7s ease-in-out infinite alternate}
+@keyframes caustic{to{background-position:60% 30%}}
+#chat[data-bg="ocean"]>.bgfx::before{background-image:radial-gradient(circle,rgba(200,240,255,.55) 0 2px,transparent 3px),radial-gradient(circle,rgba(200,240,255,.35) 0 3px,transparent 4px);background-size:120px 200px,190px 260px;animation:bubbles 9s linear infinite}
+@keyframes bubbles{to{background-position:10px -400px,-20px -520px}}
+/* NEW: Snowfall */
+#chat[data-bg="snow"]::before,.bgtile[data-bg="snow"]{background:linear-gradient(180deg,#0b1430,#1c2a55 70%,#3a4d80)}
+#chat[data-bg="snow"]::after{background-image:radial-gradient(circle,#fff 0 1.5px,transparent 2px);background-size:60px 70px;animation:snow1 7s linear infinite;opacity:.8}
+#chat[data-bg="snow"]>.bgfx::before{background-image:radial-gradient(circle,#fff 0 2.5px,transparent 3.5px);background-size:130px 150px;animation:snow2 12s linear infinite;opacity:.6;filter:blur(.5px)}
+#chat[data-bg="snow"]>.bgfx::after{top:auto;height:18%;background:linear-gradient(transparent,rgba(220,235,255,.25))}
+@keyframes snow1{to{background-position:30px 420px}}@keyframes snow2{to{background-position:-40px 600px}}
+/* NEW: Fireflies */
+#chat[data-bg="fireflies"]::before,.bgtile[data-bg="fireflies"]{background:linear-gradient(180deg,#07140f,#0c2a1c 65%,#041008)}
+#chat[data-bg="fireflies"]::after{background-image:radial-gradient(circle,#f3ff7a 0 2px,rgba(243,255,122,.25) 3px,transparent 7px),radial-gradient(circle,#c8ff6b 0 1.5px,rgba(200,255,107,.2) 3px,transparent 6px);background-size:170px 190px,230px 210px;animation:ffdrift 18s ease-in-out infinite alternate,ffblink 2.6s ease-in-out infinite}
+@keyframes ffdrift{to{background-position:60px -80px,-90px 50px}}@keyframes ffblink{50%{opacity:.35}}
+#chat[data-bg="fireflies"]>.bgfx::before{top:auto;height:26%;background:#020805;clip-path:polygon(0 60%,6% 20%,12% 55%,18% 10%,25% 50%,32% 25%,40% 60%,48% 15%,55% 55%,62% 30%,70% 60%,78% 18%,85% 50%,92% 25%,100% 55%,100% 100%,0 100%)}
+/* NEW: Nebula */
+#chat[data-bg="nebula"]::before,.bgtile[data-bg="nebula"]{background:radial-gradient(ellipse at 30% 30%,#5a1a8a,transparent 55%),radial-gradient(ellipse at 75% 70%,#0e5a8a,transparent 55%),#05020f}
+#chat[data-bg="nebula"]::after{inset:-30%;background:conic-gradient(from 0deg at 50% 50%,rgba(214,56,155,.25),rgba(28,111,214,.2),rgba(106,47,214,.3),rgba(214,56,155,.25));filter:blur(40px);animation:nebspin 60s linear infinite}
+@keyframes nebspin{to{transform:rotate(360deg)}}
+#chat[data-bg="nebula"]>.bgfx::before{background-image:radial-gradient(circle,#fff 0 1px,transparent 1.5px),radial-gradient(circle,#bfe3ff 0 1px,transparent 1.5px);background-size:70px 90px,110px 130px;animation:twinkle 3s ease-in-out infinite alternate}
+@keyframes twinkle{to{opacity:.4}}
+/* NEW: Sakura (unlockable) */
+#chat[data-bg="sakura"]::before,.bgtile[data-bg="sakura"]{background:linear-gradient(180deg,#2a1440,#6a2a6a 55%,#c96a9a)}
+#chat[data-bg="sakura"]::after{background-image:radial-gradient(ellipse 5px 3px,#ffc2d8 60%,transparent 70%),radial-gradient(ellipse 4px 3px,#ffe3ee 60%,transparent 70%);background-size:110px 130px,170px 150px;animation:petals 10s linear infinite}
+@keyframes petals{to{background-position:-160px 520px,-260px 600px}}
+#chat[data-bg="sakura"]>.bgfx::before{inset:auto;right:10%;top:8%;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fff6ea,#ffd6e7);box-shadow:0 0 40px rgba(255,214,231,.6)}
+/* NEW: Lava (unlockable) */
+#chat[data-bg="lava"]::before,.bgtile[data-bg="lava"]{background:linear-gradient(180deg,#140404,#3a0a05 60%,#7a1a05)}
+#chat[data-bg="lava"]::after{background-image:radial-gradient(circle,#ffcf5a 0 1.5px,rgba(255,120,30,.4) 2.5px,transparent 4px),radial-gradient(circle,#ff7a1a 0 1px,transparent 3px);background-size:90px 140px,140px 190px;animation:embers 6s linear infinite}
+@keyframes embers{to{background-position:30px -560px,-40px -760px}}
+#chat[data-bg="lava"]>.bgfx::before{top:auto;height:22%;background:radial-gradient(ellipse at 25% 100%,#ff7a1a,transparent 60%),radial-gradient(ellipse at 75% 100%,#ffb030,transparent 55%);filter:blur(10px);animation:lavaglow 4s ease-in-out infinite alternate}
+@keyframes lavaglow{to{opacity:.55;transform:scaleY(1.2)}}
+/* NEW: Café (unlockable) */
+#chat[data-bg="cafe"]::before,.bgtile[data-bg="cafe"]{background:linear-gradient(180deg,#1e130b,#3a2414 60%,#241508)}
+#chat[data-bg="cafe"]::after{background:radial-gradient(circle at 12% 14%,rgba(255,200,110,.55) 0 7px,transparent 22px),radial-gradient(circle at 34% 9%,rgba(255,170,90,.45) 0 9px,transparent 26px),radial-gradient(circle at 58% 15%,rgba(255,215,140,.5) 0 6px,transparent 20px),radial-gradient(circle at 80% 8%,rgba(255,180,100,.5) 0 8px,transparent 24px),radial-gradient(circle at 93% 20%,rgba(255,220,150,.4) 0 6px,transparent 18px),radial-gradient(ellipse at 30% 100%,rgba(255,210,122,.25),transparent 55%);filter:blur(1.5px);animation:cafeglow 5s ease-in-out infinite alternate}
+@keyframes cafeglow{to{opacity:.7}}
+#chat[data-bg="cafe"]>.bgfx::before{left:30%;right:30%;background:radial-gradient(ellipse 18px 60px at 40% 90%,rgba(255,255,255,.12),transparent),radial-gradient(ellipse 14px 50px at 60% 80%,rgba(255,255,255,.1),transparent);filter:blur(4px);animation:steam 5s ease-in-out infinite}
+@keyframes steam{0%{transform:translateY(20%);opacity:0}40%{opacity:1}100%{transform:translateY(-40%) scaleX(1.4);opacity:0}}
+#chat[data-bg="cafe"]>.bgfx::after{inset:auto;right:6%;top:34%;width:30%;height:26%;opacity:.8;background:linear-gradient(rgba(120,160,220,.18),rgba(60,80,140,.12));border:4px solid #2a1a0a;box-shadow:inset 0 0 0 2px #4a2e14;background-image:repeating-linear-gradient(100deg,transparent 0 10px,rgba(200,230,255,.18) 10px 11px,transparent 11px 30px);animation:rainfall .9s linear infinite}
+@media (prefers-reduced-motion:reduce){#chat>.bgfx::before,#chat>.bgfx::after{animation:none!important}}
+/* ===== Jimmy's anime lines ===== */
+.sxscene.al-hype{background:radial-gradient(circle at 50% 45%,rgba(255,120,40,.35),rgba(20,4,4,.8))}
+.sxscene.al-dark{background:radial-gradient(circle at 50% 45%,rgba(20,30,60,.35),rgba(0,0,8,.9))}
+.sxscene.al-comedy{background:radial-gradient(circle,rgba(255,255,255,.55) 0 5px,transparent 6px) 0 0/34px 34px,linear-gradient(135deg,rgba(120,220,255,.85),rgba(255,240,150,.85))}
+.sxscene.al-sparkle{background:radial-gradient(circle at 20% 30%,rgba(255,190,220,.7),transparent 25%),radial-gradient(circle at 75% 60%,rgba(255,230,160,.6),transparent 22%),radial-gradient(circle at 40% 80%,rgba(255,170,210,.6),transparent 20%),rgba(255,150,200,.55)}
+.al-cap{position:absolute;left:6%;right:6%;top:52%;text-align:center;font-family:var(--num);font-size:clamp(24px,7vw,40px);line-height:1.35;color:#fff;-webkit-text-stroke:1px #000;text-shadow:3px 3px 0 #000;text-transform:uppercase}
+.al-w{opacity:0;padding:0 3px;border-radius:3px}
+.al-w.seen{opacity:1}
+.al-w.on{background:#d81b2c;box-shadow:2px 2px 0 #000}
+.al-emoji{position:absolute;left:50%;top:26%;transform:translateX(-50%);font-size:clamp(70px,22vw,120px);animation:alemoji .6s cubic-bezier(.2,1.6,.4,1) both;filter:drop-shadow(4px 6px 0 rgba(0,0,0,.35))}
+@keyframes alemoji{from{transform:translateX(-50%) scale(.2) rotate(-20deg)}to{transform:translateX(-50%) scale(1) rotate(0)}}
+/* ===== right behind me ===== */
+.sxscene.bh-dark{background:radial-gradient(ellipse at 50% 60%,rgba(0,0,0,.35),rgba(0,0,0,.92));animation:rdsky 1.2s ease both}
+.bh-shadow{position:absolute;left:50%;bottom:-8%;width:min(78vw,340px);height:88%;transform:translate(-50%,100%);background:radial-gradient(ellipse 34% 14% at 50% 12%,#000 98%,transparent 100%),radial-gradient(ellipse 48% 60% at 50% 72%,#000 98%,transparent 100%);filter:blur(3px);opacity:.92;animation:bhrise 2.8s cubic-bezier(.4,0,.2,1) .4s forwards}
+@keyframes bhrise{to{transform:translate(-50%,0)}}
+.bh-eyes{position:absolute;left:50%;top:21%;transform:translateX(-50%);display:flex;gap:22px}
+.bh-eyes i{width:14px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff,0 0 26px #ff4040;transform:scaleY(0);animation:bheyes .5s ease-out 2.4s forwards}
+@keyframes bheyes{to{transform:scaleY(1)}}
+.bh-cap{top:auto;bottom:18%;color:#ddd;font-family:Georgia,serif;font-style:italic;text-shadow:0 0 10px #000}
+@media (prefers-reduced-motion:reduce){.bh-shadow{animation:none;transform:translate(-50%,0)}}
 </style>
 </head>
 <body>
@@ -3222,7 +3348,7 @@ const COLORS=["#00F0FF","#E07AC6","#F3FF3A","#7CFF6B","#FF8A3D","#B18CFF"];
 const EMOJIS=["🔥","😂","😮","😢","👍","❤️"];
 const PAGE=50;
 const MAX_VIDEO_SECONDS=30, MAX_VIDEO_BYTES=25e6, MAX_VOICE_SECONDS=120, MAX_PICK_BYTES=500e6;
-const BACKGROUNDS=[["stars","Stars"],["grid","Grid"],["rain","Rain"],["sunset","Sunset"],["aurora","Aurora"],["void","Void"],["burning","Burning City"],["darkhour","Dark Hour"],["wasteland","Wasteland"],["warp","Hyperspace"],["matrix","Code Rain"]];
+const BACKGROUNDS=[["stars","Stars"],["grid","Grid"],["rain","Rain"],["sunset","Sunset"],["aurora","Aurora"],["void","Void"],["ocean","Ocean"],["snow","Snowfall"],["fireflies","Fireflies"],["nebula","Nebula"],["sakura","Sakura"],["lava","Lava"],["cafe","Café"],["burning","Burning City"],["darkhour","Dark Hour"],["wasteland","Wasteland"],["warp","Hyperspace"],["matrix","Code Rain"]];
 const THEMES={
   night:  {label:"Night Signal", main:"#00F0FF", accent:"#C65AAE", hi:"#F3FF3A"},
   crimson:{label:"Crimson",      main:"#FF4D6D", accent:"#FFB347", hi:"#FFF1A8"},
@@ -4887,6 +5013,8 @@ function setRoomBackground(bg){
   if(bg&&/^#[0-9a-f]{6}$/i.test(bg)){ c.dataset.bg="custom"; c.style.setProperty("--roombg",bg); }
   else { c.dataset.bg=bg||"stars"; c.style.removeProperty("--roombg"); }
 }
+/* a third background layer (with its own ::before/::after) for richer, animated chat backgrounds */
+(()=>{ const c=document.getElementById("chat"); if(c&&!c.querySelector(":scope > .bgfx")){ const f=document.createElement("div"); f.className="bgfx"; f.setAttribute("aria-hidden","true"); c.prepend(f); } })();
 function paintBgTiles(){
   const box=$("bgTiles"); box.innerHTML="";
   BACKGROUNDS.filter(([id])=>unlockOk("bg",id)||(roomBg||"stars")===id).forEach(([id,label])=>{
@@ -7887,6 +8015,9 @@ const UNLOCKS=[
   {id:"bg:wasteland",   type:"bg",    label:"☢️ Wasteland background",    by:{secret:"war"}},
   {id:"bg:warp",        type:"bg",    label:"🚀 Hyperspace background",   by:{secret:"hyperspace"}},
   {id:"bg:matrix",      type:"bg",    label:"🟢 Code Rain background",    by:{secret:"matrix"}},
+  {id:"bg:sakura",      type:"bg",    label:"🌸 Sakura background",       by:{secret:"yuri"}},
+  {id:"bg:lava",        type:"bg",    label:"🌋 Lava background",         by:{secret:"gigadrill"}},
+  {id:"bg:cafe",        type:"bg",    label:"☕ Café background",         by:{secret:"writer"}},
   {id:"sticker:nightowl",type:"sticker", label:"🦉 Night owl sticker",  by:{secret:"moonwink"}},
   {id:"sticker:dragon", type:"sticker", label:"🐉 Dragon sticker",      by:{secret:"dragon"}},
   {id:"sticker:nat20",  type:"sticker", label:"🎲 NAT 20 sticker",      by:{secret:"d20"}},
@@ -7903,8 +8034,16 @@ const UNLOCKS=[
   {id:"frame:pixel",    type:"frame", label:"Pixel frame",           by:{secret:"gameover"}},
   {id:"frame:gold",     type:"frame", label:"Gold crown frame",      by:{level:6}},
   {id:"frame:mythic",   type:"frame", label:"Mythic rainbow frame",  by:{level:11}},
+  {id:"frame:circuit",  type:"frame", label:"Circuit frame",         by:{level:4}},
+  {id:"frame:frost",    type:"frame", label:"Frost frame",           by:{level:5}},
+  {id:"frame:thunder",  type:"frame", label:"Thunder frame",         by:{level:8}},
+  {id:"frame:galaxy",   type:"frame", label:"Galaxy frame",          by:{level:14}},
+  {id:"frame:sakura",   type:"frame", label:"Sakura frame",          by:{secret:"yuri"}},
+  {id:"frame:spiral",   type:"frame", label:"Spiral frame",          by:{secret:"gigadrill"}},
+  {id:"frame:shadow",   type:"frame", label:"Shadow frame",          by:{secret:"johnny"}},
+  {id:"frame:heartbeat",type:"frame", label:"Heartbeat frame",       by:{linkRank:8}},
 ];
-const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Bonded"};
+const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Bonded",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat"};
 const myLevel=()=>xpLevel(xpData().xp).lvl;
 function unlockMet(u){ return u.by.secret?hasSecret(u.by.secret):u.by.level?myLevel()>=u.by.level:u.by.stat?statCount(u.by.stat)>=u.by.stat_n:u.by.linkRank?[...socialLinks.values()].some(r=>rankFromXp(r.xp).rank>=u.by.linkRank):true; }
 const unlockOk=(type,key)=>{ const u=UNLOCKS.find(x=>x.id===type+":"+key); return !u||unlockMet(u); };
@@ -7938,7 +8077,8 @@ function paintUnlocks(){
 /* frames: everyone sees them (saved inside your profile theme) */
 function frameOf(p){ const f=p?.theme?.frame; return f&&FRAMES[f]?f:null; }
 const _paintFace=paintFace;
-paintFace=function(node,p){ _paintFace(node,p); [...node.classList].filter(c=>c.startsWith("frame-")).forEach(c=>node.classList.remove(c)); const f=frameOf(p); if(f) node.classList.add("frame-"+f); };
+paintFace=function(node,p){ _paintFace(node,p); [...node.classList].filter(c=>c.startsWith("frame-")).forEach(c=>node.classList.remove(c)); node.querySelector(":scope > .frx")?.remove();
+  const f=frameOf(p); if(f){ node.classList.add("frame-"+f); const x=document.createElement("span"); x.className="frx"; x.setAttribute("aria-hidden","true"); node.append(x); } };
 function paintFrameRow(){
   const row=$("frameRow"); row.innerHTML="";
   const cur=draftTheme.frame||"";
@@ -7951,7 +8091,7 @@ function paintFrameRow(){
   const pf=$("themePreviewFace"); [...pf.classList].filter(c=>c.startsWith("frame-")).forEach(c=>pf.classList.remove(c)); if(draftTheme.frame&&FRAMES[draftTheme.frame]) pf.classList.add("frame-"+draftTheme.frame);
   paintStatusRow();
 }
-const STATUS_SHAPES=[["dot","Dot"],["star","Star"],["diamond","Diamond"],["heart","Heart"],["ring","Ring"]];
+const STATUS_SHAPES=[["dot","Dot"],["star","Star"],["diamond","Diamond"],["heart","Heart"],["ring","Ring"],["moon","Moon"],["square","Square"],["triangle","Triangle"],["bolt","Bolt"],["sparkle","Sparkle"],["plus","Plus"],["pulse","Pulse"]];
 function paintStatusRow(){
   const row=$("statusRow"); if(!row) return; row.innerHTML="";
   const cur=draftTheme.statusShape||"dot";
@@ -8113,7 +8253,7 @@ function applyStatusDot(node,uid,p){
   const st=statusOf(uid); ["online","idle","dnd"].forEach(s=>node.classList.toggle("status-"+s,st===s));
   node.classList.toggle("has-status",!!st);
   const shape=(p?.theme?.statusShape)||"dot";
-  ["dot","star","diamond","heart","ring"].forEach(s=>node.classList.toggle("shape-"+s,shape===s));
+  STATUS_SHAPES.forEach(([s])=>node.classList.toggle("shape-"+s,shape===s));
   const w=whereIs(uid); node.classList.toggle("here",!!(st&&st!=="dnd"&&w&&room&&w.room===room&&uid!==user?.id));
 }
 function paintPresence(){
@@ -8523,7 +8663,48 @@ QX.gattai=function(){
   const a=el("div","gl-half left"), b=el("div","gl-half right"); L.append(a,b);
   setTimeout(()=>{ L.append(el("div","gl-shock")); L.append(el("div","gl-flash")); sxCap(L,"GATTAI!","gl-slam"); document.body.animate([{transform:"none"},{transform:"translate(0,8px)"},{transform:"none"}],{duration:300}); if(navigator.vibrate) navigator.vibrate([30,20,90]); },650);
 };
+/* ===== Jimmy's anime lines: TikTok-style captions, each word lights up red as it's "said" ===== */
+QX.animeLine=function(text,mood,emoji){
+  const words=text.split(/\s+/), per=Math.max(170,Math.min(300,2400/words.length));
+  const L=sxLayer("sxLine",Math.round(words.length*per+2600)); L.classList.add("al-"+mood);
+  if(mood==="hype") glSpeedLines(L);
+  const em=el("div","al-emoji",emoji); L.append(em);
+  const box=el("div","al-cap"); L.append(box);
+  const spans=words.map(w=>{ const sp=el("span","al-w",w); box.append(sp," "); return sp; });
+  spans.forEach((sp,i)=>setTimeout(()=>{ spans.forEach(x=>x.classList.remove("on")); sp.classList.add("on","seen"); },400+i*per));
+  setTimeout(()=>spans.forEach(x=>x.classList.remove("on")),400+words.length*per+300);
+};
+const ANIME_LINES=[
+  ["binaryhoes","Greetings",/bitches and bros and non[- ]?binary hoes/i,"Hey, bitches and bros and non-binary hoes!","hype","👋"],
+  ["sunrising","Why the sun",/why does the sun keep rising/i,"Why does the sun keep rising?","dark","🌅"],
+  ["lottohandle","Exhausted",/that was a lot to handle/i,"That was a lot to handle. And now I'm exhausted.","comedy","😮‍💨"],
+  ["threaten","How dare you",/how dare you threaten me/i,"How dare you threaten me?!","hype","😤"],
+  ["giveback","Give them back",/give them back right now/i,"Give them back right now!","hype","😡"],
+  ["whatdaddy","What now",/what is it now,? daddy/i,"What is it now, daddy?","comedy","🙄"],
+  ["eyelashes","Long lashes",/extremely long eyelashes/i,"Anyone ever told you you've got extremely long eyelashes?","sparkle","👁️"],
+  ["noanswer","No answer",/girl ask question|why,? boy\??,? no answer/i,"Girl ask question. Why, boy? No answer.","comedy","🤷"],
+  ["consent","Consent, bud",/can'?t sniff folks|gotta get consent,? bud/i,"You can't sniff folks without permission. You gotta get consent, bud.","comedy","👃"],
+  ["restroom","Speak now",/eats the restroom/i,"If someone eats the restroom more than me, speak now or forever hold your peace.","comedy","🚽"],
+  ["twentyfour","Not old",/i'?m not old,? i'?m twenty[- ]freaking[- ]four/i,"I'm not old, I'm twenty freaking four!","hype","🎂"],
+  ["stayfrosty","Stay frosty",/stay low,? stay frosty|don'?t speak\.? don'?t turn around/i,"Don't speak. Don't turn around. No sudden moves. Stay low, stay frosty.","dark","🥶"],
+  ["notenough","Not enough",/sometimes your best just isn'?t enough/i,"Today we learned that sometimes your best just isn't enough.","dark","📉"],
+  ["tantrum","Tantrum",/tantrum in your hallway/i,"I'm in the middle of throwing a tantrum in your hallway.","comedy","😤"],
+  ["samecolor","Same color",/bleed the same colou?r/i,"Whether it's a guy or a girl, both will bleed the same color of red if you stab them.","dark","🩸"],
+  ["hirose","Happier",/nothing will make me happier,? hirose/i,"Nothing will make me happier, Hirose.","sparkle","🥹"],
+  ["tasty","Is it tasty",/you know damn well (that )?it'?s not/i,"Is it tasty? You know damn well that it's not.","comedy","🤢"]
+];
+/* Jimmy's idea: "it's right behind me, isn't it?" works with it / he / she / they, and the answer matches */
+QX.behind=function(who){
+  const L=sxLayer("sxBehind",6400); L.classList.add("bh-dark");
+  L.append(el("div","bh-shadow"));
+  const eyes=el("div","bh-eyes"); eyes.append(el("i"),el("i")); L.append(eyes);
+  const ans={he:"…yes. He is.",she:"…yes. She is.",they:"…yes. They are.",it:"…yes. It is."}[who]||"…yes. It is.";
+  setTimeout(()=>{ sxCap(L,ans,"bh-cap"); if(navigator.vibrate) navigator.vibrate([10,80,10,80,200]); },3000);
+};
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"behind",     name:"Right behind me",    re:/(it|he|she|they)('?s|'?re| is| are) right behind me/i,
+   play:m=>{ const w=((m&&m.text)||"").match(/(it|he|she|they)('?s|'?re| is| are) right behind me/i); QX.behind(w?w[1].toLowerCase():"it"); }},
+  ...ANIME_LINES.map(([id,name,re,text,mood,emoji])=>({id,name,re,play:()=>QX.animeLine(text,mood,emoji)})),
   {id:"justwho",    name:"Who the hell",       re:/just who the (hell|heck) do (you|ya|u) think (i am|i'm)/i, play:()=>QX.justwho()},
   {id:"rowrow",     name:"Row, row",           re:/row,?\s*row,?\s*fight the power/i, play:()=>QX.rowrow()},
   {id:"kickreason", name:"Do the impossible",  re:/kick reason to the curb|do the impossible/i, play:()=>QX.kickreason()},
@@ -8548,6 +8729,24 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
 );
 Object.assign(HINTS,{
   ein:"The smartest crew member on the Bebop is a corgi. Say his name.",
+  behind:"A horror-movie character slowly realizes something is standing right behind them… isn't it?",
+  binaryhoes:"A very inclusive anime greeting: hey, bitches and bros and…",
+  sunrising:"A tired, dramatic question about the sun. Why does it keep…?",
+  lottohandle:"That was a lot to… handle. (And now someone's exhausted.)",
+  threaten:"An outraged anime line: how dare you… (four words in).",
+  giveback:"An angry demand: give them back… right when?",
+  whatdaddy:"An annoyed kid's question: what is it now…?",
+  eyelashes:"A weirdly specific compliment: anyone ever told you you've got extremely long…?",
+  noanswer:"Girl ask question. Why, boy? …what does he give?",
+  consent:"You can't sniff folks without permission. You gotta get…",
+  restroom:"A strange wedding-style challenge about who eats the restroom more.",
+  twentyfour:"I'm not old. I'm twenty freaking…",
+  stayfrosty:"Don't speak. Don't turn around. No sudden moves. Stay low, stay…",
+  notenough:"Today we learned that sometimes your best just isn't…",
+  tantrum:"Someone's in the middle of throwing a tantrum in your… where?",
+  samecolor:"Guy or girl, it doesn't matter, you'll all bleed the same…",
+  hirose:"Nothing will make me happier, … (a character's last name).",
+  tasty:"Is it tasty? You know damn well that it's…",
   justwho:"A big brother in shades yells a question that's really an answer: just who the hell…?",
   rowrow:"The battle chant from a certain drill anime's hype song. Row, row…",
   kickreason:"The team's motto says to kick something to the curb and do the impossible.",
@@ -9075,8 +9274,19 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.26x";
+const APP_VERSION="2026.09.26z";
 const CHANGELOG=[
+  {v:"2026.09.26z", title:"18 new secrets 🎬", items:[
+    "🎬 Eighteen new secrets are hiding in the chat, based on a bunch of anime lines someone quotes way too often.",
+    "👀 …and one more, for when something is right behind you. Isn't it?",
+    "🙌 Thanks to jimmylikespie21 for the ideas!",
+  ]},
+  {v:"2026.09.26y", title:"Glow-up: frames, dots & backgrounds ✨", items:[
+    "🖼️ 8 new profile frames to unlock: Circuit, Frost, Thunder, Galaxy, Sakura, Spiral, Shadow, and Heartbeat.",
+    "🟢 7 new online-status shapes: moon, square, triangle, bolt, sparkle, plus, and a pulsing dot.",
+    "🌌 Chat backgrounds are livelier (shooting stars, lightning, a synthwave sun…) and there are 7 new ones: Ocean, Snowfall, Fireflies, Nebula, plus Sakura, Lava, and Café to unlock.",
+    "🛠️ Fixed the online dot getting stuck behind some frames' decorations.",
+  ]},
   {v:"2026.09.26x", title:"Spiral power 🌀", items:[
     "🌀 Seven new secrets are hiding in the chat. Kick reason to the curb, believe in yourself, and you might find them all…",
   ]},
