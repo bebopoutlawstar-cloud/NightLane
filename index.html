@@ -3010,7 +3010,7 @@ body.theme-mochi .send{background:#ff8fb8!important}
     <h3>Powered by</h3>
     <p class="sub">Supabase and GIPHY</p>
     <h3>🐛Bug hunters & testers</h3>
-    <p class="sub">Xen, Ren, Justin, Han, Kenneth, and Freddy</p>
+    <p class="sub">Xen, Ren, Justin, Han, Kenneth, Freddy, and Malcolm</p>
       <p class="sub">Thanks to everyone who helped test NightLane and find bugs!</p>
   <button class="ghost" type="button" id="creditsClose">Close</button>
     </div>
@@ -4307,6 +4307,7 @@ async function openRecovery(){
   $("rcStatus").textContent=when?`✅ You have a recovery code (made ${new Date(when).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"})}).`:"You don't have a recovery code yet.";
   $("rcMake").textContent=when?"Make a new code":"Make my recovery code";
 }
+$("openRecovery").onclick=()=>{ show($("profile"),false); openRecovery(); };
 $("openCredits").onclick=()=>{ show($("profile"),false); show($("creditsSheet")); };
 $("rcMake").onclick=async()=>{
   if($("rcMake").textContent.startsWith("Make a new")&&!confirm("Make a new recovery code? Your old one will stop working.")) return;
@@ -9301,8 +9302,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27a";
+const APP_VERSION="2026.09.27b";
 const CHANGELOG=[
+  {v:"2026.09.27b", title:"Quick fix 🛠️", items:[
+    "Fixed the Recovery code button in Profile.",
+    "Added Malcolm to the bug hunters in Credits. Thanks!",
+  ]},
   {v:"2026.09.27a", title:"Credits! 🌃", items:[
     "A new credits page shows who made NightLane, and what they did. Open Profile and tap 🌃 Credits to see it.",
     "Thanks to everyone who helped make NightLane possible, and to the people who inspired it!",
