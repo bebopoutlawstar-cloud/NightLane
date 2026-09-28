@@ -2385,6 +2385,10 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #creditsSheet h3{margin-top: 14px; margin-bottom: 2px;font-size: 1.1em; font-weight: 600;}
 #creditsSheet .sub{text-align:left;font-size:.9em;color:var(--muted);margin-bottom:10px;line-height:1.3;margin-top:0;width: 100%}
 #creditsSheet .sheetbody { gap: 4px; }
+#welcomeSheet h3{margin-top: 14px; margin-bottom: 2px;font-size: 1.1em; font-weight: 600;}
+#welcomeSheet .sub{text-align:left;font-size:.9em;color:var(--muted);margin-bottom:10px;line-height:1.3;margin-top:0;width: 100%}
+#welcomeSheet .sheetbody { gap: 4px; }
+
 </style>
 </head>
 <body>
@@ -2996,6 +3000,26 @@ body.theme-mochi .send{background:#ff8fb8!important}
     <button class="ghost" type="button" id="fpClose">Close</button>
   </div></form>
 </div>
+
+<!-- ============ Welcome Sheet ============ -->
+<div class="overlay hidden" id="welcomeSheet" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="welcomeTitle">Welcome to NightLane 🌃</h2>
+    <h3>💬 How to chat</h3>
+    <p class="sub">Rooms are for group chats. DMs are private one-on-one chats.</p>
+    <h3>🎮 Games & polls</h3>
+    <p class="sub">Play games and create polls with your friends by using the plus button in rooms and dms.</p>
+    <h3>✨ Social Bonds</h3>
+    <p class="sub">Your Social Bond with a friend grows as you DM each other. Tap a friend's profile to see your bond and its meaning.</p>
+    <h3>🎨 Themes & colors</h3>
+    <p class="sub">Change your theme, colors, and profile frame in Profile → Theme & colors 🎨</p>
+    <button class="go" type="button" id="welcomeFriends">Find my friends</button>
+    <button class="ghost" type="button" id="welcomeClose">Skip intro</button>
+  </div></div>
+</div>
+
+
+
 
 <!-- ============ CREDITS ============ -->
 <div class="overlay hidden" id="creditsSheet" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
@@ -4141,7 +4165,7 @@ async function handleAuth(u){
   paintArcanaBadge();
   if(q.get("friend")){ const tok=q.get("friend"); history.replaceState(null,"",location.pathname); setTimeout(()=>handleFriendInvite(tok),400); }
   try{ const t=LS.get("nl-front-tab"); if(["chats","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
-  celebrateMyBirthday(); seasonalCheck("login"); hintNudge(); dailyXP(); setTimeout(checkUnlocks,4000); setTimeout(recoveryNudge,9000); refreshAdmin();
+  celebrateMyBirthday(); seasonalCheck("login"); hintNudge(); dailyXP(); setTimeout(checkUnlocks,4000); setTimeout(recoveryNudge,9000); refreshAdmin(); setTimeout(maybeWelcome,1500);
   if(unsubAll) unsubAll();
   unsubAll=api.subscribeAll(onAnyMessage,onFriendAdded);   // (the icon number is set when the chat list loads)
   let linked=q.get("room"), joinCode=q.get("join"), joinToken=q.get("t");
@@ -4326,6 +4350,14 @@ $("rcClose").onclick=()=>show($("rcSheet"),false);
 $("rcSheet").addEventListener("click",e=>{ if(e.target.id==="rcSheet") show($("rcSheet"),false); });
 $("creditsClose").onclick=()=>show($("creditsSheet"),false);
 $("creditsSheet").addEventListener("click",e=>{ if(e.target.id==="creditsSheet") show($("creditsSheet"),false); });
+$("welcomeClose").onclick=()=>show($("welcomeSheet"),false);
+$("welcomeFriends").onclick=()=>{ show($("welcomeSheet"),false); setFrontTab("contacts"); $("contactName").focus(); };
+$("welcomeSheet").addEventListener("click",e=>{ if(e.target.id==="welcomeSheet") show($("welcomeSheet"),false); });
+function maybeWelcome(){
+  if(LS.get("nl-welcome-shown")) return;
+  show($("welcomeSheet"));
+  LS.set("nl-welcome-shown","1");
+}
 // one gentle nudge per account per device, a little after signing in
 async function recoveryNudge(){
   if(!user||offlineMode) return; try{ if(LS.get("nl-rc-nudged-"+user.id)) return; }catch(e){ return; }
@@ -9302,8 +9334,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27b";
+const APP_VERSION="2026.09.27c";
 const CHANGELOG=[
+   {v:"2026.09.27c", title:"Welcome Intro added 🦉", items:[
+    "New welcome intro for new users/users who haven't seen it yet, explaining what NightLane is and how to get started.",
+    "Tap Find my friends on the welcome screen to jump straight to adding friends.",
+  ]},
   {v:"2026.09.27b", title:"Quick fix 🛠️", items:[
     "Fixed the Recovery code button in Profile.",
     "Added Malcolm to the bug hunters in Credits. Thanks!",
