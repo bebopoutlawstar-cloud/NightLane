@@ -1365,7 +1365,8 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .punct{position:absolute;top:-22px;right:-14px;font-family:var(--num);font-size:34px;line-height:1;color:var(--white);-webkit-text-stroke:2px var(--night);text-shadow:3px 3px 0 var(--night);transform:rotate(12deg);pointer-events:none;z-index:3;animation:punctpop .35s cubic-bezier(.2,1.6,.4,1) both}
 .msg.me .punct{right:-14px;left:auto;top:-22px;transform:rotate(12deg);color:var(--volt)}
 /* a message's ? / ! sits in the bubble; lift that message's column above the (framed) profile picture so the mark isn't hidden */
-.msg .col:has(> .bubble > .punct){z-index:3}   /* .col is its own layer (will-change for swipe-to-reply), so lift it, not just the bubble */
+.msg .col:has(> .bubble > .punct){z-index:3}
+.msg .col > .bubble:has(> .punct){z-index:2}   /* …and above the name tag (z 1), which sits right where a friend's ? pops out */   /* .col is its own layer (will-change for swipe-to-reply), so lift it, not just the bubble */
 .msg.me .punct.loud{top:-30px;right:-2px}
 .punct.loud{font-size:44px;top:-30px;color:var(--mag);-webkit-text-stroke:2px var(--night)}
 .msg.me .punct.loud{color:var(--volt)}
@@ -2450,6 +2451,52 @@ body.theme-mochi .send{background:#ff8fb8!important}
 @keyframes sslock{to{width:60px;height:60px;border-color:#fff;box-shadow:0 0 20px #fff}}
 .ss-cap{top:64%}
 @media (prefers-reduced-motion:reduce){html:not(.motion-always) .sxscene.vr-glow{animation:none}}
+/* ===== Steins;Gate secrets ===== */
+.sg-meter{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);display:flex;gap:4px;background:#0b0604;border:4px solid #3a2410;border-radius:8px;padding:12px;box-shadow:0 0 40px rgba(255,140,40,.35)}
+.sg-tube{width:clamp(26px,8vw,40px);height:clamp(44px,13vw,64px);display:grid;place-items:center;font-family:ui-monospace,monospace;font-size:clamp(26px,8vw,40px);color:#ff9a3d;background:radial-gradient(ellipse at 50% 40%,rgba(255,154,61,.18),rgba(0,0,0,.6));border:1px solid rgba(255,190,120,.25);border-radius:40% 40% 10% 10%;text-shadow:0 0 6px #ff7a1a,0 0 14px #ff5a00;opacity:.8}
+.sg-tube.dot{width:14px;background:none;border:none}
+.sg-tube.set{opacity:1;color:#ffc27a}
+.sg-cap{top:62%;color:#ffc27a;font-family:ui-monospace,monospace;text-shadow:0 0 8px #ff7a1a,2px 2px 0 #000;font-size:clamp(16px,5vw,26px)}
+.sg-unlock{top:72%}
+.fh-laugh{position:absolute;font-family:var(--num);font-size:clamp(40px,13vw,72px);color:#fff;-webkit-text-stroke:2px #3d0b0b;text-shadow:4px 4px 0 #b3001b,0 0 20px rgba(255,0,40,.6);transform:rotate(-8deg);animation:sxcapin .35s cubic-bezier(.2,1.6,.4,1) both}
+.ct-anger{position:absolute;right:14%;top:22%;font-size:clamp(60px,18vw,100px);animation:ctpulse .3s ease-in-out 4 alternate}
+@keyframes ctpulse{to{transform:scale(1.25) rotate(10deg)}}
+.ct-cap{color:#ff6b8a;text-shadow:3px 3px 0 #07041a}
+.gb-banana{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:clamp(90px,28vw,150px);transition:filter 1s}
+.gb-banana.gel{filter:hue-rotate(80deg) saturate(2.4) brightness(.9) drop-shadow(0 0 20px #7cff5a);opacity:.85;animation:gbwobble .5s ease-in-out infinite alternate}
+@keyframes gbwobble{from{transform:translate(-50%,-50%) scale(1.08,.92)}to{transform:translate(-50%,-50%) scale(.92,1.08)}}
+.gb-cap{top:64%;color:#b8ff9a}
+.pw-box{position:absolute;left:50%;top:40%;width:min(70vw,300px);aspect-ratio:1.6;transform:translate(-50%,-50%);background:linear-gradient(#dcdcdc,#a9a9a9);border:5px solid #07041a;border-radius:10px;display:grid;grid-template-columns:3fr 1fr;padding:10px;gap:10px;box-shadow:0 0 30px rgba(120,200,255,.3)}
+.pw-window{background:radial-gradient(circle,#ffe8a0,#c98a2a 70%);border:4px solid #333;border-radius:6px;display:grid;place-items:center;overflow:hidden;animation:pwglow 1s ease-in-out infinite alternate}
+@keyframes pwglow{to{filter:brightness(1.3)}}
+.pw-plate{width:70%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.35);display:grid;place-items:center;font-size:clamp(22px,7vw,36px);animation:pwspin 1.2s linear infinite}
+@keyframes pwspin{to{transform:rotate(360deg)}}
+.pw-panel{display:grid;gap:6px;align-content:center;justify-items:center}.pw-panel i{width:60%;height:10px;background:#333;border-radius:3px}.pw-panel b{font-family:ui-monospace,monospace;color:#3dff8a;background:#111;padding:2px 6px;font-size:14px}
+.pw-zap{position:absolute;width:3px;height:40px;background:linear-gradient(#fff,#7fd8ff);box-shadow:0 0 10px #7fd8ff;transform:rotate(25deg);opacity:0;animation:pwzap .3s steps(2) 3}
+@keyframes pwzap{50%{opacity:1}}
+.pw-cap{top:66%;color:#9fd8ff;font-family:ui-monospace,monospace;font-size:clamp(15px,4.4vw,22px)}
+#chat.rs-shift{animation:rsshift 2.4s ease-in-out both}
+@keyframes rsshift{0%,100%{filter:none;transform:none}20%{filter:hue-rotate(160deg) invert(.15) blur(1px);transform:skewX(3deg)}45%{filter:hue-rotate(300deg) blur(2px);transform:skewX(-4deg) scale(1.02)}70%{filter:hue-rotate(60deg);transform:skewX(2deg)}}
+.rs-ring{position:absolute;left:50%;top:45%;width:20px;height:20px;border:3px solid rgba(255,194,122,.8);border-radius:50%;transform:translate(-50%,-50%);animation:glshock 1.6s ease-out both}
+.sxscene.jt-screen{background:rgba(0,10,0,.92)}
+.jt-text{position:absolute;left:8%;right:8%;top:22%;margin:0;font-family:ui-monospace,monospace;font-size:clamp(14px,4.4vw,20px);color:#3dff6a;text-shadow:0 0 6px #3dff6a;white-space:pre-wrap}
+.ok-watch{position:absolute;left:50%;top:0;transform-origin:50% 0;animation:okswing 1.6s ease-in-out infinite alternate;display:grid;justify-items:center;margin-left:-60px;width:120px}
+@keyframes okswing{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+.ok-chain{width:3px;height:30vh;background:repeating-linear-gradient(#d9b25a 0 6px,#8a6a20 6px 9px)}
+.ok-face{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#fffaf0,#e8dcc0);border:7px solid #d9b25a;box-shadow:0 0 20px rgba(255,210,120,.6);position:relative}
+.ok-hand{position:absolute;left:50%;bottom:50%;width:3px;background:#222;transform-origin:50% 100%}
+.ok-hand.h{height:28%;animation:pwspin 12s linear infinite}.ok-hand.m{height:40%;animation:pwspin 2s steps(60) infinite}
+/* ===== ⚙️ Divergence theme (visual-novel look: dialogue-box bubbles, speaker nameplates, clockwork) ===== */
+body.theme-divergence{--night:#0a0c10;--deep:#141922;--white:#e9e4da;--muted:#9aa7b5}
+body.theme-divergence .app,body.theme-divergence .sky{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27600%27%20height%3D%27600%27%20viewBox%3D%270%200%20600%20600%27%3E%3Cg%20opacity%3D%270.14%27%3E%3Cpolygon%20points%3D%27240.7%2C145.9%20240.7%2C154.1%20228.5%2C166.5%20226.9%2C173.6%20232.5%2C190.0%20229.0%2C197.4%20212.6%2C203.2%20208.0%2C208.9%20206.0%2C226.2%20199.6%2C231.3%20182.3%2C229.4%20175.7%2C232.6%20166.4%2C247.3%20158.4%2C249.1%20143.6%2C239.9%20136.4%2C239.9%20121.6%2C249.1%20113.6%2C247.3%20104.3%2C232.6%2097.7%2C229.4%2080.4%2C231.3%2074.0%2C226.2%2072.0%2C208.9%2067.4%2C203.2%2051.0%2C197.4%2047.5%2C190.0%2053.1%2C173.6%2051.5%2C166.5%2039.3%2C154.1%2039.3%2C145.9%2051.5%2C133.5%2053.1%2C126.4%2047.5%2C110.0%2051.0%2C102.6%2067.4%2C96.8%2072.0%2C91.1%2074.0%2C73.8%2080.4%2C68.7%2097.7%2C70.6%20104.3%2C67.4%20113.6%2C52.7%20121.6%2C50.9%20136.4%2C60.1%20143.6%2C60.1%20158.4%2C50.9%20166.4%2C52.7%20175.7%2C67.4%20182.3%2C70.6%20199.6%2C68.7%20206.0%2C73.8%20208.0%2C91.1%20212.6%2C96.8%20229.0%2C102.6%20232.5%2C110.0%20226.9%2C126.4%20228.5%2C133.5%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27140%27%20cy%3D%27150%27%20r%3D%2749.5%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27140%27%20cy%3D%27150%27%20r%3D%2710.8%27%20fill%3D%27%23c9a26a%27%2F%3E%3Cpolygon%20points%3D%27351.5%2C211.5%20351.5%2C218.5%20343.2%2C229.0%20341.3%2C234.9%20341.8%2C248.3%20337.7%2C254.0%20324.8%2C257.6%20319.8%2C261.3%20312.3%2C272.4%20305.7%2C274.6%20293.1%2C269.9%20286.9%2C269.9%20274.3%2C274.6%20267.7%2C272.4%20260.2%2C261.3%20255.2%2C257.6%20242.3%2C254.0%20238.2%2C248.3%20238.7%2C234.9%20236.8%2C229.0%20228.5%2C218.5%20228.5%2C211.5%20236.8%2C201.0%20238.7%2C195.1%20238.2%2C181.7%20242.3%2C176.0%20255.2%2C172.4%20260.2%2C168.7%20267.7%2C157.6%20274.3%2C155.4%20286.9%2C160.1%20293.1%2C160.1%20305.7%2C155.4%20312.3%2C157.6%20319.8%2C168.7%20324.8%2C172.4%20337.7%2C176.0%20341.8%2C181.7%20341.3%2C195.1%20343.2%2C201.0%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27290%27%20cy%3D%27215%27%20r%3D%2730.3%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27290%27%20cy%3D%27215%27%20r%3D%276.6%27%20fill%3D%27%23c9a26a%27%2F%3E%3Cpolygon%20points%3D%27604.3%2C415.8%20604.3%2C424.2%20588.8%2C437.1%20587.5%2C444.5%20597.7%2C462.0%20594.8%2C469.9%20575.8%2C476.7%20572.0%2C483.2%20575.6%2C503.1%20570.2%2C509.6%20550.0%2C509.5%20544.2%2C514.3%20540.8%2C534.2%20533.5%2C538.4%20514.6%2C531.4%20507.5%2C534.0%20497.5%2C551.6%20489.2%2C553.0%20473.8%2C539.9%20466.2%2C539.9%20450.8%2C553.0%20442.5%2C551.6%20432.5%2C534.0%20425.4%2C531.4%20406.5%2C538.4%20399.2%2C534.2%20395.8%2C514.3%20390.0%2C509.5%20369.8%2C509.6%20364.4%2C503.1%20368.0%2C483.2%20364.2%2C476.7%20345.2%2C469.9%20342.3%2C462.0%20352.5%2C444.5%20351.2%2C437.1%20335.7%2C424.2%20335.7%2C415.8%20351.2%2C402.9%20352.5%2C395.5%20342.3%2C378.0%20345.2%2C370.1%20364.2%2C363.3%20368.0%2C356.8%20364.4%2C336.9%20369.8%2C330.4%20390.0%2C330.5%20395.8%2C325.7%20399.2%2C305.8%20406.5%2C301.6%20425.4%2C308.6%20432.5%2C306.0%20442.5%2C288.4%20450.8%2C287.0%20466.2%2C300.1%20473.8%2C300.1%20489.2%2C287.0%20497.5%2C288.4%20507.5%2C306.0%20514.6%2C308.6%20533.5%2C301.6%20540.8%2C305.8%20544.2%2C325.7%20550.0%2C330.5%20570.2%2C330.4%20575.6%2C336.9%20572.0%2C356.8%20575.8%2C363.3%20594.8%2C370.1%20597.7%2C378.0%20587.5%2C395.5%20588.8%2C402.9%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27470%27%20cy%3D%27420%27%20r%3D%2766.0%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27470%27%20cy%3D%27420%27%20r%3D%2714.4%27%20fill%3D%27%23c9a26a%27%2F%3E%3Cpolygon%20points%3D%27237.1%2C466.5%20237.1%2C473.5%20228.4%2C483.9%20226.6%2C489.8%20228.3%2C503.4%20224.6%2C509.2%20211.6%2C513.3%20206.9%2C517.3%20201.0%2C529.6%20194.7%2C532.5%20181.6%2C528.9%20175.5%2C529.7%20163.9%2C536.9%20157.0%2C535.9%20147.9%2C525.8%20142.3%2C523.2%20128.7%2C523.0%20123.4%2C518.5%20121.3%2C505.0%20117.9%2C499.8%20106.6%2C492.2%20104.6%2C485.6%20110.1%2C473.1%20110.1%2C466.9%20104.6%2C454.4%20106.6%2C447.8%20117.9%2C440.2%20121.3%2C435.0%20123.4%2C421.5%20128.7%2C417.0%20142.3%2C416.8%20147.9%2C414.2%20157.0%2C404.1%20163.9%2C403.1%20175.5%2C410.3%20181.6%2C411.1%20194.7%2C407.5%20201.0%2C410.4%20206.9%2C422.7%20211.6%2C426.7%20224.6%2C430.8%20228.3%2C436.6%20226.6%2C450.2%20228.4%2C456.1%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27170%27%20cy%3D%27470%27%20r%3D%2733.0%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3Ccircle%20cx%3D%27170%27%20cy%3D%27470%27%20r%3D%277.2%27%20fill%3D%27%23c9a26a%27%2F%3E%3Ccircle%20cx%3D%27470%27%20cy%3D%27420%27%20r%3D%2770%27%20fill%3D%27none%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%272%27%2F%3E%3Cline%20x1%3D%27470%27%20y1%3D%27420%27%20x2%3D%27470%27%20y2%3D%27355%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%274%27%2F%3E%3Cline%20x1%3D%27470%27%20y1%3D%27420%27%20x2%3D%27515%27%20y2%3D%27440%27%20stroke%3D%27%23c9a26a%27%20stroke-width%3D%273%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0/600px 600px,radial-gradient(ellipse at 50% 20%,#1b2230,#0a0c10 70%)!important}
+body.theme-divergence .bubble{filter:drop-shadow(0 4px 10px rgba(0,0,0,.55))}
+body.theme-divergence .bubble::before{clip-path:none!important;border-radius:3px!important;background:linear-gradient(180deg,rgba(24,30,42,.92),rgba(12,15,22,.94))!important;box-shadow:inset 0 0 0 1px rgba(201,162,106,.55),inset 0 0 0 4px rgba(10,12,16,.9),inset 0 0 0 5px rgba(111,143,174,.35)!important}
+body.theme-divergence .msg.me .bubble::before{background:linear-gradient(180deg,rgba(40,30,18,.94),rgba(20,15,10,.95))!important;box-shadow:inset 0 0 0 1px rgba(255,165,74,.6),inset 0 0 0 4px rgba(10,12,16,.9),inset 0 0 0 5px rgba(255,165,74,.25)!important}
+body.theme-divergence .tag{background:linear-gradient(90deg,#1b2230,#0a0c10)!important;color:#ffc27a!important;border:1px solid rgba(201,162,106,.6)!important;border-radius:2px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.5px;text-shadow:0 0 6px rgba(255,140,40,.55);box-shadow:none!important;transform:none!important}
+body.theme-divergence .roomname,body.theme-divergence #roomLabel{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;color:#ffc27a!important;text-shadow:0 0 8px rgba(255,140,40,.6)}
+body.theme-divergence .compose,body.theme-divergence .top{background:rgba(10,12,16,.92)!important;border-color:rgba(201,162,106,.5)!important}
+body.theme-divergence .daybreak{background:#141922!important;color:#ffc27a!important;font-family:ui-monospace,monospace!important;border:1px solid rgba(201,162,106,.5)}
+body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a26a;border-color:rgba(201,162,106,.4)}
 </style>
 </head>
 <body>
@@ -3504,6 +3551,7 @@ const THEMES={
   mochi:  {label:"🍡 Mochi",     main:"#e25d92", accent:"#5aa9e6", hi:"#c9760f", body:"mochi"},
   redrum: {label:"🩸 Redrum",    main:"#ff1a1a", accent:"#7a0a0a", hi:"#ffdddd", body:"redrum"},
   lab:    {label:"⚗️ Lab",       main:"#ff9a3d", accent:"#7a3e10", hi:"#ffd08a", body:"lab"},
+  divergence:{label:"⚙️ Divergence", main:"#ffa54a", accent:"#6f8fae", hi:"#ffc27a", body:"divergence"},
   tvworld:{label:"📺 TV World",  main:"#ffe34a", accent:"#8a7a1a", hi:"#fff7cf", body:"tvworld"},
   plumber:{label:"🍄 Plumber",   main:"#ffd400", accent:"#e4342f", hi:"#fff", body:"plumber"},
   grandline:{label:"🏴‍☠️ Grand Line", main:"#ffd84a", accent:"#c0392b", hi:"#fff3d6", body:"grandline"},
@@ -8255,6 +8303,7 @@ const UNLOCKS=[
   {id:"theme:mochi",    type:"theme", label:"🍡 Mochi theme",       by:{secret:"uwa"}},
   {id:"theme:redrum",   type:"theme", label:"🩸 Redrum theme",      by:{secret:"redrum"}},
   {id:"theme:lab",      type:"theme", label:"⚗️ Future Gadget Lab", by:{secret:"elpsy"}},
+  {id:"theme:divergence",type:"theme", label:"⚙️ Divergence theme",  by:{secret:"steinsgate"}},
   {id:"theme:tvworld",  type:"theme", label:"📺 TV World theme",    by:{secret:"shadow"}},
   {id:"theme:plumber",  type:"theme", label:"🍄 Plumber theme",     by:{secret:"letsago"}},
   {id:"theme:grandline",type:"theme", label:"🏴‍☠️ Grand Line theme", by:{secret:"onepiece"}},
@@ -8988,7 +9037,63 @@ QX.sharpshooter=function(){
   const x=el("div","ss-cross"); L.append(x);
   setTimeout(()=>{ x.classList.add("locked"); L.append(el("div","gl-flash")); sxCap(L,"🎯 SHARPSHOOTER","gl-slam ss-cap"); if(navigator.vibrate) navigator.vibrate(60); },1500);
 };
+/* ===== more Steins;Gate (original visuals) ===== */
+QX.steinsgate=function(){
+  const L=sxLayer("sxSteins",6200); L.classList.add("dim");
+  const target="1.048596", box=el("div","sg-meter"); L.append(box);
+  const tubes=[...target].map(ch=>{ const t=el("span","sg-tube"+(ch==="."?" dot":""),ch==="."?".":"0"); box.append(t); return t; });
+  let n=0; const iv=setInterval(()=>{ n++; tubes.forEach((t,i)=>{ if(target[i]==="."||t.classList.contains("set")) return; if(n>8+i*4){ t.textContent=target[i]; t.classList.add("set"); } else t.textContent=Math.floor(Math.random()*10); }); if(tubes.every((t,i)=>target[i]==="."||t.classList.contains("set"))) clearInterval(iv); },70);
+  setTimeout(()=>{ sxCap(L,"Welcome to the Steins;Gate world line.","sg-cap"); if(!hasSecret("steinsgate")) setTimeout(()=>sxCap(L,"⚙️ Divergence theme unlocked in Theme & colors","sg-cap small sg-unlock"),900); if(navigator.vibrate) navigator.vibrate([20,40,20,40,80]); },2900);
+};
+QX.fuhaha=function(){
+  const c=$("chat"); c.classList.remove("sx-flicker"); void c.offsetWidth; c.classList.add("sx-flicker"); setTimeout(()=>c.classList.remove("sx-flicker"),2800);
+  const L=sxLayer("sxFuhaha",3600);
+  ["FUHA","HAHA","HAHA!"].forEach((w,i)=>setTimeout(()=>{ const x=el("div","fh-laugh",w); x.style.top=(26+i*14)+"%"; x.style.left=(10+i*22)+"%"; L.append(x); if(navigator.vibrate) navigator.vibrate(30); },200+i*450));
+};
+QX.christina=function(){
+  const L=sxLayer("sxTina",3000);
+  L.append(el("div","ct-anger","💢")); sxCap(L,"There's no -tina!","gl-slam ct-cap");
+  document.body.animate([{transform:"none"},{transform:"translate(-6px,0)"},{transform:"translate(6px,0)"},{transform:"none"}],{duration:260});
+};
+QX.gelbanana=function(){
+  const L=sxLayer("sxGel",4200);
+  const b=el("div","gb-banana","🍌"); L.append(b);
+  setTimeout(()=>{ b.classList.add("gel"); sxCap(L,"…it's gel now.","gb-cap"); },1400);
+};
+QX.phonewave=function(){
+  const L=sxLayer("sxPhonewave",5200); L.classList.add("dim");
+  L.innerHTML=`<div class="pw-box"><div class="pw-window"><div class="pw-plate"><span>📱</span></div></div><div class="pw-panel"><i></i><i></i><b>88</b></div></div>`;
+  setTimeout(()=>{ for(let i=0;i<10;i++){ const z=el("i","pw-zap"); z.style.left=(30+Math.random()*40)+"%"; z.style.top=(30+Math.random()*25)+"%"; z.style.animationDelay=(i*.12)+"s"; L.append(z); } if(navigator.vibrate) navigator.vibrate([20,30,20,30,20]); },1200);
+  setTimeout(()=>sxCap(L,"Phone Microwave (name subject to change)","pw-cap"),2200);
+};
+QX.readingsteiner=function(){
+  const c=$("chat"); c.classList.remove("rs-shift"); void c.offsetWidth; c.classList.add("rs-shift"); setTimeout(()=>c.classList.remove("rs-shift"),2600);
+  const L=sxLayer("sxSteiner",3400);
+  for(let i=0;i<3;i++){ const r=el("div","rs-ring"); r.style.animationDelay=(i*.35)+"s"; L.append(r); }
+  setTimeout(()=>sxCap(L,"…the world line shifted.","sg-cap"),1600);
+};
+QX.johntitor=function(){
+  const L=sxLayer("sxTitor",6600); L.classList.add("jt-screen");
+  const pre=el("pre","jt-text"); L.append(pre);
+  const txt="> NEW POST\n> From: Time Traveler 0\n\nI am a time traveler from 2036.\nI came back for an old computer.\n\n_";
+  let k=0; const iv=setInterval(()=>{ pre.textContent=txt.slice(0,++k); if(k>=txt.length) clearInterval(iv); },35);
+};
+QX.okarin=function(){
+  const L=sxLayer("sxOkarin",4200);
+  L.innerHTML=`<div class="ok-watch"><div class="ok-chain"></div><div class="ok-face"><i class="ok-hand h"></i><i class="ok-hand m"></i></div></div>`;
+  setTimeout(()=>sxCap(L,"Okarin~ ⏱️","sg-cap"),1300);
+};
+SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="microwave"),0,   // before the plain "microwave" secret, so "phone microwave" gets this one
+  {id:"phonewave",   name:"Phone Microwave",   re:/phone ?microwave|phonewave/i, play:()=>QX.phonewave()}
+);
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"steinsgate",  name:"Steins;Gate",       re:/(^|[^0-9.])1\.048596([^0-9]|$)|steins[; ]?gate/i, play:()=>QX.steinsgate()},
+  {id:"fuhaha",      name:"Mad scientist",     re:/fu+ha+(ha)+|i am (a )?mad scientist/i, play:()=>QX.fuhaha()},
+  {id:"christina",   name:"No -tina",          re:/(^|[^a-z])christina([^a-z]|$)/i, play:()=>QX.christina()},
+  {id:"gelbanana",   name:"Gel banana",        re:/gel(led)? banana|gelnana/i, play:()=>QX.gelbanana()},
+  {id:"readingsteiner",name:"Reading Steiner", re:/reading steiner/i, play:()=>QX.readingsteiner()},
+  {id:"johntitor",   name:"Time traveler",     re:/john titor/i, play:()=>QX.johntitor()},
+  {id:"okarin",      name:"Okarin",            re:/(^|[^a-z])okarin([^a-z]|$)/i, play:()=>QX.okarin()},
   {id:"formvoltron", name:"Form Voltron",      re:/(^|[^a-z])form voltron/i, play:()=>QX.formvoltron()},
   {id:"blazingsword",name:"Blazing sword",     re:/(form(ing)? (the )?)?blazing sword/i, play:()=>QX.blazingsword()},
   {id:"patience",    name:"Patience",          re:/patience yields focus/i, play:()=>QX.patience()},
@@ -9023,6 +9128,14 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
 );
 Object.assign(HINTS,{
   ein:"The smartest crew member on the Bebop is a corgi. Say his name.",
+  steinsgate:"The one world line where everyone's saved. Type its divergence number (starts with 1.04…).",
+  fuhaha:"The mad scientist's evil laugh. Fuha…",
+  christina:"A mad scientist's nickname for his assistant (she hates it).",
+  gelbanana:"What the time machine did to the fruit before it worked.",
+  phonewave:"The accidental time machine's full name, two gadgets squished together (name subject to change).",
+  readingsteiner:"The power to remember what changed when the world line shifts.",
+  johntitor:"A famous internet time traveler who claimed to be from 2036.",
+  okarin:"What his childhood friend calls the mad scientist.",
   formvoltron:"Five pilots, five robot lions, one command. Form…",
   blazingsword:"The giant robot's legendary weapon: a sword that's on fire. Form the…",
   patience:"A calm team leader's lesson for the hothead: patience yields…",
@@ -9576,8 +9689,15 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27h";
+const APP_VERSION="2026.09.27j";
 const CHANGELOG=[
+  {v:"2026.09.27j", title:"Small fix ❓", items:[
+    "❓ The ? and ! on friends' messages no longer hide behind their name tag.",
+  ]},
+  {v:"2026.09.27i", title:"El Psy Kongroo 🔬", items:[
+    "🔬 Eight new secrets are hiding in the chat for lab members. Some of them involve a microwave…",
+    "⚙️ A new theme, Divergence, is waiting at the end of the right world line. Find it to unlock it.",
+  ]},
   {v:"2026.09.27h", title:"Secrets on every screen 🎞️", items:[
     "🎞️ Secrets and animations not playing on your computer? Your device may be set to reduce motion. Profile → Notifications & effects → Animations: Always play turns them back on.",
   ]},
