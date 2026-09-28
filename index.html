@@ -2412,6 +2412,44 @@ body.theme-mochi .send{background:#ff8fb8!important}
 .ri-row .ghost{width:100%!important;min-width:0;font-size:18px!important;padding:4px 6px!important;text-align:left;white-space:normal}
 .hash.ri-preview{width:64px;height:64px;display:grid;place-items:center;font-size:28px;overflow:hidden}
 .roomicon.big{width:100%;height:100%;margin:0;display:block}
+/* ===== Voltron ===== */
+.vt-piece{position:absolute;left:50%;top:42%;border:4px solid #07041a;box-shadow:0 0 18px rgba(255,255,255,.35);animation:vtfly .8s cubic-bezier(.6,0,.4,1.3) both}
+@keyframes vtfly{from{transform:translate(calc(-50% + var(--x0,0px)),-50%) translate(var(--from));opacity:0}to{opacity:1}}
+.vt-core{width:26vw;height:20vh;max-width:120px;transform:translate(-50%,-50%);--x0:0px}
+.vt-armL{width:14vw;height:16vh;max-width:64px;transform:translate(calc(-50% - min(21vw,98px)),-60%);--x0:calc(min(21vw,98px) * -1)}
+.vt-armR{width:14vw;height:16vh;max-width:64px;transform:translate(calc(-50% + min(21vw,98px)),-60%);--x0:min(21vw,98px)}
+.vt-legL{width:11vw;height:16vh;max-width:50px;transform:translate(calc(-50% - min(7vw,32px)),calc(-50% + 18vh))}
+.vt-legR{width:11vw;height:16vh;max-width:50px;transform:translate(calc(-50% + min(7vw,32px)),calc(-50% + 18vh))}
+.vt-armL,.vt-armR,.vt-legL,.vt-legR{animation-name:vtfly2}
+@keyframes vtfly2{from{translate:var(--from);opacity:0}to{translate:0 0;opacity:1}}
+.vt-cap{top:70%}
+.bs-blade{position:absolute;left:50%;bottom:30%;width:26px;height:0;transform:translateX(-50%);background:linear-gradient(0deg,#fff 0%,#ffe066 20%,#ff8a1a 60%,#ff3d00 100%);clip-path:polygon(50% 0,100% 8%,100% 100%,0 100%,0 8%);box-shadow:0 0 30px #ff8a1a;filter:drop-shadow(0 0 16px #ff6a00);animation:bsgrow 1.2s cubic-bezier(.3,0,.2,1) forwards}
+@keyframes bsgrow{to{height:52vh}}
+.bs-guard{position:absolute;left:50%;bottom:27%;width:120px;height:18px;transform:translateX(-50%);background:linear-gradient(#c9d3dc,#6b7c8a);border:3px solid #07041a;border-radius:4px}
+.sxscene.pf-blur{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:backdrop-filter 1s,-webkit-backdrop-filter 1s,opacity .7s}
+.sxscene.pf-blur.sharp{backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}
+.pf-ring{position:absolute;left:50%;top:45%;width:180vmax;height:180vmax;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 200vmax rgba(0,0,0,.45) inset;border:3px solid rgba(255,255,255,.7);animation:pfclose 1.7s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes pfclose{to{width:60vmin;height:60vmin;box-shadow:0 0 0 200vmax rgba(0,0,0,.35)}}
+.pf-cap{top:74%;color:#fff;font-family:Georgia,serif;font-style:italic}
+.sxscene.vr-glow{background:radial-gradient(circle at 50% 45%,rgba(160,60,255,.55),rgba(30,0,60,.85));animation:vrpulse .6s ease-in-out 3 alternate}
+@keyframes vrpulse{to{filter:brightness(1.3)}}
+.vr-fist{position:absolute;left:50%;top:-20%;font-size:clamp(90px,28vw,150px);transform:translateX(-50%);animation:vrslam .65s cubic-bezier(.6,0,.4,1.4) forwards;filter:drop-shadow(0 0 20px #b45cff)}
+@keyframes vrslam{to{top:28%}}
+.vr-cap{color:#e6c2ff;text-shadow:3px 3px 0 #5a1a8a,6px 6px 0 #07041a}
+.qz-burst{position:absolute;left:50%;top:44%;width:min(80vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);background:#ffe45c;clip-path:polygon(50% 0,58% 30%,85% 12%,70% 40%,100% 45%,72% 58%,90% 86%,60% 70%,50% 100%,40% 70%,10% 86%,28% 58%,0 45%,30% 40%,15% 12%,42% 30%);animation:qzpop .4s cubic-bezier(.2,1.6,.4,1) both;filter:drop-shadow(6px 6px 0 #07041a)}
+@keyframes qzpop{from{transform:translate(-50%,-50%) scale(0) rotate(-30deg)}to{transform:translate(-50%,-50%) scale(1) rotate(-6deg)}}
+.qz-cap{top:40%;color:#e0323c;text-shadow:3px 3px 0 #07041a}
+.sm-item{position:absolute;left:-15%;font-size:clamp(34px,10vw,56px);animation:smfloat 3.8s linear both}
+@keyframes smfloat{to{transform:translateX(130vw) rotate(25deg)}}
+.sm-cap{top:44%;color:#ffe45c;text-shadow:3px 3px 0 #e0323c,0 0 20px #ffb030}
+.ss-cross{position:absolute;left:20%;top:30%;width:90px;height:90px;border:3px solid #ff3d3d;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px #ff3d3d;animation:sssweep 1.5s cubic-bezier(.5,0,.3,1) forwards}
+.ss-cross::before,.ss-cross::after{content:"";position:absolute;background:#ff3d3d;left:50%;top:-14px;bottom:-14px;width:3px;transform:translateX(-50%)}
+.ss-cross::after{top:50%;left:-14px;right:-14px;bottom:auto;width:auto;height:3px;transform:translateY(-50%)}
+@keyframes sssweep{0%{left:20%;top:30%}35%{left:78%;top:22%}65%{left:30%;top:62%}100%{left:50%;top:44%}}
+.ss-cross.locked{animation:sslock .3s ease-out forwards;left:50%;top:44%}
+@keyframes sslock{to{width:60px;height:60px;border-color:#fff;box-shadow:0 0 20px #fff}}
+.ss-cap{top:64%}
+@media (prefers-reduced-motion:reduce){.sxscene.vr-glow{animation:none}}
 </style>
 </head>
 <body>
@@ -8901,7 +8939,52 @@ QX.behind=function(who){
   const ans={he:"…yes. He is.",she:"…yes. She is.",they:"…yes. They are.",it:"…yes. It is."}[who]||"…yes. It is.";
   setTimeout(()=>{ sxCap(L,ans,"bh-cap"); if(navigator.vibrate) navigator.vibrate([10,80,10,80,200]); },3000);
 };
+/* ===== Voltron: Legendary Defender (original visuals) ===== */
+QX.formvoltron=function(){
+  const L=sxLayer("sxVoltron",4400); L.classList.add("dim");
+  [["#1c1c2e","0,-60vh","vt-core"],["#e0323c","-60vw,0","vt-armL"],["#2f7de1","60vw,0","vt-armR"],["#38c46a","-50vw,60vh","vt-legL"],["#f2c230","50vw,60vh","vt-legR"]].forEach(([c,from,cls],i)=>{
+    const pc=el("div","vt-piece "+cls); pc.style.background=c; pc.style.setProperty("--from",from); pc.style.animationDelay=(i*.14)+"s"; L.append(pc); });
+  setTimeout(()=>{ L.append(el("div","gl-shock")); L.append(el("div","gl-flash")); sxCap(L,"FORM VOLTRON!","gl-slam vt-cap");
+    document.body.animate([{transform:"none"},{transform:"translate(0,9px)"},{transform:"translate(0,-4px)"},{transform:"none"}],{duration:420}); if(navigator.vibrate) navigator.vibrate([40,30,120]); },1350);
+};
+QX.blazingsword=function(){
+  const L=sxLayer("sxSword",4200); L.classList.add("dim");
+  L.append(el("div","bs-blade"),el("div","bs-guard"));
+  setTimeout(()=>{ L.append(el("div","gl-flash")); sxCap(L,"BLAZING SWORD!","gl-slam"); if(navigator.vibrate) navigator.vibrate([30,20,90]); },1300);
+};
+QX.patience=function(){
+  const L=sxLayer("sxFocus",4200); L.classList.add("pf-blur");
+  L.append(el("div","pf-ring"));
+  setTimeout(()=>{ L.classList.add("sharp"); sxCap(L,"Patience yields focus.","pf-cap"); },1700);
+};
+QX.vrepitsa=function(){
+  const L=sxLayer("sxVrepit",3600); L.classList.add("vr-glow");
+  const f=el("div","vr-fist","✊"); L.append(f);
+  setTimeout(()=>{ document.body.animate([{transform:"none"},{transform:"translate(0,10px)"},{transform:"none"}],{duration:300}); sxCap(L,"VREPIT SA!","gl-slam vr-cap"); if(navigator.vibrate) navigator.vibrate(90); },650);
+};
+QX.quiznak=function(){
+  const L=sxLayer("sxQuiznak",3000);
+  L.append(el("div","qz-burst")); sxCap(L,"QUIZNAK?!","gl-slam qz-cap");
+  if(navigator.vibrate) navigator.vibrate([20,20,20]);
+};
+QX.spacemall=function(){
+  const L=sxLayer("sxMall",4800); L.classList.add("dim");
+  for(let i=0;i<9;i++){ const it=el("span","sm-item",["🛍️","🛒","🛍️","🧃","🛍️","🎁","🛒","🍕","🛍️"][i]); it.style.top=(10+i*9)+"%"; it.style.animationDelay=(i*.25)+"s"; L.append(it); }
+  setTimeout(()=>sxCap(L,"✨ SPACE MALL ✨","sm-cap"),900);
+};
+QX.sharpshooter=function(){
+  const L=sxLayer("sxSharp",3600);
+  const x=el("div","ss-cross"); L.append(x);
+  setTimeout(()=>{ x.classList.add("locked"); L.append(el("div","gl-flash")); sxCap(L,"🎯 SHARPSHOOTER","gl-slam ss-cap"); if(navigator.vibrate) navigator.vibrate(60); },1500);
+};
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"formvoltron", name:"Form Voltron",      re:/(^|[^a-z])form voltron/i, play:()=>QX.formvoltron()},
+  {id:"blazingsword",name:"Blazing sword",     re:/(form(ing)? (the )?)?blazing sword/i, play:()=>QX.blazingsword()},
+  {id:"patience",    name:"Patience",          re:/patience yields focus/i, play:()=>QX.patience()},
+  {id:"vrepitsa",    name:"Vrepit sa",         re:/(^|[^a-z])vrepit sa([^a-z]|$)/i, play:()=>QX.vrepitsa()},
+  {id:"quiznak",     name:"Quiznak",           re:/(^|[^a-z])quiznak/i, play:()=>QX.quiznak()},
+  {id:"spacemall",   name:"Space mall",        re:/(^|[^a-z])space mall([^a-z]|$)/i, play:()=>QX.spacemall()},
+  {id:"sharpshooter",name:"Sharpshooter",      re:/(i'?m|i am) the sharpshooter/i, play:()=>QX.sharpshooter()},
   {id:"behind",     name:"Right behind me",    re:/(it|he|she|they)('?s|'?re| is| are) right behind me/i,
    play:m=>{ const w=((m&&m.text)||"").match(/(it|he|she|they)('?s|'?re| is| are) right behind me/i); QX.behind(w?w[1].toLowerCase():"it"); }},
   ...ANIME_LINES.map(([id,name,re,text,mood,emoji])=>({id,name,re,play:()=>QX.animeLine(text,mood,emoji)})),
@@ -8929,6 +9012,13 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
 );
 Object.assign(HINTS,{
   ein:"The smartest crew member on the Bebop is a corgi. Say his name.",
+  formvoltron:"Five pilots, five robot lions, one command. Form…",
+  blazingsword:"The giant robot's legendary weapon: a sword that's on fire. Form the…",
+  patience:"A calm team leader's lesson for the hothead: patience yields…",
+  vrepitsa:"The purple empire's salute. Two words.",
+  quiznak:"An old royal advisor's favorite space swear word.",
+  spacemall:"The paladins went shopping in outer space. Where?",
+  sharpshooter:"The blue paladin keeps reminding everyone what he is. I'm the…",
   behind:"A horror-movie character slowly realizes something is standing right behind them… isn't it?",
   binaryhoes:"A very inclusive anime greeting: hey, bitches and bros and…",
   sunrising:"A tired, dramatic question about the sun. Why does it keep…?",
@@ -9475,8 +9565,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27f";
+const APP_VERSION="2026.09.27g";
 const CHANGELOG=[
+  {v:"2026.09.27g", title:"Defenders of the universe 🦁", items:[
+    "🦁 Seven new secrets are hiding in the chat for paladins. Patience yields focus…",
+  ]},
   {v:"2026.09.27f", title:"Two fixes 🛠️", items:[
     "🔒 \"You missed a secret\" no longer offers secrets you've already found.",
     "🖼️ Fixed Room settings getting cut off on the right after adding a room picture.",
