@@ -9213,25 +9213,31 @@ function markSecretAsked(id){
   const arr=[...s].slice(-400);
   try{ LS.set("nl-secret-asked",JSON.stringify(arr)); }catch(e){}
 }
-function checkMissedSecret(){
+function checkMissedSecret(){   // (name kept: also covers regular effects now)
   if(!fxEnabled()||reducedMotion()) return;
   const asked=missedAsked();
-  const today=dayKey(Date.now());   // only offer secrets someone triggered TODAY (your local day), not old ones
-  const found=new Set(foundSecrets());   // secrets you've already seen don't need offering again
-  const hit=[...msgs].reverse().find(m=>{ if(m.kind!=="text"||m.user_id===user.id||dayKey(m.created_at)!==today||fxPlayed.has(m.id)||asked.has(m.id)) return false; const sec=secretFor(m.text); return !!sec&&!found.has(sec.id); });
-  if(!hit) return;
-  const s=secretFor(hit.text), roomAtPrompt=room;
-  markSecretAsked(hit.id);
+  const today=dayKey(Date.now());   // only effects from TODAY (your local day), not old ones
+  const found=new Set(foundSecrets());
+  // everything friends set off today that you haven't seen play and haven't been offered yet (newest 5, played oldest first)
+  const hits=msgs.filter(m=>m.kind==="text"&&m.user_id!==user.id&&dayKey(m.created_at)===today&&!fxPlayed.has(m.id)&&!asked.has(m.id)&&(secretFor(m.text)||fxFor(m.text))).slice(-5);
+  if(!hits.length) return;
+  hits.forEach(m=>markSecretAsked(m.id));   // each message is only ever offered once
+  const newSecret=hits.some(m=>{ const sec=secretFor(m.text); return sec&&!found.has(sec.id); });
+  const who=[...new Set(hits.map(m=>nameOf(m.user_id)))];
+  const names=who.length>2?`${who.slice(0,2).join(", ")} and others`:who.join(" and ");
+  const roomAtPrompt=room;
   setTimeout(()=>{
-    if(room!==roomAtPrompt||!elById.has(hit.id)) return;   // they've moved on; don't interrupt elsewhere
+    if(room!==roomAtPrompt||!hits.some(m=>elById.has(m.id))) return;   // they've moved on; don't interrupt elsewhere
     const t=el("div","toast missed-secret"); const body=el("span","tbody");
-    body.append(el("div","ttitle","🔒 You missed a secret"), el("div","ttext",`${nameOf(hit.user_id)} triggered one before you got here. Want to see it?`));
+    const title=newSecret?(hits.length>1?`🔒 You missed a secret (and ${hits.length-1} more effect${hits.length>2?"s":""})`:"🔒 You missed a secret"):`✨ You missed ${hits.length>1?hits.length+" effects":"an effect"}`;
+    body.append(el("div","ttitle",title), el("div","ttext",`${names} set ${hits.length>1?"some":"one"} off while you were away. Want to see ${hits.length>1?"them":"it"}?`));
     const row=el("div","missed-actions");
-    const yes=el("button","send","Show me"); yes.type="button"; yes.onclick=()=>{ t.remove(); fxPlayed.add(hit.id); playFx(hit,true); jumpTo(hit.id); };
+    const yes=el("button","send",hits.length>1?"Play them":"Show me"); yes.type="button";
+    yes.onclick=()=>{ t.remove(); hits.forEach((m,k)=>setTimeout(()=>{ if(room!==roomAtPrompt||!elById.has(m.id)) return; fxPlayed.add(m.id); jumpTo(m.id); playFx(m,true); },k*4200)); };
     const no=el("button","ghost","No thanks"); no.type="button"; no.onclick=()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); };
     row.append(yes,no);
-    t.append(el("span","sx-lock","🔒"),body); t.append(row);
-    $("toasts").prepend(t); setTimeout(()=>{ if(t.isConnected){ t.classList.add("out"); setTimeout(()=>t.remove(),260); } },9000);
+    t.append(el("span","sx-lock",newSecret?"🔒":"✨"),body); t.append(row);
+    $("toasts").prepend(t); setTimeout(()=>{ if(t.isConnected){ t.classList.add("out"); setTimeout(()=>t.remove(),260); } },12000);
   },1400);
 }
 
@@ -9689,8 +9695,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27j";
+const APP_VERSION="2026.09.27k";
 const CHANGELOG=[
+  {v:"2026.09.27k", title:"Catch up on effects ✨", items:[
+    "✨ Missed some effects while you were away? When you open the chat, NightLane offers to play them for you, secrets and regular effects like 💥 Boom.",
+  ]},
   {v:"2026.09.27j", title:"Small fix ❓", items:[
     "❓ The ? and ! on friends' messages no longer hide behind their name tag.",
   ]},
