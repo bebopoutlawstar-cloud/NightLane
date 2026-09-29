@@ -2458,6 +2458,12 @@ body.theme-mochi .send{background:#ff8fb8!important}
 .sg-tube.set{opacity:1;color:#ffc27a}
 .sg-cap{top:62%;color:#ffc27a;font-family:ui-monospace,monospace;text-shadow:0 0 8px #ff7a1a,2px 2px 0 #000;font-size:clamp(16px,5vw,26px)}
 .sg-unlock{top:72%}
+.sxscene.sg-white{background:#f4f2ec;animation:sgwhite .7s ease-out both}
+@keyframes sgwhite{from{background:rgba(244,242,236,0)}to{background:#f4f2ec}}
+.sg-gear{position:absolute;transform:translate(-50%,-50%)}
+.sg-gear svg{width:100%;height:100%;display:block;animation:sgspin linear infinite;animation-duration:inherit;animation-direction:inherit;animation-delay:inherit}
+@keyframes sgspin{to{transform:rotate(360deg)}}
+.sg-cap.sg-dark{color:#0b0b0b;text-shadow:0 0 12px #f4f2ec,0 0 24px #f4f2ec,0 0 2px #fff;background:rgba(244,242,236,.9);padding:4px 12px}
 .fh-laugh{position:absolute;font-family:var(--num);font-size:clamp(40px,13vw,72px);color:#fff;-webkit-text-stroke:2px #3d0b0b;text-shadow:4px 4px 0 #b3001b,0 0 20px rgba(255,0,40,.6);transform:rotate(-8deg);animation:sxcapin .35s cubic-bezier(.2,1.6,.4,1) both}
 .ct-anger{position:absolute;right:14%;top:22%;font-size:clamp(60px,18vw,100px);animation:ctpulse .3s ease-in-out 4 alternate}
 @keyframes ctpulse{to{transform:scale(1.25) rotate(10deg)}}
@@ -7522,12 +7528,13 @@ function secretFor(text){
   const t=text.replace(/[’‘]/g,"'");
   return SECRET_LIST.find(s=>s.re&&s.re.test(t)&&(!s.when||s.when()))||null;
 }
+const countFound=f=>f.filter(id=>SECRET_LIST.some(x=>x.id===id)).length;   // removed secrets don't count
 function discoverSecret(id){
   const f=foundSecrets(); if(f.includes(id)) return false;
   f.push(id); try{ LS.set(SECRETS_KEY,JSON.stringify(f)); }catch(e){} progressChanged(true);
   const s=SECRET_LIST.find(x=>x.id===id); gainXP("secret"); setTimeout(checkUnlocks,900);
   const t=el("div","toast mention"); const body=el("span","tbody");
-  body.append(el("div","ttitle",`🔓 Secret found (${f.length}/${SECRET_LIST.length})`), el("div","ttext",s?s.name:"???"));
+  body.append(el("div","ttitle",`🔓 Secret found (${countFound(f)}/${SECRET_LIST.length})`), el("div","ttext",s?s.name:"???"));
   t.append(el("span","sx-lock","🔓"),body); $("toasts").prepend(t);
   setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },4500);
   if(navigator.vibrate) navigator.vibrate([30,50,30,50,80]);
@@ -7552,7 +7559,7 @@ function playSecretFromMessage(m,s,force){
 function paintSecrets(){
   paintHint(); paintXP(); paintUnlocks();
   const f=foundSecrets();
-  $("secretSummary").textContent=`🔒 Secrets found: ${f.length}/${SECRET_LIST.length}`;
+  $("secretSummary").textContent=`🔒 Secrets found: ${countFound(f)}/${SECRET_LIST.length}`;
   const box=$("secretList"); box.innerHTML="";
   SECRET_LIST.forEach(s=>{ const got=f.includes(s.id); box.append(el("span","sx-chip"+(got?" got":""),got?s.name:"???")); });
   show($("motionBtn"), typeof DeviceMotionEvent!=="undefined" && typeof DeviceMotionEvent.requestPermission==="function" && !motionOn);
@@ -9044,11 +9051,9 @@ const ANIME_LINES=[
   ["lottohandle","Exhausted",/that was a lot to handle/i,"That was a lot to handle. And now I'm exhausted.","comedy","😮‍💨"],
   ["threaten","How dare you",/how dare you threaten me/i,"How dare you threaten me?!","hype","😤"],
   ["giveback","Give them back",/give them back right now/i,"Give them back right now!","hype","😡"],
-  ["whatdaddy","What now",/what is it now,? daddy/i,"What is it now, daddy?","comedy","🙄"],
   ["eyelashes","Long lashes",/extremely long eyelashes/i,"Anyone ever told you you've got extremely long eyelashes?","sparkle","👁️"],
   ["noanswer","No answer",/girl ask question|why,? boy\??,? no answer/i,"Girl ask question. Why, boy? No answer.","comedy","🤷"],
   ["consent","Consent, bud",/can'?t sniff folks|gotta get consent,? bud/i,"You can't sniff folks without permission. You gotta get consent, bud.","comedy","👃"],
-  ["restroom","Speak now",/eats the restroom/i,"If someone eats the restroom more than me, speak now or forever hold your peace.","comedy","🚽"],
   ["twentyfour","Not old",/i'?m not old,? i'?m twenty[- ]freaking[- ]four/i,"I'm not old, I'm twenty freaking four!","hype","🎂"],
   ["stayfrosty","Stay frosty",/stay low,? stay frosty|don'?t speak\.? don'?t turn around/i,"Don't speak. Don't turn around. No sudden moves. Stay low, stay frosty.","dark","🥶"],
   ["notenough","Not enough",/sometimes your best just isn'?t enough/i,"Today we learned that sometimes your best just isn't enough.","dark","📉"],
@@ -9104,12 +9109,22 @@ QX.sharpshooter=function(){
   setTimeout(()=>{ x.classList.add("locked"); L.append(el("div","gl-flash")); sxCap(L,"🎯 SHARPSHOOTER","gl-slam ss-cap"); if(navigator.vibrate) navigator.vibrate(60); },1500);
 };
 /* ===== more Steins;Gate (original visuals) ===== */
-QX.steinsgate=function(){
-  const L=sxLayer("sxSteins",6200); L.classList.add("dim");
-  const target="1.048596", box=el("div","sg-meter"); L.append(box);
-  const tubes=[...target].map(ch=>{ const t=el("span","sg-tube"+(ch==="."?" dot":""),ch==="."?".":"0"); box.append(t); return t; });
-  let n=0; const iv=setInterval(()=>{ n++; tubes.forEach((t,i)=>{ if(target[i]==="."||t.classList.contains("set")) return; if(n>8+i*4){ t.textContent=target[i]; t.classList.add("set"); } else t.textContent=Math.floor(Math.random()*10); }); if(tubes.every((t,i)=>target[i]==="."||t.classList.contains("set"))) clearInterval(iv); },70);
-  setTimeout(()=>{ sxCap(L,"Welcome to the Steins;Gate world line.","sg-cap"); if(!hasSecret("steinsgate")) setTimeout(()=>sxCap(L,"⚙️ Divergence theme unlocked in Theme & colors","sg-cap small sg-unlock"),900); if(navigator.vibrate) navigator.vibrate([20,40,20,40,80]); },2900);
+QX.steinsgate=function(){   // white screen full of black clockwork gears turning (original drawing)
+  const L=sxLayer("sxSteins",6400); L.classList.add("sg-white");
+  const gearPath=(teeth,r=50,depth=9,hole=14)=>{ let d=""; const n=teeth*2;
+    for(let k=0;k<n;k++){ const a0=k/n*Math.PI*2, a1=(k+1)/n*Math.PI*2, rr=k%2?r:r+depth;
+      const p=(a,rad)=>`${(60+rad*Math.cos(a)).toFixed(1)},${(60+rad*Math.sin(a)).toFixed(1)}`;
+      d+=(k?"L":"M")+p(a0+.08,rr)+"L"+p(a1-.08,rr); }
+    return d+`Z M${60+hole},60 a${hole},${hole} 0 1,0 ${-hole*2},0 a${hole},${hole} 0 1,0 ${hole*2},0Z`; };
+  const spots=[[8,12,34,14],[30,8,20,10],[58,14,40,18],[88,10,24,11],[18,38,26,12],[46,40,46,20],[80,36,30,13],[6,64,36,16],[36,70,24,11],[62,66,38,17],[92,62,22,10],[20,92,30,13],[52,94,22,10],[80,88,40,18]];
+  spots.forEach(([x,y,size,teeth],k)=>{
+    const g=el("div","sg-gear"); g.style.left=x+"%"; g.style.top=y+"%"; g.style.width=g.style.height=`min(${size}vw,${size*4.4}px)`;
+    g.style.animationDuration=(4+size/6).toFixed(1)+"s"; g.style.animationDirection=k%2?"reverse":"normal"; g.style.animationDelay=(-k*.37)+"s";
+    const hands=k%4===1?`<line x1="60" y1="60" x2="60" y2="32" stroke="#fff" stroke-width="5" stroke-linecap="round"/><line x1="60" y1="60" x2="80" y2="66" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`:"";
+    g.innerHTML=`<svg viewBox="0 0 120 120"><path d="${gearPath(teeth)}" fill="#0b0b0b" fill-rule="evenodd"/><circle cx="60" cy="60" r="30" fill="none" stroke="#0b0b0b" stroke-width="3" opacity=".5"/>${hands}</svg>`;
+    g.style.opacity="0"; g.animate([{opacity:0,transform:"translate(-50%,-50%) scale(.6)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)"}],{duration:600,delay:120+k*70,fill:"forwards",easing:"cubic-bezier(.2,1.2,.4,1)"});
+    L.append(g); });
+  setTimeout(()=>{ sxCap(L,"Welcome to the Steins;Gate world line.","sg-cap sg-dark"); if(!hasSecret("steinsgate")) setTimeout(()=>sxCap(L,"⚙️ Divergence theme unlocked in Theme & colors","sg-cap small sg-dark sg-unlock"),900); if(navigator.vibrate) navigator.vibrate([20,40,20,40,80]); },2000);
 };
 QX.fuhaha=function(){
   const c=$("chat"); c.classList.remove("sx-flicker"); void c.offsetWidth; c.classList.add("sx-flicker"); setTimeout(()=>c.classList.remove("sx-flicker"),2800);
@@ -9215,11 +9230,9 @@ Object.assign(HINTS,{
   lottohandle:"That was a lot to… handle. (And now someone's exhausted.)",
   threaten:"An outraged anime line: how dare you… (four words in).",
   giveback:"An angry demand: give them back… right when?",
-  whatdaddy:"An annoyed kid's question: what is it now…?",
   eyelashes:"A weirdly specific compliment: anyone ever told you you've got extremely long…?",
   noanswer:"Girl ask question. Why, boy? …what does he give?",
   consent:"You can't sniff folks without permission. You gotta get…",
-  restroom:"A strange wedding-style challenge about who eats the restroom more.",
   twentyfour:"I'm not old. I'm twenty freaking…",
   stayfrosty:"Don't speak. Don't turn around. No sudden moves. Stay low, stay…",
   notenough:"Today we learned that sometimes your best just isn't…",
@@ -9761,8 +9774,14 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27l";
+const APP_VERSION="2026.09.27n";
 const CHANGELOG=[
+  {v:"2026.09.27n", title:"Secret cleanup 🧹", items:[
+    "🧹 Retired a couple of secrets. Your found count only counts secrets that still exist.",
+  ]},
+  {v:"2026.09.27m", title:"A new look for an old world line ⚙️", items:[
+    "⚙️ One of the Steins;Gate secrets got a brand-new animation. Find the right world line to see it…",
+  ]},
   {v:"2026.09.27l", title:"Add friends to rooms 👋", items:[
     "👋 Add friends straight into a room, no link needed: Room settings → ＋ Add friends, then tap who to add.",
     "🔔 Friends you add get a notification, and a little note shows up in the chat.",
