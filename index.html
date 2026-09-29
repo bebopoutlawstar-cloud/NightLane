@@ -2497,6 +2497,14 @@ body.theme-divergence .roomname,body.theme-divergence #roomLabel{font-family:ui-
 body.theme-divergence .compose,body.theme-divergence .top{background:rgba(10,12,16,.92)!important;border-color:rgba(201,162,106,.5)!important}
 body.theme-divergence .daybreak{background:#141922!important;color:#ffc27a!important;font-family:ui-monospace,monospace!important;border:1px solid rgba(201,162,106,.5)}
 body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a26a;border-color:rgba(201,162,106,.4)}
+/* ===== add friends to a room ===== */
+.aflist{width:100%;display:grid;gap:6px;max-height:48vh;overflow:auto}
+.afrow{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;background:var(--deep);border:2px solid #3b2d80;color:var(--white);font-family:var(--body);font-size:15px;text-align:left;cursor:pointer}
+.afrow.on{border-color:var(--volt);box-shadow:3px 3px 0 var(--mag)}
+.afrow.here{opacity:.55;cursor:default}
+.afname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.afcheck{font-family:var(--tech);font-size:12px;color:var(--volt)}
+.afrow.on .afcheck{font-size:18px}
 </style>
 </head>
 <body>
@@ -2774,6 +2782,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <input class="field" id="roomName" maxlength="40" placeholder="Name this room">
       <button class="send" type="submit" id="nameSave">Save</button>
     </form>
+    <h3>Add friends</h3>
+    <p class="sub left">Add your friends straight into this room. No link needed.</p>
+    <button class="go" type="button" id="addFriendsBtn">＋ Add friends</button>
     <h3>Invite link</h3>
     <p class="sub left">Anyone with this link can join. Only share it with people you trust.</p>
     <label for="invLink" class="sr">Invite link</label>
@@ -3177,6 +3188,18 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <button class="ghost" type="button" id="creditsClose">Close</button>
     </div>
   </div>
+</div>
+
+<!-- ============ ADD FRIENDS TO A ROOM ============ -->
+<div class="overlay hidden" id="afSheet" role="dialog" aria-modal="true" aria-labelledby="afTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="afTitle">Add friends</h2>
+    <p class="sub" id="afSub">Tap the friends you want to add.</p>
+    <div class="aflist" id="afList" role="group" aria-labelledby="afTitle"></div>
+    <p class="msgline" id="afMsg" aria-live="polite"></p>
+    <button class="go" type="button" id="afAdd" disabled>Add</button>
+    <button class="ghost" type="button" id="afClose">Close</button>
+  </div></div>
 </div>
 
 <!-- ============ RECOVERY CODE ============ -->
@@ -3656,6 +3679,7 @@ const live = {
     return must(r); },
   async saveTz(uid,tz){ await sb.from("profiles").update({tz}).eq("id",uid); },
   async setRoomIcon(room,url){ must(await sb.rpc("set_room_icon",{p_room:room,p_url:url})); },
+  async addFriendsToRoom(room,ids){ return must(await sb.rpc("add_friends_to_room",{p_room:room,p_users:ids})); },
   async roomIcons(){ const {data,error}=await sb.rpc("my_room_icons"); return error?[]:(data||[]); },
   async search(q,roomCode){ return must(await sb.rpc("search_messages",{p_query:q,p_room:roomCode||null,p_limit:40})); },
   async touchSeen(){ await sb.rpc("touch_seen"); },
@@ -3996,6 +4020,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async saveStyle(uid,style){ Object.assign(people[uid],style); setTimeout(()=>fire("profile",{...people[uid]}),30); },
     async setBackground(room,bg){ const old=rooms[room].background||null; rooms[room].background=bg; setTimeout(()=>fire("roomUpdated",{code:room,name:rooms[room].name||null,background:bg,owner:rooms[room].owner}),30); if(old!==(bg||null)) demoNotice(room,"bg:"+(bg||"stars")); },
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
+    async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
     async roomIcons(){ return Object.entries(rooms).filter(([,r])=>r.members.me&&r.icon_url).map(([code,r])=>({code,icon_url:r.icon_url})); },
     async saveTz(){},
     async setNickname(room,uid,nick){ rooms[room].members[uid].nick=nick||null; setTimeout(()=>fire("member",{user_id:uid,last_read_at:rooms[room].members[uid].read,nickname:nick||null}),30); },
@@ -5237,6 +5262,46 @@ $("leaveRoom").onclick=async()=>{
 };
 $("rsClose").onclick=()=>show($("roomSheet"),false);
 
+/* ---------- add friends straight into a room ---------- */
+const afPicked=new Set();
+async function openAddFriends(){
+  show($("roomSheet"),false); afPicked.clear(); say("afMsg",""); paintAfButton();
+  const list=$("afList"); list.innerHTML=""; list.append(el("p","sub","Loading your friends…")); show($("afSheet"));
+  let mine=[], them=[];
+  try{ [mine,them]=await Promise.all([api.contacts(),api.addedMe()]); }catch(e){ list.innerHTML=""; list.append(el("p","sub","Couldn't load your friends. Check your connection and try again.")); return; }
+  const mutual=mine.filter(u=>them.includes(u)&&!blocked.has(u));   // only people who added you back can be added
+  await ensureProfiles(mutual).catch(()=>{});
+  list.innerHTML="";
+  if(!mutual.length){ list.append(el("p","sub","No friends to add yet. Once you and a friend have both added each other, they'll show up here.")); return; }
+  const here=mutual.filter(u=>members.has(u)), todo=mutual.filter(u=>!members.has(u));
+  const byName=(a,b)=>nameOf(a).localeCompare(nameOf(b));
+  todo.sort(byName).forEach(u=>list.append(afRow(u,false)));
+  here.sort(byName).forEach(u=>list.append(afRow(u,true)));
+  if(!todo.length) list.prepend(el("p","sub","All your friends are already in this room! 🎉"));
+}
+function afRow(uid,already){
+  const b=el("button","afrow"+(already?" here":"")); b.type="button"; b.disabled=already;
+  const f=el("span","face sm"); paintFace(f,cache.get(uid)||{id:uid,username:nameOf(uid)});
+  b.append(f,el("span","afname",cache.get(uid)?.username||nameOf(uid)),el("span","afcheck",already?"In room":""));
+  b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label",(cache.get(uid)?.username||"Friend")+(already?", already in this room":""));
+  if(!already) b.onclick=()=>{ const on=!afPicked.has(uid); on?afPicked.add(uid):afPicked.delete(uid); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on)); b.querySelector(".afcheck").textContent=on?"✓":""; paintAfButton(); };
+  return b;
+}
+function paintAfButton(){ const n=afPicked.size; $("afAdd").disabled=!n; $("afAdd").textContent=n?`Add ${n} friend${n>1?"s":""}`:"Add"; }
+$("addFriendsBtn").onclick=openAddFriends;
+$("afAdd").onclick=async()=>{
+  const ids=[...afPicked]; if(!ids.length) return;
+  $("afAdd").disabled=true; say("afMsg","Adding…");
+  try{
+    const n=await api.addFriendsToRoom(room,ids);
+    if(!n){ say("afMsg","They couldn't be added. They may already be here, or not a mutual friend anymore.",true); $("afAdd").disabled=false; return; }
+    say("afMsg",`Added ${n} friend${n>1?"s":""}! 🎉 They'll get a notification.`);
+    setTimeout(()=>show($("afSheet"),false),1100);
+  }catch(err){ say("afMsg","Couldn't add them: "+err.message,true); $("afAdd").disabled=false; }
+};
+$("afClose").onclick=()=>show($("afSheet"),false);
+$("afSheet").addEventListener("click",e=>{ if(e.target.id==="afSheet") show($("afSheet"),false); });
+
 /* ---------- room picture ---------- */
 $("riPick").onclick=()=>$("riFile").click();
 $("riFile").onchange=async e=>{
@@ -5859,6 +5924,7 @@ function noticeWhat(m){
   const [k,v]=(m.text||"").split(/:(.*)/s);
   if(k==="bg"){ const lab=(BACKGROUNDS.find(([id])=>id===v)||[])[1]||(/^#/.test(v||"")?"a custom color":"Stars"); return "🎨 changed the background to "+lab; }
   if(k==="icon") return v==="removed"?"🖼️ removed the room picture":"🖼️ changed the room picture";
+  if(k==="add"){ const names=(v||"").split(",").map(x=>x.split("|")[1]||"someone"); const list=names.length>2?names.slice(0,-1).join(", ")+", and "+names.at(-1):names.join(" and "); return "👋 added "+list; }
   return "updated the room";
 }
 const noticeText=m=>{ const [emo,...rest]=noticeWhat(m).split(" "); return `${emo} ${m.user_id===user.id?"You":nameOf(m.user_id)} ${rest.join(" ")}`; };
@@ -9695,8 +9761,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.27k";
+const APP_VERSION="2026.09.27l";
 const CHANGELOG=[
+  {v:"2026.09.27l", title:"Add friends to rooms 👋", items:[
+    "👋 Add friends straight into a room, no link needed: Room settings → ＋ Add friends, then tap who to add.",
+    "🔔 Friends you add get a notification, and a little note shows up in the chat.",
+  ]},
   {v:"2026.09.27k", title:"Catch up on effects ✨", items:[
     "✨ Missed some effects while you were away? When you open the chat, NightLane offers to play them for you, secrets and regular effects like 💥 Boom.",
   ]},
