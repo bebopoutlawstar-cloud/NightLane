@@ -3913,6 +3913,7 @@ const live = {
   async habits(){ return must(await sb.from("habits").select("*").eq("archived",false).order("created_at")); },
   async createHabit(label,stat,reminder_time){ return must(await sb.from("habits").insert({label,stat,reminder_time:reminder_time||null}).select().single()); },
   async archiveHabit(id){ must(await sb.from("habits").update({archived:true}).eq("id",id)); },
+  async habitStats(){ return must(await sb.from("habits").select("id,stat")); },   // every habit you've ever made, removed ones too, so stats keep their points
   async habitLogs(since){ return must(await sb.from("habit_logs").select("habit_id,done_on,count").gte("done_on",since)); },
   async toggleHabit(id,date){ return must(await sb.rpc("toggle_habit",{p_habit:id,...(date?{p_date:date}:{})})); },
   async bumpHabit(id,date,delta){ return must(await sb.rpc("bump_habit",{p_habit:id,p_date:date,p_delta:delta})); },
@@ -4305,6 +4306,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async deleteBacklog(id){ demoBl.me=(demoBl.me||[]).filter(x=>x.id!==id); },
     async saveProgress(d){ return {xp:d.xp,xp_log:d.log,secrets:d.secrets,unlocks:d.unlocks}; }, saveProgressOnExit(){},
     async habits(){ return demoHabits.filter(h=>!h.archived); },
+    async habitStats(){ return demoHabits.map(h=>({id:h.id,stat:h.stat})); },
     async createHabit(label,stat,reminder_time){ const h={id:demoHabitId++,user_id:"me",label,stat,reminder_time:reminder_time||null,archived:false,created_at:iso()}; demoHabits.push(h); return h; },
     async archiveHabit(id){ const h=demoHabits.find(h=>h.id===id); if(h) h.archived=true; },
     async habitLogs(since){ return demoHabitLogs.filter(l=>l.done_on>=since); },
@@ -9609,11 +9611,17 @@ function statTier(count){ let i=0; for(let k=0;k<STAT_TIERS.length;k++) if(count
 function statNext(count){ const i=statTier(count); return i>=STAT_TIERS.length-1?null:STAT_TIERS[i+1]; }
 
 let myHabits=[], myHabitLogs=[], habitsLoaded=false;
+const habitStatOf=new Map();   // habit id -> stat, including habits you've removed (their check-ins still count)
 async function loadHabits(){
-  try{ [myHabits,myHabitLogs]=await Promise.all([api.habits(),api.habitLogs("2000-01-01")]); habitsLoaded=true; }
+  try{
+    const [h,logs,all]=await Promise.all([api.habits(),api.habitLogs("2000-01-01"),api.habitStats().catch(()=>null)]);
+    myHabits=h; myHabitLogs=logs; habitStatOf.clear();
+    (all||h).forEach(x=>habitStatOf.set(x.id,x.stat));
+    habitsLoaded=true;
+  }
   catch(e){ myHabits=[]; myHabitLogs=[]; }
 }
-function statCount(stat){ const ids=new Set(myHabits.filter(h=>h.stat===stat).map(h=>h.id)); return myHabitLogs.filter(l=>ids.has(l.habit_id)).reduce((n,l)=>n+(l.count||1),0); }
+function statCount(stat){ return myHabitLogs.filter(l=>habitStatOf.get(l.habit_id)===stat).reduce((n,l)=>n+(l.count||1),0); }
 function countToday(habitId){ const today=localDay(new Date()); const log=myHabitLogs.find(l=>l.habit_id===habitId&&l.done_on===today); return log?(log.count||1):0; }
 function localDay(d = new Date()){
   const year  = d.getFullYear();
@@ -9644,7 +9652,7 @@ async function paintHabits(){
     row.append(mid); row.append(el("span","statnum",String(count)));
     bars.append(row);
   });
-  const total=myHabitLogs.filter(l=>myHabits.some(h=>h.id===l.habit_id)).reduce((n,l)=>n+(l.count||1),0);
+  const total=myHabitLogs.filter(l=>habitStatOf.has(l.habit_id)).reduce((n,l)=>n+(l.count||1),0);
   $("habitSummary").textContent=myHabits.length?`${myHabits.length} habit${myHabits.length===1?"":"s"} · ${total} total completion${total===1?"":"s"}`:"";
   const list=$("habitList"); list.innerHTML="";
   if(!myHabits.length) list.append(el("p","note","No habits yet. Add one below — each check-in builds a stat."));
@@ -9663,7 +9671,7 @@ async function paintHabits(){
     row.append(chk,mid);
     if(n>0){ const minus=el("button","habitminus","−"); minus.type="button"; minus.setAttribute("aria-label","Remove one: "+h.label); minus.onclick=()=>bumpHabitUI(h,-1); row.append(minus); }
     const del=el("button","habitdel","✕"); del.type="button"; del.setAttribute("aria-label","Remove "+h.label);
-    del.onclick=async()=>{ try{ await api.archiveHabit(h.id); myHabits=myHabits.filter(x=>x.id!==h.id); paintHabits(); }catch(e){} };
+    del.onclick=async()=>{ try{ await api.archiveHabit(h.id); myHabits=myHabits.filter(x=>x.id!==h.id); paintHabits(); say("habitMsg",`Removed "${h.label}". You keep the ${STAT_LABEL[h.stat]} points it earned.`); }catch(e){ say("habitMsg","Couldn't remove it. Check your connection and try again.",true); } };
     row.append(del); list.append(row);
   });
 }
@@ -9683,7 +9691,7 @@ $("habitForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const label=$("habitLabel").value.trim(), stat=$("habitStat").value, time=$("habitTime").value||null;
   if(!label) return;
-  try{ const h=await api.createHabit(label,stat,time); myHabits.push(h); $("habitLabel").value=""; $("habitTime").value=""; paintHabits(); checkUnlocks?.(); }
+  try{ const h=await api.createHabit(label,stat,time); myHabits.push(h); habitStatOf.set(h.id,h.stat); $("habitLabel").value=""; $("habitTime").value=""; paintHabits(); checkUnlocks?.(); }
   catch(err){ say("habitMsg",err.message,true); }
 });
 function openHabits(){ say("habitMsg",""); paintHabits(); show($("habitsSheet")); }
@@ -10047,8 +10055,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30g";
+const APP_VERSION="2026.09.30h";
 const CHANGELOG=[
+  {v:"2026.09.30h", title:"Stats that stick 📈", items:[
+    "📈 Removing a habit no longer takes away the stat points you earned from it. Anything you lost this way is back.",
+  ]},
   {v:"2026.09.30g", title:"Rules of the road 📜", items:[
     "📜 NightLane now has a Privacy Policy and Terms of Service. Find them on the login screen and at the bottom of your Profile.",
     "🔑 Forgot your password and have no recovery code? Email support@nightlane.chat for help.",
