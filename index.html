@@ -8209,18 +8209,24 @@ const HINTS={
  combo:"Send five messages in ten seconds.", shiny:"About 1 in 500 messages sparkles. Keep talking.", lateowl:"Send something between 3 and 5 AM.",
 };
 const dayNum=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
-function hintOfDay(){
+function hintOfDay(){   // ONE hint a day: picked once, then locked in until tomorrow (finding secrets doesn't hand out more)
+  const today=dayNum();
+  try{ const saved=JSON.parse(LS.get("nl-hint-pick")||"null"); if(saved&&saved.day===today){ const s=SECRET_LIST.find(x=>x.id===saved.id); if(s) return s; } }catch(e){}
   const left=SECRET_LIST.filter(s=>HINTS[s.id]&&!hasSecret(s.id)); if(!left.length) return null;
-  return left[dayNum()%left.length];
+  const pick=left[today%left.length];
+  try{ LS.set("nl-hint-pick",JSON.stringify({day:today,id:pick.id})); }catch(e){}
+  return pick;
 }
 function paintHint(){
   const h=hintOfDay(), box=$("hintBox");
   if(!h){ box.textContent="🏆 You've found every secret. Legend."; return; }
-  box.innerHTML=""; box.append(el("b","","🔍 Today's hint: "),el("span","",HINTS[h.id]));
+  box.innerHTML="";
+  if(hasSecret(h.id)){ box.append(el("b","","✅ You found today's secret!"),el("small",""," · new hint tomorrow")); return; }
+  box.append(el("b","","🔍 Today's hint: "),el("span","",HINTS[h.id]));
   const left=SECRET_LIST.filter(s=>!hasSecret(s.id)).length; box.append(el("small","",` · ${left} still hidden · new hint tomorrow`));
 }
 function hintNudge(){
-  const h=hintOfDay(); if(!h) return;
+  const h=hintOfDay(); if(!h||hasSecret(h.id)) return;
   const key="nl-hint-"+dayNum(); try{ if(LS.get(key)) return; LS.set(key,"1"); }catch(e){}
   setTimeout(()=>{
     const t=el("button","toast"); t.type="button"; const body=el("span","tbody");
@@ -9890,8 +9896,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30a";
+const APP_VERSION="2026.09.30b";
 const CHANGELOG=[
+  {v:"2026.09.30b", title:"One hint a day 🔍", items:[
+    "🔍 The daily secret hint is now truly one a day. Finding a secret won't unlock another hint until tomorrow.",
+  ]},
   {v:"2026.09.30a", title:"Easier new rooms 🚪", items:[
     "🚪 \"Make a new room\" now makes it and takes you straight in, in one tap. Then use Room → ＋ Add friends to bring people in.",
   ]},
