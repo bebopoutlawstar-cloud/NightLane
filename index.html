@@ -2401,6 +2401,8 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #tipSheet .sheetbody { gap: 4px; }
 #welcomeTip { font-size: 15px; padding: 2px 6px;}
 #reportSheet [data-reason].on { border-color: var(--volt); color: var(--volt); }
+#reviewSheet .reviewrow { border: 2px solid #3b2d80; padding: 8px 10px; text-align: left; width: 100%; display: grid; gap: 4px; }
+#reviewSheet .reviewlist { width: 100%; display: grid; gap: 8px; }
 /* ===== notices, time notes, room pictures ===== */
 .notice-line{align-self:center;max-width:90%;text-align:center;font-family:var(--tech);font-size:12px;color:var(--muted);padding:4px 12px;margin:4px 0;border:1px dashed rgba(169,163,214,.35);background:rgba(7,4,26,.45)}
 .tznote{font-size:.8em;opacity:.75;white-space:nowrap}
@@ -2724,6 +2726,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="ghost" id="openCredits">🌃 Credits</button>
     <button type="button" class="ghost" id="openTip">💡 Tips</button>
     <button type="button" class="ghost hidden" id="openCheats">🗝️ Secret cheat sheet</button>
+    <button type="button" class="ghost hidden" id="openReports">📋 Reports</button>
     <details class="proflist"><summary id="unlockSummary">🎁 Unlockables</summary><div class="unlockbox"><div id="unlockList"></div></div></details>
     <details class="proflist"><summary id="secretSummary">🔒 Secrets found: 0</summary><div class="secretbox">
       <div class="hintbox" id="hintBox"></div>
@@ -3136,6 +3139,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></form>
 </div>
 
+<!-- ============ Review Sheet ============ -->
+<div class="overlay hidden" id="reviewSheet" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="reviewTitle">Reports</h2>
+    <p class="sub">Reports people have sent. Only you can see this.</p>
+    <div class="reviewlist" id="reviewList"></div>
+    <p class="msgline" id="reviewMsg"></p>
+    <button class="ghost" type="button" id="reviewClose">Close</button>
+  </div></div>
+</div>
 <!-- ============ Report Sheet ============ -->
 <div class="overlay hidden" id="reportSheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
   <form class="sheet" id="reportForm"><div class="sheetbody">
@@ -4072,8 +4085,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
     async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
     async reportMessage(id,reason){ if(!["harassment","spam","inappropriate","other"].includes(reason)) throw new Error("Pick a reason."); demoReports.push({id:demoReports.length+1,message_id:id,reason,created_at:iso()}); },
-    async listReports(){ return demoReports.map(r=>({...r,status:"open",reporter_name:"you",reported_name:"Vee",message_text:"(demo message)",room_name:"The Hideout"})); },
-    async setReportStatus(){},
+    async listReports(status){ return demoReports.filter(r=>status==="all"||(r.status||"open")===(status||"open")).map(r=>({...r,status:r.status||"open",reporter_name:"you",reported_name:"Vee",message_text:"(demo message)",room_name:"The Hideout"})); },
+    async setReportStatus(id,status){ const r=demoReports.find(x=>x.id===id); if(r) r.status=status; },
     async roomIcons(){ return Object.entries(rooms).filter(([,r])=>r.members.me&&r.icon_url).map(([code,r])=>({code,icon_url:r.icon_url})); },
     async saveTz(){},
     async setNickname(room,uid,nick){ rooms[room].members[uid].nick=nick||null; setTimeout(()=>fire("member",{user_id:uid,last_read_at:rooms[room].members[uid].read,nickname:nick||null}),30); },
@@ -4505,7 +4518,31 @@ $("animPrefBtn").onclick=()=>{
 /* ---------- Secret cheat sheet (admins only; the server decides who's an admin) ----------
    Built from the live secret list every time it opens, so new secrets show up by themselves. */
 let isAdmin=false;
-async function refreshAdmin(){ isAdmin=false; try{ isAdmin=await api.isAdmin(); }catch(e){} show($("openCheats"),isAdmin); }
+async function refreshAdmin(){ isAdmin=false; try{ isAdmin=await api.isAdmin(); }catch(e){} show($("openCheats"),isAdmin); show($("openReports"), isAdmin); }
+$("openReports").onclick=()=>{ show($("profile"),false); show($("reviewSheet")); loadReviews(); };
+$("reviewClose").onclick=()=>show($("reviewSheet"),false);
+$("reviewSheet").addEventListener("click",e=>{ if(e.target.id==="reviewSheet") show($("reviewSheet"),false); });
+async function loadReviews(){
+  const list=$("reviewList"); list.innerHTML=""; say("reviewMsg","Loading…");   // start with an empty list
+  let reports=[];
+  try{ reports=await api.listReports("open"); say("reviewMsg",""); }                  // 1) the function I added to LIST reports
+  catch(err){ say("reviewMsg",err.message,true); return; }
+  if(!reports.length){ list.append(el("p","sub","No open reports. 🎉")); return; }
+  reports.forEach(r=>{                                                               // 2) the loop you used on the reason buttons
+    const row=el("div","reviewrow");
+    row.append(el("b","",`🚩 ${r.reason}`));                                       // 3) why it was reported
+    row.append(el("p","sub",`${r.reported_name}: "${r.message_text}"`));                 // 4) what the message said
+    row.append(el("p","sub",`Reported by ${r.reporter_name}${r.details?" · "+r.details:""}`));
+       const done=el("button","ghost","✓ Mark handled"); done.type="button";
+    done.onclick=async()=>{
+      done.disabled=true;                                      // stop double-taps
+      try{ await api.setReportStatus(r.id,"handled"); loadReviews(); }  // 1) the function I added to SET a report's status  2) the new status  3) reload the list
+      catch(err){ say("reviewMsg",err.message,true); done.disabled=false; }
+    };
+    row.append(done);
+    list.append(row);                                                               // 5) put the row into the list
+  });
+}
 const GESTURE_HOW={
   konami:"Swipe ↑ ↑ ↓ ↓ ← → ← → anywhere (arrow keys work on a computer), then double-tap the date stamp or the room name within 10 seconds.",
   moonwink:"Tap the little icon on the date stamp 7 times within 3 seconds.",
@@ -9852,8 +9889,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.29c";
+const APP_VERSION="2026.09.29d";
 const CHANGELOG=[
+  {v:"2026.09.29d", title:"Reports review", items:[
+    "A way to view the reports.",
+  ]},
   {v:"2026.09.29c", title:"Samsung photo fix 📷", items:[
     "📷 Photos from Samsung phones (and iPhones) saved in HEIC format now send properly. NightLane converts them for you.",
   ]},
