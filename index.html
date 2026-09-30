@@ -332,6 +332,12 @@ html,body{overflow-x:hidden}
 .card label.agree input{flex:none;margin-top:1px}
 .card label.agree a,.legallinks a{color:var(--cyan)}
 .legallinks{font-size:14px;color:var(--muted);text-align:center;margin:0}
+.about{border:2px solid var(--cyan);padding:10px 14px;background:rgba(7,4,26,.6);text-align:left}
+.about summary{font-family:var(--body);font-size:14px;color:var(--white);cursor:pointer}
+.about[open] summary{margin-bottom:8px}
+.about p{font-size:15px;color:var(--cyan);margin:6px 0}
+.about ul{padding-left:20px;margin:6px 0}
+.about li{font-size:15px;color:var(--volt);margin:4px 0}
 body.desktop #authCard label.agree::before{content:none}
 
 /* mentions */
@@ -2601,6 +2607,17 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="go" type="submit" id="authBtn">Log in</button>
     <p class="note" id="modeNote"></p>
     <button type="button" class="linkbtn installlink hidden" id="installLink1">📲 Install NightLane as an app</button>
+    <details class="about" id="aboutBox">
+  <summary>What is NightLane?</summary>
+  <p>NightLane is a retro neon punk style messenger inspired by gamer culture</p>
+  <ul>
+    <li>Private DMs and Room chat functions</li>
+    <li>🎮 A backlog for the games and anime you've played or want to</li>
+    <li>A daily habit tracker that awards you in stats</li>
+    <li>Fun mini games built into the messenger for all your friends to play</li>
+  </ul>
+  <p>Join NightLane, where we can really be ourselves!</p>
+</details>
     <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
   </form>
 
@@ -4504,6 +4521,10 @@ function setMode(m){
   if(!new URLSearchParams(location.search).get("join")) say("authMsg","");
 }
 $("tabIn").onclick=()=>setMode("in"); $("tabUp").onclick=()=>setMode("up");
+if(!LS.get("nl-seen-about")){
+    $("aboutBox").open =true;
+  LS.set("nl-seen-about","1");
+}
 
 $("authCard").addEventListener("submit",async e=>{
   e.preventDefault();
@@ -10055,8 +10076,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30h";
+const APP_VERSION="2026.09.30i";
 const CHANGELOG=[
+  {v:"2026.09.30i", title:"Say hi to newcomers 👋", items:[
+    "👋 New visitors now see a \"What is NightLane?\" box on the login screen that explains what the app is about.",
+  ]},
   {v:"2026.09.30h", title:"Stats that stick 📈", items:[
     "📈 Removing a habit no longer takes away the stat points you earned from it. Anything you lost this way is back.",
   ]},
