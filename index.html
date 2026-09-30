@@ -3644,7 +3644,24 @@ setInterval(()=>{ const now=new Date().toDateString(); if(now===lastDay) return;
 
 /* ---------- helpers ---------- */
 function loadImg(file){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error("That file isn't an image we can read."));i.src=URL.createObjectURL(file)})}
+/* HEIC photos (Samsung "High efficiency pictures", iPhones) can't be read by Chrome on Android.
+   Detect them and convert to JPG on the phone; the converter only downloads the first time it's needed. */
+async function isHeic(file){
+  if(/image\/hei[cf]/i.test(file.type||"")||/\.hei[cf]$/i.test(file.name||"")) return true;
+  try{ const b=new Uint8Array(await file.slice(0,12).arrayBuffer()); const t=String.fromCharCode(...b.slice(4,12));
+       return t.startsWith("ftyp")&&/^(heic|heix|hevc|hevx|mif1|msf1|heim|heis)/.test(t.slice(4)); }catch(e){ return false; }
+}
+let heicLib=null;
+function loadHeicLib(){ return heicLib||(heicLib=new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+  sc.onload=()=>window.heic2any?res(window.heic2any):rej(new Error("converter didn't load")); sc.onerror=()=>{ heicLib=null; rej(new Error("check your connection")); }; document.head.append(sc); })); }
+async function readableImage(file){
+  if(!(await isHeic(file))) return file;
+  try{ const conv=await loadHeicLib(); let out=await conv({blob:file,toType:"image/jpeg",quality:.9}); if(Array.isArray(out)) out=out[0];
+       return new File([out],(file.name||"photo").replace(/\.\w+$/,"")+".jpg",{type:"image/jpeg"}); }
+  catch(e){ throw new Error("That photo is in HEIC format and couldn't be converted ("+(e.message||"unknown error")+"). Try again, or turn off High efficiency pictures in your camera settings."); }
+}
 async function shrink(file,max,square){
+  file=await readableImage(file);
   if(file.type==="image/gif" && !square && file.size<5e6) return file;
   const img=await loadImg(file); let sw=img.width, sh=img.height, sx=0, sy=0;
   if(square){const m=Math.min(sw,sh); sx=(sw-m)/2; sy=(sh-m)/2; sw=sh=m;}
@@ -5611,10 +5628,14 @@ async function shrinkVideo(file,onProgress){
   }
 }
 function videoDuration(file){ return new Promise(res=>{ const v=document.createElement("video"); v.preload="metadata"; v.onloadedmetadata=()=>{ res(v.duration); URL.revokeObjectURL(v.src); }; v.onerror=()=>res(NaN); v.src=URL.createObjectURL(file); }); }
-$("picker").onchange=e=>{
-  const files=[...e.target.files]; e.target.value="";
+$("picker").onchange=async e=>{
+  let files=[...e.target.files]; e.target.value="";
   if(!files.length) return;
   if(files.length===1&&!pendingImages.length){ takeFile(files[0]); return; }
+  if((await Promise.all(files.map(isHeic))).some(Boolean)){
+    $("status").textContent="Converting photos…";
+    files=(await Promise.all(files.map(f=>readableImage(f).catch(()=>null)))).filter(Boolean); $("status").textContent="";
+  }
   const imgs=files.filter(f=>f.type.startsWith("image/"));
   if(imgs.length<files.length) $("status").textContent="Only photos can be sent together — videos need their own message.";
   if(!imgs.length) return;
@@ -5627,7 +5648,9 @@ $("picker").onchange=e=>{
   paintPendingMulti();
 };
 async function takeFile(f){
-  if(!f.type.startsWith("image/")&&!f.type.startsWith("video/")){ $("status").textContent="Only photos and videos can be attached."; return; }
+  const heic=await isHeic(f);
+  if(!heic&&!f.type.startsWith("image/")&&!f.type.startsWith("video/")){ $("status").textContent="Only photos and videos can be attached."; return; }
+  if(heic){ $("status").textContent="Converting photo…"; try{ f=await readableImage(f); $("status").textContent=""; }catch(err){ $("status").textContent=err.message; return; } }
   if(f.type.startsWith("video/")){
     if(f.size>MAX_PICK_BYTES){ $("status").textContent="That video is too big (over 500 MB). Try a shorter clip."; return; }
     const d=await videoDuration(f);
@@ -9829,8 +9852,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.29b";
+const APP_VERSION="2026.09.29c";
 const CHANGELOG=[
+  {v:"2026.09.29c", title:"Samsung photo fix 📷", items:[
+    "📷 Photos from Samsung phones (and iPhones) saved in HEIC format now send properly. NightLane converts them for you.",
+  ]},
   {v:"2026.09.29b", title:"Report fix 🛠️", items:[
     "🛠️ Reports now send properly.",
   ]},
