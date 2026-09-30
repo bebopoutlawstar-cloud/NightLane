@@ -2525,6 +2525,21 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .emojigrid button.on{border-color:var(--volt)}
 .emojiany{width:100%;display:grid;gap:4px;text-align:left}
 .emojianyrow{display:flex;gap:8px}.emojianyrow .field{flex:1;min-width:0}
+/* ===== reports review ===== */
+.reviewtabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.reviewtabs .ghost{border:2px solid #3b2d80}
+.reviewtabs .ghost.on{border-color:var(--volt);color:var(--volt)}
+.rvhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rvhead small{color:var(--muted);font-family:var(--tech);font-size:11px}
+.rvmsg{margin:0;color:var(--white);overflow-wrap:anywhere}
+.rvnote{font-style:italic}
+.rvctx{border-left:3px solid #3b2d80;padding-left:8px;display:grid;gap:2px}
+.rvline{margin:0;font-size:.85em;color:var(--muted);overflow-wrap:anywhere}
+.rvline.hit{color:var(--volt);font-weight:600}
+.rvacts{display:flex;flex-wrap:wrap;gap:6px}
+.rvacts .ghost{width:auto!important;flex:1 1 auto;font-size:15px!important;padding:6px 8px!important}
+.rvacts .danger{color:#ff6b6b}
+#openReports.alert{color:var(--volt)}
 </style>
 </head>
 <body>
@@ -3156,6 +3171,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <h2 id="reviewTitle">Reports</h2>
     <p class="sub">Reports people have sent. Only you can see this.</p>
+    <div class="reviewtabs"><button class="ghost on" type="button" id="reviewTabOpen" aria-pressed="true">Open</button><button class="ghost" type="button" id="reviewTabDone" aria-pressed="false">Handled</button></div>
     <div class="reviewlist" id="reviewList"></div>
     <p class="msgline" id="reviewMsg"></p>
     <button class="ghost" type="button" id="reviewClose">Close</button>
@@ -3769,6 +3785,10 @@ const live = {
   async reportMessage(id,reason,details){ must(await sb.rpc("report_message",{p_message:id,p_reason:reason,p_details:details||null})); },
   async listReports(status){ return must(await sb.rpc("list_reports",{p_status:status||"open"})); },
   async setReportStatus(id,status){ must(await sb.rpc("set_report_status",{p_id:id,p_status:status})); },
+  async setMessageReportsStatus(mid,status){ must(await sb.rpc("set_message_reports_status",{p_message:mid,p_status:status})); },
+  async countOpenReports(){ const {data,error}=await sb.rpc("count_open_reports"); return error?0:(data||0); },
+  async reportContext(mid){ return must(await sb.rpc("report_context",{p_message:mid})); },
+  async adminDeleteMessage(mid){ must(await sb.rpc("admin_delete_message",{p_message:mid})); },
   async roomIcons(){ const {data,error}=await sb.rpc("my_room_icons"); return error?[]:(data||[]); },
   async search(q,roomCode){ return must(await sb.rpc("search_messages",{p_query:q,p_room:roomCode||null,p_limit:40})); },
   async touchSeen(){ await sb.rpc("touch_seen"); },
@@ -4112,8 +4132,12 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
     async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
     async reportMessage(id,reason){ if(!["harassment","spam","inappropriate","other"].includes(reason)) throw new Error("Pick a reason."); demoReports.push({id:demoReports.length+1,message_id:id,reason,created_at:iso()}); },
-    async listReports(status){ return demoReports.filter(r=>status==="all"||(r.status||"open")===(status||"open")).map(r=>({...r,status:r.status||"open",reporter_name:"you",reported_name:"Vee",message_text:"(demo message)",room_name:"The Hideout"})); },
+    async listReports(status){ return demoReports.filter(r=>status==="all"||(r.status||"open")===(status||"open")).map(r=>{ const m=Object.values(rooms).flatMap(x=>x.msgs).find(x=>x.id===r.message_id); return {...r,status:r.status||"open",reporter_name:"you",reported_name:m?(people[m.user_id]?.username||m.user_id):"Vee",message_text:m?.text||"(deleted)",message_exists:!!m,room:m?.room||"5959",room_name:"The Hideout"}; }); },
     async setReportStatus(id,status){ const r=demoReports.find(x=>x.id===id); if(r) r.status=status; },
+    async setMessageReportsStatus(mid,status){ demoReports.filter(x=>x.message_id===mid).forEach(r=>r.status=status); },
+    async countOpenReports(){ return new Set(demoReports.filter(r=>(r.status||"open")==="open").map(r=>r.message_id)).size; },
+    async reportContext(mid){ for(const r of Object.values(rooms)){ const i=r.msgs.findIndex(m=>m.id===mid); if(i>=0) return r.msgs.slice(Math.max(0,i-2),i+3).filter(m=>m.kind!=="notice").map(m=>({id:m.id,created_at:m.created_at,user_name:(people[m.user_id]||{username:m.user_id==="me"?"you":m.user_id}).username,kind:m.kind||"text",text:m.text||"",is_reported:m.id===mid})); } return []; },
+    async adminDeleteMessage(mid){ for(const r of Object.values(rooms)) r.msgs=r.msgs.filter(m=>m.id!==mid); demoReports.filter(x=>x.message_id===mid).forEach(r=>r.status="handled"); setTimeout(()=>fire("msgGone",mid),30); },
     async roomIcons(){ return Object.entries(rooms).filter(([,r])=>r.members.me&&r.icon_url).map(([code,r])=>({code,icon_url:r.icon_url})); },
     async saveTz(){},
     async setNickname(room,uid,nick){ rooms[room].members[uid].nick=nick||null; setTimeout(()=>fire("member",{user_id:uid,last_read_at:rooms[room].members[uid].read,nickname:nick||null}),30); },
@@ -4443,6 +4467,7 @@ async function handleAuth(u){
   if(unsubAll) unsubAll();
   unsubAll=api.subscribeAll(onAnyMessage,onFriendAdded);   // (the icon number is set when the chat list loads)
   let linked=q.get("room"), joinCode=q.get("join"), joinToken=q.get("t");
+  if(linked==="@reports"){ linked=null; pendingOpenReports=true; history.replaceState(null,"",location.pathname); }
   if(joinCode||linked) history.replaceState(null,"",location.pathname);
   try{ const pf=JSON.parse(LS.get("nl-pending-friend")||"null"); LS.remove("nl-pending-friend"); if(pf&&Date.now()-pf.at<3*864e5&&!q.get("friend")) setTimeout(()=>handleFriendInvite(pf.t),600); }catch(e){}
   if(!joinCode&&!linked){
@@ -4545,30 +4570,70 @@ $("animPrefBtn").onclick=()=>{
 /* ---------- Secret cheat sheet (admins only; the server decides who's an admin) ----------
    Built from the live secret list every time it opens, so new secrets show up by themselves. */
 let isAdmin=false;
-async function refreshAdmin(){ isAdmin=false; try{ isAdmin=await api.isAdmin(); }catch(e){} show($("openCheats"),isAdmin); show($("openReports"), isAdmin); }
-$("openReports").onclick=()=>{ show($("profile"),false); show($("reviewSheet")); loadReviews(); };
+async function refreshAdmin(){ isAdmin=false; try{ isAdmin=await api.isAdmin(); }catch(e){} show($("openCheats"),isAdmin); show($("openReports"), isAdmin);
+  if(isAdmin){ if(pendingOpenReports){ pendingOpenReports=false; reportNudged=true; openReviews(); } paintReportBadge(); } }
+let pendingOpenReports=false;
+$("openReports").onclick=()=>{ show($("profile"),false); show($("reviewSheet")); setReviewTab("open"); };
 $("reviewClose").onclick=()=>show($("reviewSheet"),false);
 $("reviewSheet").addEventListener("click",e=>{ if(e.target.id==="reviewSheet") show($("reviewSheet"),false); });
-async function loadReviews(){
-  const list=$("reviewList"); list.innerHTML=""; say("reviewMsg","Loading…");   // start with an empty list
+let reviewTab="open";
+const agoText=t=>{ const d=(Date.now()-new Date(t))/1000; return d<60?"just now":d<3600?Math.floor(d/60)+"m ago":d<86400?Math.floor(d/3600)+"h ago":Math.floor(d/86400)+"d ago"; };
+async function loadReviews(note){
+  const list=$("reviewList"); list.innerHTML=""; say("reviewMsg","Loading…");
   let reports=[];
-  try{ reports=await api.listReports("open"); say("reviewMsg",""); }                  // 1) the function I added to LIST reports
+  try{ reports=await api.listReports(reviewTab==="open"?"open":"handled"); say("reviewMsg",note||""); }
   catch(err){ say("reviewMsg",err.message,true); return; }
-  if(!reports.length){ list.append(el("p","sub","No open reports. 🎉")); return; }
-  reports.forEach(r=>{                                                               // 2) the loop you used on the reason buttons
+  paintReportBadge();
+  if(!reports.length){ list.append(el("p","sub",reviewTab==="open"?"No open reports. 🎉":"Nothing handled yet.")); return; }
+  // one card per reported message, even if several people reported it
+  const groups=new Map();
+  reports.forEach(r=>{ const g=groups.get(r.message_id)||{...r,reasons:new Set(),reporters:new Set(),notes:[],latest:r.created_at,count:0}; g.count++; g.reasons.add(r.reason); g.reporters.add(r.reporter_name||"Someone"); if(r.details) g.notes.push(`${r.reporter_name}: ${r.details}`); if(new Date(r.created_at)>new Date(g.latest)) g.latest=r.created_at; groups.set(r.message_id,g); });
+  [...groups.values()].sort((a,b)=>new Date(b.latest)-new Date(a.latest)).forEach(g=>{
     const row=el("div","reviewrow");
-    row.append(el("b","",`🚩 ${r.reason}`));                                       // 3) why it was reported
-    row.append(el("p","sub",`${r.reported_name}: "${r.message_text}"`));                 // 4) what the message said
-    row.append(el("p","sub",`Reported by ${r.reporter_name}${r.details?" · "+r.details:""}`));
-       const done=el("button","ghost","✓ Mark handled"); done.type="button";
-    done.onclick=async()=>{
-      done.disabled=true;                                      // stop double-taps
-      try{ await api.setReportStatus(r.id,"handled"); loadReviews(); }  // 1) the function I added to SET a report's status  2) the new status  3) reload the list
-      catch(err){ say("reviewMsg",err.message,true); done.disabled=false; }
-    };
-    row.append(done);
-    list.append(row);                                                               // 5) put the row into the list
+    const head=el("div","rvhead"); head.append(el("b","",`🚩 ${[...g.reasons].join(", ")}${g.count>1?` ×${g.count}`:""}`),el("small","",`${agoText(g.latest)} · ${g.room_name||"#"+g.room}`)); row.append(head);
+    row.append(el("p","rvmsg",`${g.reported_name||"Someone"}: `+(g.message_exists===false?"(message deleted)":`"${g.message_text||(g.message_kind?"a "+g.message_kind:"")}"`)));
+    row.append(el("p","sub",`Reported by ${[...g.reporters].join(", ")}`));
+    g.notes.forEach(n=>row.append(el("p","sub rvnote","📝 "+n)));
+    const ctx=el("div","rvctx hidden"); row.append(ctx);
+    const acts=el("div","rvacts");
+    if(g.message_exists!==false){
+      const see=el("button","ghost","💬 Context"); see.type="button";
+      see.onclick=async()=>{ if(!ctx.classList.contains("hidden")){ show(ctx,false); return; } ctx.innerHTML=""; ctx.append(el("p","sub","Loading…")); show(ctx);
+        try{ const rows=await api.reportContext(g.message_id); ctx.innerHTML=""; if(!rows.length) ctx.append(el("p","sub","That message is gone."));
+          rows.forEach(c=>ctx.append(el("p",c.is_reported?"rvline hit":"rvline",`${c.is_reported?"👉 ":""}${c.user_name||"Someone"}: ${c.text||(c.kind!=="text"?"["+c.kind+"]":"")}`))); }
+        catch(err){ ctx.innerHTML=""; ctx.append(el("p","sub",err.message)); } };
+      acts.append(see);
+    }
+    if(reviewTab==="open"){
+      if(g.message_exists!==false){ const del=el("button","ghost danger","🗑️ Delete message"); del.type="button";
+        del.onclick=async()=>{ if(!confirm(`Delete ${g.reported_name||"this person"}'s message for everyone? This can't be undone.`)) return; del.disabled=true;
+          try{ await api.adminDeleteMessage(g.message_id); loadReviews("🗑️ Message deleted for everyone, and the report is closed."); }catch(err){ say("reviewMsg",err.message,true); del.disabled=false; } };
+        acts.append(del); }
+      const done=el("button","ghost","✓ Dismiss"); done.type="button";
+      done.onclick=async()=>{ done.disabled=true; try{ await api.setMessageReportsStatus(g.message_id,"handled"); loadReviews("✓ Dismissed."); }catch(err){ say("reviewMsg",err.message,true); done.disabled=false; } };
+      acts.append(done);
+    } else {
+      const back=el("button","ghost","↩ Reopen"); back.type="button";
+      back.onclick=async()=>{ back.disabled=true; try{ await api.setMessageReportsStatus(g.message_id,"open"); loadReviews(); }catch(err){ say("reviewMsg",err.message,true); back.disabled=false; } };
+      acts.append(back);
+    }
+    row.append(acts); list.append(row);
   });
+}
+function setReviewTab(t){ reviewTab=t; $("reviewTabOpen").classList.toggle("on",t==="open"); $("reviewTabDone").classList.toggle("on",t!=="open"); $("reviewTabOpen").setAttribute("aria-pressed",String(t==="open")); $("reviewTabDone").setAttribute("aria-pressed",String(t!=="open")); loadReviews(); }
+$("reviewTabOpen").onclick=()=>setReviewTab("open");
+$("reviewTabDone").onclick=()=>setReviewTab("handled");
+function openReviews(){ ["profile","roomSheet","msgMenu"].forEach(id=>show($(id),false)); show($("reviewSheet")); setReviewTab("open"); }
+let reportNudged=false;
+async function paintReportBadge(){
+  if(!isAdmin) return;
+  const n=await api.countOpenReports().catch(()=>0), btn=$("openReports");
+  btn.textContent=n?`📋 Reports (${n} open)`:"📋 Reports"; btn.classList.toggle("alert",!!n);
+  if(n&&!reportNudged){ reportNudged=true;   // once per visit: a heads-up that reports are waiting
+    const t=el("button","toast"); t.type="button"; const body=el("span","tbody");
+    body.append(el("div","ttitle",`🚩 ${n} open report${n>1?"s":""}`),el("div","ttext","Tap to review."));
+    t.append(el("span","sx-lock","🚩"),body); t.onclick=()=>{ t.remove(); openReviews(); };
+    $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },8000); }
 }
 const GESTURE_HOW={
   konami:"Swipe ↑ ↑ ↓ ↓ ← → ← → anywhere (arrow keys work on a computer), then double-tap the date stamp or the room name within 10 seconds.",
@@ -6196,7 +6261,7 @@ const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform===
 const installed=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
   navigator.serviceWorker.register("sw.js").then(r=>swReg=r).catch(()=>{});
-  navigator.serviceWorker.addEventListener("message",e=>{ if(e.data?.room && user){ ["profile","roomSheet","msgMenu"].forEach(id=>show($(id),false)); enterRoom(e.data.room); } });
+  navigator.serviceWorker.addEventListener("message",e=>{ if(e.data?.room==="@reports"){ if(user&&isAdmin) openReviews(); else pendingOpenReports=true; return; } if(e.data?.room && user){ ["profile","roomSheet","msgMenu"].forEach(id=>show($(id),false)); enterRoom(e.data.room); } });
 }
 function b64ToBytes(b){ const p="=".repeat((4-b.length%4)%4), s=atob((b+p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from(s,c=>c.charCodeAt(0)); }
 async function currentSub(){ return swReg ? swReg.pushManager.getSubscription() : null; }
@@ -9967,8 +10032,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30e";
+const APP_VERSION="2026.09.30f";
 const CHANGELOG=[
+  {v:"2026.09.30f", title:"Safety upgrades 🛡️", items:[
+    "🛡️ Behind-the-scenes improvements to how reports get handled.",
+  ]},
   {v:"2026.09.30e", title:"Easier to find ➕", items:[
     "➕ The more-reactions button now fits on every phone instead of hiding off the edge.",
   ]},
