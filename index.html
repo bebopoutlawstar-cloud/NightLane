@@ -4875,7 +4875,8 @@ $("roomCard").addEventListener("submit",e=>{ e.preventDefault(); enterRoom($("ro
 $("randomRoom").onclick=()=>{ show($("joinPanel")); $("joinToggle").setAttribute("aria-expanded","true"); $("joinToggle").textContent="✕";
   const a=new Uint8Array(6); crypto.getRandomValues(a);
   $("room").value="room-"+[...a].map(b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join("");
-  say("roomMsg","New room code ready. Tap Jump in, then use Room to invite friends."); $("room").focus();
+  say("roomMsg","Making your room…");
+  enterRoom($("room").value);   // one tap: make it and go straight in (then use Room to invite or add friends)
 };
 
 let enterSeq=0;   // every room-open gets a ticket; if you tap another room mid-load, the older one stops
@@ -9889,8 +9890,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.29d";
+const APP_VERSION="2026.09.30a";
 const CHANGELOG=[
+  {v:"2026.09.30a", title:"Easier new rooms 🚪", items:[
+    "🚪 \"Make a new room\" now makes it and takes you straight in, in one tap. Then use Room → ＋ Add friends to bring people in.",
+  ]},
   {v:"2026.09.29d", title:"Reports review", items:[
     "A way to view the reports.",
   ]},
