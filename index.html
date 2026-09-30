@@ -489,6 +489,18 @@ html,body{overscroll-behavior:none}
 /* ===== games ===== */
 .tray-tabs .ghost{font-size:11px;padding:8px 4px}
 .gamelist{display:grid;gap:8px}
+#trayBlPane{display:grid;gap:8px}
+#trayBlPane.hidden{display:none!important}
+.traybllist{display:grid;gap:6px;max-height:240px;overflow-y:auto}
+.traybl{display:flex;align-items:center;gap:10px;width:100%;background:var(--night);border:2px solid var(--cyan);color:var(--white);padding:6px 8px;text-align:left}
+.traybl:active{border-color:var(--volt)}
+.traybl .blcover{width:64px;height:36px}
+.traybl .blposter{width:36px;height:52px}
+.traybl-noimg{flex:none;width:36px;text-align:center;font-size:22px}
+.traybl-mid{display:grid;min-width:0}
+.traybl-mid b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.traybl-mid small{font-size:12px;color:var(--muted)}
+@media (max-width:370px){.tray-tabs{gap:3px}.tray-tabs .ghost{font-size:13px!important;letter-spacing:0!important;min-width:0}}
 .gamepick{display:flex;align-items:center;gap:12px;width:100%;background:var(--night);border:2px solid var(--cyan);color:var(--white);padding:10px;text-align:left}
 .gamepick:hover,.gamepick:focus-visible{border-color:var(--volt)}
 .gp-icon{flex:none;display:grid;grid-template-columns:repeat(3,14px);gap:2px;padding:4px;background:var(--deep);transform:rotate(-6deg)}
@@ -2699,10 +2711,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
         <button type="button" class="ghost" id="traySticker" aria-pressed="true">Stickers</button>
         <button type="button" class="ghost" id="trayGifs" aria-pressed="false">GIFs</button>
         <button type="button" class="ghost" id="trayGames" aria-pressed="false">Games</button>
+        <button type="button" class="ghost" id="trayBacklog" aria-pressed="false">Backlog</button>
         <button type="button" class="ghost" id="trayPoll">Poll</button>
       </div>
       <div class="stickers" id="stickerGrid"></div>
       <div class="hidden" id="gifPane"><div class="gifbar"><label for="gifSearch" class="sr">Search GIFs</label><input class="field" id="gifSearch" placeholder="Search GIPHY…" autocomplete="off"></div><div class="gifgrid" id="gifGrid"></div></div>
+      <div class="hidden" id="trayBlPane">
+        <label for="trayBlSearch" class="sr">Search your backlog</label>
+        <input class="field" id="trayBlSearch" placeholder="Search your backlog…" autocomplete="off">
+        <div class="traybllist" id="trayBlList"></div>
+      </div>
       <div class="gamelist hidden" id="gameList">
         <button type="button" class="gamepick" data-game="tictactoe">
           <span class="gp-icon" aria-hidden="true"><i class="x"></i><i class="o"></i><i></i><i></i><i class="x"></i><i></i><i class="o"></i><i></i><i class="x"></i></span>
@@ -6098,7 +6116,7 @@ function paintStickers(){
 }
 function closeTray(){ show($("tray"),false); $("plusBtn").setAttribute("aria-expanded","false"); }
 $("plusBtn").onclick=()=>{ const open=$("tray").classList.contains("hidden"); if(open){ paintStickers(); show($("tray")); } else show($("tray"),false); $("plusBtn").setAttribute("aria-expanded",String(open)); };
-function trayTab(t){ $("traySticker").setAttribute("aria-pressed",t==="stickers"); $("trayGames").setAttribute("aria-pressed",t==="games"); $("trayGifs").setAttribute("aria-pressed",t==="gifs"); show($("stickerGrid"),t==="stickers"); show($("gameList"),t==="games"); show($("gifPane"),t==="gifs"); }
+function trayTab(t){ $("traySticker").setAttribute("aria-pressed",t==="stickers"); $("trayGames").setAttribute("aria-pressed",t==="games"); $("trayGifs").setAttribute("aria-pressed",t==="gifs"); show($("stickerGrid"),t==="stickers"); show($("gameList"),t==="games"); show($("gifPane"),t==="gifs"); $("trayBacklog").setAttribute("aria-pressed",t==="backlog"); show($("trayBlPane"),t==="backlog"); }
 $("traySticker").onclick=()=>trayTab("stickers");
 $("trayGames").onclick=()=>{ const t=isDm&&dmUser?`Challenge ${nameOf(dmUser)}`:"Challenge the room"; document.querySelectorAll("#gameList .gp-hint").forEach(n=>n.textContent=t); trayTab("games"); };
 $("gameList").querySelectorAll(".gamepick").forEach(bt=>bt.onclick=async()=>{
@@ -6107,6 +6125,36 @@ $("gameList").querySelectorAll(".gamepick").forEach(bt=>bt.onclick=async()=>{
   catch(err){ $("status").textContent="Couldn't start a game: "+err.message; }
 });
 $("trayPoll").onclick=()=>{ closeTray(); openPollSheet(); };
+/* ---- + → Backlog: share something from your backlog into this chat ---- */
+$("trayBacklog").onclick=async()=>{
+  trayTab("backlog"); $("trayBlSearch").value="";
+  const list=$("trayBlList"); list.innerHTML='<p class="note">Loading your backlog…</p>';
+  await loadMyBacklog(); paintTrayBacklog();
+};
+$("trayBlSearch").oninput=()=>paintTrayBacklog();
+function paintTrayBacklog(){
+  const list=$("trayBlList"); list.innerHTML="";
+  const q=$("trayBlSearch").value.trim().toLowerCase();
+  const items=(myBl||[]).filter(it=>!q||String(it.title||"").toLowerCase().includes(q));
+  if(!(myBl||[]).length){
+    list.append(el("p","note","Your backlog is empty. Add games and anime first, then share them here."));
+    const b=el("button","ghost","📚 Open my backlog"); b.type="button"; b.onclick=()=>{ closeTray(); openBacklog(user.id); }; list.append(b); return;
+  }
+  if(!items.length){ list.append(el("p","note","Nothing on your backlog matches that.")); return; }
+  items.forEach(it=>{
+    const b=el("button","traybl"); b.type="button"; b.setAttribute("aria-label","Share "+it.title+" to this chat");
+    const cov=blCover(it); if(cov) b.append(cov); else b.append(el("span","traybl-noimg",blIcon(it.type)));
+    const mid=el("span","traybl-mid");
+    mid.append(el("b","",it.title), el("small","",`${blIcon(it.type)} ${BL_TYPE_LABEL[it.type]||"Item"} · ${BL_STATUS[it.status]||"Planned"}${it.rating?" · "+"★".repeat(it.rating):""}`));
+    b.append(mid); b.onclick=()=>shareBlHere(it); list.append(b);
+  });
+}
+async function shareBlHere(it){
+  if(!room) return;
+  closeTray(); blSharing=it;
+  const here=inboxRows.find(r=>r.code===room)||{code:room,is_dm:isDm,dm_name:isDm&&dmUser?nameOf(dmUser):null,name:roomName};
+  await blShareTo(here);
+}
 
 /* ---------- polls ---------- */
 async function loadPolls(list){
@@ -10076,8 +10124,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30i";
+const APP_VERSION="2026.09.30j";
 const CHANGELOG=[
+  {v:"2026.09.30j", title:"Share your backlog 🎮", items:[
+    "🎮 Tap ➕ in any chat, then Backlog, to share a game or anime from your backlog right there.",
+  ]},
   {v:"2026.09.30i", title:"Say hi to newcomers 👋", items:[
     "👋 New visitors now see a \"What is NightLane?\" box on the login screen that explains what the app is about.",
   ]},
@@ -10677,10 +10728,12 @@ function paintBlResults(type){
 
 /* ---------- sharing into a chat ---------- */
 let blSharing=null;
+const BL_TYPE_LABEL={game:"Game",anime:"Anime",movie:"Movie",tv:"TV show"};
+const blIcon=t=>({game:"🎮",anime:"📺",movie:"🎬",tv:"📺"}[t]||"🎮");
 function blShareText(it){
-  const verb=it.status==="completed"?"Finished":it.status==="in-progress"?(it.type==="anime"?"Watching":"Playing"):"On my backlog";
+  const verb=it.status==="completed"?"Finished":it.status==="in-progress"?(it.type==="game"?"Playing":"Watching"):"On my backlog";
   const stars=it.rating?" · "+"★".repeat(it.rating)+"☆".repeat(5-it.rating):"";
-  return `${it.type==="anime"?"📺":"🎮"} ${verb}: ${it.title}${stars}`;
+  return `${blIcon(it.type)} ${verb}: ${it.title}${stars}`;
 }
 async function openBlShare(it){
   blSharing=it; $("blShareWhat").textContent=blShareText(it);
