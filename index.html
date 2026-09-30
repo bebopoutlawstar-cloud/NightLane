@@ -114,9 +114,9 @@ button:disabled{opacity:.5;cursor:default}
 .me .tag{margin:0 12px -3px 0;transform:rotate(3deg);color:var(--white);border-color:var(--mag)}
 .tag b{color:var(--volt);margin-right:6px}
 .bubble{position:relative;padding:14px 22px;font-size:19px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;color:var(--white);filter:drop-shadow(3px 3px 0 rgba(198,90,174,.55)) drop-shadow(0 0 6px rgba(0,240,255,.25))}
-.bubble::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--night);clip-path:polygon(0 14%,97% 0,100% 58%,93% 100%,3% 88%);box-shadow:inset 0 0 0 2px var(--cyan)}
+.bubble::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--night);clip-path:polygon(0 14%,97% 0,100% 58%,93% 100%,3% 88%);clip-path:polygon(0 min(14%,12px),97% 0,100% 58%,93% 100%,3% max(88%,calc(100% - 12px)));box-shadow:inset 0 0 0 2px var(--cyan)}   /* corner slants capped so tall messages keep their corners */
 .me .bubble{color:var(--white);filter:drop-shadow(-3px 3px 0 rgba(0,240,255,.55))}
-.me .bubble::before{background:var(--plum);box-shadow:inset 0 0 0 2px var(--mag);clip-path:polygon(3% 0,100% 12%,96% 90%,7% 100%,0 48%)}
+.me .bubble::before{background:var(--plum);box-shadow:inset 0 0 0 2px var(--mag);clip-path:polygon(3% 0,100% 12%,96% 90%,7% 100%,0 48%);clip-path:polygon(3% 0,100% min(12%,12px),96% max(90%,calc(100% - 10px)),7% 100%,0 48%)}
 .bubble a{color:var(--volt);text-decoration:underline;text-underline-offset:3px}
 .me .bubble a{color:var(--volt);font-weight:700}
 .shot{display:block;border:none;padding:0;background:none;margin:2px 0 6px}
@@ -9896,8 +9896,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30b";
+const APP_VERSION="2026.09.30c";
 const CHANGELOG=[
+  {v:"2026.09.30c", title:"Long messages fixed 📝", items:[
+    "📝 Really long messages no longer spill text outside the bubble's corners.",
+  ]},
   {v:"2026.09.30b", title:"One hint a day 🔍", items:[
     "🔍 The daily secret hint is now truly one a day. Finding a secret won't unlock another hint until tomorrow.",
   ]},
