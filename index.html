@@ -2513,6 +2513,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .afname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .afcheck{font-family:var(--tech);font-size:12px;color:var(--volt)}
 .afrow.on .afcheck{font-size:18px}
+/* ===== more reactions ===== */
+#emojiRow .more{font-size:18px;opacity:.85}
+.emojipick{width:100%;max-height:46vh;overflow:auto;text-align:left}
+.emojipick h3{margin:10px 0 4px;font-size:1em}
+.emojigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px}
+.emojigrid button{font-size:24px;line-height:1;padding:6px 0;background:var(--deep);border:2px solid transparent;cursor:pointer;color:#fff;text-shadow:none;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif!important}
+#emojiRow button{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif}
+.emojigrid button.on{border-color:var(--volt)}
+.emojiany{width:100%;display:grid;gap:4px;text-align:left}
+.emojianyrow{display:flex;gap:8px}.emojianyrow .field{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -3241,6 +3251,21 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="msgline" id="afMsg" aria-live="polite"></p>
     <button class="go" type="button" id="afAdd" disabled>Add</button>
     <button class="ghost" type="button" id="afClose">Close</button>
+  </div></div>
+</div>
+
+<!-- ============ MORE REACTIONS ============ -->
+<div class="overlay hidden" id="emojiSheet" role="dialog" aria-modal="true" aria-labelledby="emojiTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="emojiTitle">React</h2>
+    <div class="emojipick" id="emojiPick"></div>
+    <form class="emojiany" id="emojiAnyForm">
+      <label for="emojiAny" class="sub">Or use any emoji from your keyboard:</label>
+      <div class="emojianyrow"><input class="field" id="emojiAny" autocomplete="off" inputmode="text" placeholder="Tap here, then pick an emoji">
+      <button class="send" type="submit">React</button></div>
+    </form>
+    <p class="msgline" id="emojiMsg" aria-live="polite"></p>
+    <button class="ghost" type="button" id="emojiClose">Close</button>
   </div></div>
 </div>
 
@@ -5158,6 +5183,48 @@ async function syncReaction(m,emoji,k){
   }finally{ st.busy=false; }
 }
 
+/* ---------- more reactions: a big picker + any emoji from your keyboard ---------- */
+const EMOJI_GROUPS=[
+  ["Smileys","😀 😁 😆 🤣 😊 😇 🙂 😉 😍 🥰 😘 😋 😜 🤪 😎 🤩 🥳 😏 😒 😔 😭 😤 😡 🤯 😳 🥺 😱 🤔 🫡 🤫 🙄 😴 🤤 😵‍💫 🤢 🤮 🤠 👻 💀 🤡 👽 🤖 💩"],
+  ["Hearts & hands","❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 ❤️‍🔥 💕 💖 💯 ✨ 👏 🙌 🤝 🙏 👌 🤌 ✌️ 🤞 🫶 💪 👀 🫠 🫣 👋 🤙 👊 👎"],
+  ["Animals","🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐸 🐵 🐔 🐧 🦆 🦉 🦇 🐺 🐴 🦄 🐝 🦋 🐢 🐍 🦖 🐙 🦈 🐬 🐳 🦀"],
+  ["Food & drink","🍕 🍔 🍟 🌮 🍜 🍣 🍙 🍡 🍩 🍪 🎂 🍰 🍫 🍿 🍓 🍉 🍌 🍎 🥑 🌶️ ☕ 🧋 🍵 🥤 🍺 🍷"],
+  ["Fun & stuff","🎉 🎊 🎁 🏆 🥇 🎮 🕹️ 🎲 🃏 🎵 🎧 🎤 📸 💻 📱 💡 💰 💎 🔮 🗡️ ⚔️ 🛡️ 🚀 🌙 ⭐ 🌈 ☀️ ⚡ 🌊 🌸 🍀 ☠️ 🔔 ⏰ ✅ ❌ ⚠️ 🆒 🆗"],
+];
+const recentReacts=()=>{ try{ return JSON.parse(LS.get("nl-recent-reacts")||"[]"); }catch(e){ return []; } };
+function rememberReact(e){ const r=[e,...recentReacts().filter(x=>x!==e)].slice(0,16); try{ LS.set("nl-recent-reacts",JSON.stringify(r)); }catch(err){} }
+function firstEmoji(str){   // the first emoji someone typed (handles skin tones, flags and combined emoji)
+  const t=(str||"").trim(); if(!t) return null;
+  const g=typeof Intl!=="undefined"&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(t)][0].segment:[...t][0];
+  if(!g||g.length>16||/[\sA-Za-z0-9<>/\\:;"'`=&%$@(){}\[\],.!?_+*~^|-]/.test(g)) return null;
+  return /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(g)?g:null;
+}
+let pickFor=null;
+function openEmojiPicker(m){
+  if(!m) return;
+  pickFor=m; say("emojiMsg",""); $("emojiAny").value="";
+  const box=$("emojiPick"); box.innerHTML="";
+  const groups=[...(recentReacts().length?[["Recent",recentReacts().join(" ")]]:[]),...EMOJI_GROUPS];
+  for(const [name,list] of groups){
+    box.append(el("h3","",name)); const grid=el("div","emojigrid");
+    list.split(" ").filter(Boolean).forEach(e=>{
+      const b=el("button",reactionsById.get(m.id)?.get(e)?.has(user.id)?"on":"",e); b.type="button"; b.setAttribute("aria-label","React "+e);
+      b.onclick=()=>pickReaction(e); grid.append(b); });
+    box.append(grid);
+  }
+  show($("emojiSheet")); box.scrollTop=0;
+}
+function pickReaction(e){
+  if(!pickFor) return;
+  const mine=reactionsById.get(pickFor.id)?.get(e)?.has(user.id);
+  const count=[...(reactionsById.get(pickFor.id)||new Map()).values()].filter(set=>set.has(user.id)).length;
+  if(!mine&&count>=12) return say("emojiMsg","That's a lot of reactions! Remove one first.",true);
+  show($("emojiSheet"),false); rememberReact(e); toggleReaction(pickFor,e);
+}
+$("emojiAnyForm").addEventListener("submit",e=>{ e.preventDefault(); const em=firstEmoji($("emojiAny").value); if(!em) return say("emojiMsg","That box only takes an emoji. Use your keyboard's emoji button 😊",true); pickReaction(em); });
+$("emojiClose").onclick=()=>show($("emojiSheet"),false);
+$("emojiSheet").addEventListener("click",e=>{ if(e.target.id==="emojiSheet") show($("emojiSheet"),false); });
+
 /* ---------- message menu ---------- */
 function openMenu(m){
   menuMsg=m; const mine=m.user_id===user.id;
@@ -5169,6 +5236,8 @@ function openMenu(m){
     b.onclick=()=>{ show($("msgMenu"),false); toggleReaction(m,emoji); };
     row.append(b);
   });
+  const more=el("button","more","➕"); more.type="button"; more.setAttribute("aria-label","More reactions");
+  more.onclick=()=>{ show($("msgMenu"),false); openEmojiPicker(m); }; row.append(more);
   show($("menuCopy"),!!m.text&&m.kind!=="sticker"); show($("menuCal"),!!m.text&&m.kind==="text");
   show($("menuTranslate"),aiOn()&&!!m.text&&m.kind!=="sticker"&&m.kind!=="poll"&&m.kind!=="game"&&!mine);
   show($("menuFx"),!!(secretFor(m.text)||fxFor(m.text))&&m.kind!=="poll"&&m.kind!=="game");
@@ -9896,8 +9965,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30c";
+const APP_VERSION="2026.09.30d";
 const CHANGELOG=[
+  {v:"2026.09.30d", title:"React with anything 😎", items:[
+    "😎 Tap ➕ next to the quick reactions to pick from lots more emoji, or use any emoji from your keyboard.",
+    "🕘 Emoji you use show up under Recent for next time. Thanks to jimmylikespie21 for the idea!",
+  ]},
   {v:"2026.09.30c", title:"Long messages fixed 📝", items:[
     "📝 Really long messages no longer spill text outside the bubble's corners.",
   ]},
