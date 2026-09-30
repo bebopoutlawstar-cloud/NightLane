@@ -1,5 +1,5 @@
-// NightLane service worker (v15): push notifications + fast repeat loads.
-const CACHE="nightlane-v15";
+// NightLane service worker (v16): push notifications + fast repeat loads.
+const CACHE="nightlane-v16";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
@@ -47,7 +47,8 @@ self.addEventListener("fetch", e => {
     e.respondWith(caches.match(req, { ignoreVary: true }).then(hit => hit || fetch(req).then(r => { if (r.ok || r.type === "opaque") { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); } return r; })));
     return;
   }
-  const isShell = req.mode === "navigate" || url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
+  // only the app itself counts as the "shell"; other pages (privacy.html, terms.html) load normally and never replace it
+  const isShell = url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
   if (isShell) {
     // network first: always pick up your latest upload; fall back to the cached copy when offline
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("shell", copy)); return r; }).catch(() => caches.match("shell")));

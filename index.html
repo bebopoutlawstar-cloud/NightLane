@@ -328,6 +328,11 @@ html,body{overflow-x:hidden}
 .pollopts .optrow button{background:none;border:2px solid var(--muted);color:var(--muted);padding:0 10px}
 .check{display:flex;gap:10px;align-items:center;font-size:16px;color:var(--white)}
 .check input{width:20px;height:20px;accent-color:var(--cyan)}
+.card label.agree{font-family:var(--body);font-size:16px;color:var(--white);letter-spacing:0;align-items:flex-start;line-height:1.35;cursor:pointer}
+.card label.agree input{flex:none;margin-top:1px}
+.card label.agree a,.legallinks a{color:var(--cyan)}
+.legallinks{font-size:14px;color:var(--muted);text-align:center;margin:0}
+body.desktop #authCard label.agree::before{content:none}
 
 /* mentions */
 .mention{font-weight:700;color:var(--volt);background:rgba(243,255,58,.12);padding:0 3px}
@@ -1319,6 +1324,11 @@ body.desktop #chat.hidden::after{content:attr(data-idle);display:grid;place-item
 body.desktop #front.logged .stamp{width:180px;aspect-ratio:1.9;margin:0 auto 0;transform:rotate(-4deg) scale(.9)}
 body.desktop #front:not(.logged){grid-column:1/3;border:none;background:transparent;justify-content:center;align-items:center}
 body.desktop #front:not(.logged) .front-inner{width:min(92vw,460px)}
+/* login: never clip the date stamp off the top on short screens, and keep it clear of the tabs */
+body.desktop #front:not(.logged){justify-content:flex-start}
+body.desktop #front:not(.logged) .front-inner{margin:auto;padding:44px 0 8px}   /* the big date pokes ~40px above its own box */
+body.desktop #front:not(.logged) .front-inner>*{flex:none}   /* the stamp was getting squashed flat on short screens */
+body.desktop #front:not(.logged) .stamp{width:min(100%,360px);margin-bottom:22px}
 /* terminal bar */
 .termbar{display:none}
 body.desktop .termbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:9;height:26px;align-items:center;gap:22px;padding:0 20px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--term);background:#020705;border-top:1px solid rgba(124,255,107,.35);letter-spacing:.5px}
@@ -2586,10 +2596,12 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <label for="pass">Password</label>
     <input class="field" id="pass" type="password" autocomplete="current-password" placeholder="At least 6 characters">
     <button type="button" class="linkbtn" id="forgot">Forgot password?</button>
+    <label class="check agree hidden" id="agreeWrap"><input type="checkbox" id="agree"> <span>I'm 13 or older, and I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
     <p class="msgline" id="authMsg" role="status"></p>
     <button class="go" type="submit" id="authBtn">Log in</button>
     <p class="note" id="modeNote"></p>
     <button type="button" class="linkbtn installlink hidden" id="installLink1">📲 Install NightLane as an app</button>
+    <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
   </form>
 
   <!-- logged in -->
@@ -2788,6 +2800,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="danger" type="button" id="logout">Log out</button>
     <button class="ghost" type="button" id="closeProfile">Close</button>
     <button class="linkbtn" type="button" id="deleteAccount" style="justify-self:center;color:var(--red)">Delete my account</button>
+    <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@nightlane.chat">support@nightlane.chat</a></p>
   </div></div>
 </div>
 
@@ -3161,7 +3174,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <button type="button" class="ghost fpsmall" id="fpEmail">Send reset email</button>
     </div>
     <p class="msgline" id="fpMsg" role="status"></p>
-    <p class="note">No recovery code? Ask whoever runs NightLane to reset your password for you.</p>
+    <p class="note">No recovery code? Email <a href="mailto:support@nightlane.chat">support@nightlane.chat</a> from your account's email address and we'll help you get back in.</p>
     <button class="ghost" type="button" id="fpClose">Close</button>
   </div></form>
 </div>
@@ -3637,6 +3650,7 @@ function kcBotTurn(id){
 const SUPABASE_URL = "https://iqxmnodyxfgljlopprju.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_elzC4wE2PQl8u7v2MFSJUQ_gVhgaqVc";
 const VAPID_PUBLIC_KEY = "BOrqIEUU9fqA8IYWE2HGUyCZqLbYn_inpdDszPxxVV0UO1gjIRp1T3hhOtRxs5ZGlHNEygTB-lF2dHX6YI7mmg4";
+const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html change in a big way
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 
 const $ = id => document.getElementById(id);
@@ -3758,7 +3772,7 @@ const live = {
   async signUp(username,email,password){
     const {data:free,error:chk}=await sb.rpc("username_available",{p_username:username});
     if(!chk&&free===false) throw new Error("That username is taken.");
-    const data=must(await sb.auth.signUp({email,password,options:{data:{username},emailRedirectTo:location.origin+location.pathname}}));
+    const data=must(await sb.auth.signUp({email,password,options:{data:{username,terms_version:TERMS_VERSION,agreed_at:new Date().toISOString(),age_13_plus:true},emailRedirectTo:location.origin+location.pathname}}));
     return data.session ? "in" : "confirm";
   },
   async signIn(id,password){
@@ -4482,7 +4496,7 @@ async function handleAuth(u){
 let mode="in";
 function setMode(m){
   mode=m; $("tabIn").setAttribute("aria-selected",m==="in"); $("tabUp").setAttribute("aria-selected",m==="up");
-  show($("unameWrap"),m==="up"); $("authBtn").textContent=m==="in"?"Log in":"Create account";
+  show($("unameWrap"),m==="up"); show($("agreeWrap"),m==="up"); $("authBtn").textContent=m==="in"?"Log in":"Create account";
   $("pass").autocomplete=m==="in"?"current-password":"new-password"; show($("forgot"),m==="in");
   $("emailLabel").textContent=m==="in"?"Email or username":"Email"; $("email").type=m==="in"?"text":"email"; $("email").autocomplete=m==="in"?"username":"email";
   if(!new URLSearchParams(location.search).get("join")) say("authMsg","");
@@ -4496,6 +4510,7 @@ $("authCard").addEventListener("submit",async e=>{
   if(mode==="up"||email.includes("@")){ if(!/^\S+@\S+\.\S+$/.test(email)) return say("authMsg","Enter a valid email.",true); }
   else if(!/^[A-Za-z0-9_]{3,20}$/.test(email)) return say("authMsg","Enter your email or your NightLane username.",true);
   if(pass.length<6) return say("authMsg","Password needs at least 6 characters.",true);
+  if(mode==="up" && !$("agree").checked){ say("authMsg","Check the box to confirm you're 13 or older and agree to the Terms and Privacy Policy.",true); $("agree").focus(); return; }
   if(navigator.onLine===false) return say("authMsg","You're offline. Connect to the internet to "+(mode==="in"?"log in.":"sign up."),true);
   $("authBtn").disabled=true; say("authMsg",mode==="in"?"Logging in…":"Creating account…");
   showSplash(mode==="in"?"signing you in…":"setting up your account…");
@@ -4547,7 +4562,7 @@ $("fpEmail").onclick=async()=>{
   if(!email) return; if(!/^\S+@\S+\.\S+$/.test(email.trim())) return say("fpMsg","That doesn't look like an email.",true);
   $("fpEmail").disabled=true; say("fpMsg","Sending reset link…");
   try{ await api.resetPassword(email.trim()); say("fpMsg","If that email has an account, a reset link is on its way. Check spam too."); }
-  catch(err){ say("fpMsg",/not authorized/i.test(err.message)?"Reset emails aren't working yet. Use your recovery code, or ask whoever runs NightLane to reset it.":/rate limit/i.test(err.message)?"Too many reset emails. Wait a bit and try again.":err.message,true); }
+  catch(err){ say("fpMsg",/not authorized/i.test(err.message)?"Reset emails aren't working right now. Use your recovery code, or email support@nightlane.chat for help.":/rate limit/i.test(err.message)?"Too many reset emails. Wait a bit and try again.":err.message,true); }
   finally{ $("fpEmail").disabled=false; }
 };
 $("fpClose").onclick=()=>show($("forgotSheet"),false);
@@ -10032,8 +10047,13 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30f";
+const APP_VERSION="2026.09.30g";
 const CHANGELOG=[
+  {v:"2026.09.30g", title:"Rules of the road 📜", items:[
+    "📜 NightLane now has a Privacy Policy and Terms of Service. Find them on the login screen and at the bottom of your Profile.",
+    "🔑 Forgot your password and have no recovery code? Email support@nightlane.chat for help.",
+    "🖥️ On computers, the date no longer bumps into the Log in / Sign up tabs.",
+  ]},
   {v:"2026.09.30f", title:"Safety upgrades 🛡️", items:[
     "🛡️ Behind-the-scenes improvements to how reports get handled.",
   ]},
@@ -10771,7 +10791,7 @@ setInterval(()=>{ if(document.body.classList.contains("desktop")) paintDeskDate(
 function paintTermBar(){ paintDeskDate();
   const bar=$("termbar"); if(!bar) return;
   const on=[...online.keys()].filter(id=>id!==user?.id).length;
-  bar.innerHTML=`<span>▮ NIGHTLANE<span class="blink">_</span></span><span>uplink: <b>${!sb?"DEMO":(navigator.onLine?(liveStatus||"IDLE"):"OFFLINE")}</b></span><span>user: <b>${meProfile?.username||"—"}</b></span><span>channel: <b>${room?(isDm?"private":(roomName||"#"+room)):"none"}</b></span><span>online: <b>${on}</b></span><span class="right"><span class="kbd">Ctrl+K</span> search · <span class="kbd">Esc</span> close · <span class="kbd">Ctrl+/</span> secrets</span>`;
+  bar.innerHTML=`<span>▮ NIGHTLANE<span class="blink">_</span></span><span>uplink: <b>${!sb?"DEMO":(navigator.onLine?(liveStatus||"IDLE"):"OFFLINE")}</b></span><span>user: <b>${meProfile?.username||"—"}</b></span><span>channel: <b>${room?(isDm?"private":(roomName||"#"+room)):"none"}</b></span><span>online: <b>${on}</b></span><span class="right">${user?`<span class="kbd">Ctrl+K</span> search · `:""}<span class="kbd">Esc</span> close · <span class="kbd">Ctrl+/</span> secrets</span>`;
 }
 setInterval(()=>{ if(document.body.classList.contains("desktop")) paintTermBar(); },4000);
 addEventListener("resize",applyDesktop); applyDesktop();
