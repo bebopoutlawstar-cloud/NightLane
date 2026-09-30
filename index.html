@@ -3709,6 +3709,9 @@ const live = {
   async saveTz(uid,tz){ await sb.from("profiles").update({tz}).eq("id",uid); },
   async setRoomIcon(room,url){ must(await sb.rpc("set_room_icon",{p_room:room,p_url:url})); },
   async addFriendsToRoom(room,ids){ return must(await sb.rpc("add_friends_to_room",{p_room:room,p_users:ids})); },
+  async reportMessage(id,reason,details){ must(await sb.rpc("report_message",{p_message:id,p_reason:reason,p_details:details||null})); },
+  async listReports(status){ return must(await sb.rpc("list_reports",{p_status:status||"open"})); },
+  async setReportStatus(id,status){ must(await sb.rpc("set_report_status",{p_id:id,p_status:status})); },
   async roomIcons(){ const {data,error}=await sb.rpc("my_room_icons"); return error?[]:(data||[]); },
   async search(q,roomCode){ return must(await sb.rpc("search_messages",{p_query:q,p_room:roomCode||null,p_limit:40})); },
   async touchSeen(){ await sb.rpc("touch_seen"); },
@@ -3867,6 +3870,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   let user=null, listeners=[], H=null, nextId=100;
   const iso=(ago=0)=>new Date(Date.now()-ago).toISOString();
   const people={rook:{id:"rook",username:"Rook",avatar_url:null,tz:"Europe/London"},vee:{id:"vee",username:"Vee",avatar_url:null,tz:"America/New_York"}};
+  const demoReports=[];
   function demoNotice(room,text){ const r=rooms[room], last=r.msgs[r.msgs.length-1];
     if(last&&last.kind==="notice"&&last.user_id==="me"&&last.text.split(":")[0]===text.split(":")[0]&&Date.now()-new Date(last.created_at)<120000){ r.msgs.pop(); fire("msgGone",last.id); }
     const m={id:nextId++,room,user_id:"me",kind:"notice",text,mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); }
@@ -4050,6 +4054,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async setBackground(room,bg){ const old=rooms[room].background||null; rooms[room].background=bg; setTimeout(()=>fire("roomUpdated",{code:room,name:rooms[room].name||null,background:bg,owner:rooms[room].owner}),30); if(old!==(bg||null)) demoNotice(room,"bg:"+(bg||"stars")); },
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
     async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
+    async reportMessage(id,reason){ if(!["harassment","spam","inappropriate","other"].includes(reason)) throw new Error("Pick a reason."); demoReports.push({id:demoReports.length+1,message_id:id,reason,created_at:iso()}); },
+    async listReports(){ return demoReports.map(r=>({...r,status:"open",reporter_name:"you",reported_name:"Vee",message_text:"(demo message)",room_name:"The Hideout"})); },
+    async setReportStatus(){},
     async roomIcons(){ return Object.entries(rooms).filter(([,r])=>r.members.me&&r.icon_url).map(([code,r])=>({code,icon_url:r.icon_url})); },
     async saveTz(){},
     async setNickname(room,uid,nick){ rooms[room].members[uid].nick=nick||null; setTimeout(()=>fire("member",{user_id:uid,last_read_at:rooms[room].members[uid].read,nickname:nick||null}),30); },
@@ -9822,8 +9829,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.29a";
+const APP_VERSION="2026.09.29b";
 const CHANGELOG=[
+  {v:"2026.09.29b", title:"Report fix 🛠️", items:[
+    "🛠️ Reports now send properly.",
+  ]},
   {v:"2026.09.29a", title:"Reporting Added 🚩", items:[
     "🚩 See something not okay? Tap a friend's message → Report, pick a reason, and send. Only the admin sees reports.",
   ]},
