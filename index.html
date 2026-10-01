@@ -1799,6 +1799,8 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .blmsg img{flex:none;width:64px;height:88px;object-fit:cover;border:2px solid var(--cyan);background:#000}
 .blmsg img.wide{width:96px;height:56px}
 .blmsg .blmid{gap:3px}
+.blnote{margin-top:8px;font-size:17px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;max-width:280px}
+.blnoteprev{display:flex;justify-content:center;padding:8px;border:2px solid #3b2d80;background:rgba(0,0,0,.25)}
 .blmsg .bleye{font-family:var(--tech);font-size:9px;letter-spacing:.5px;opacity:.85}
 .blmsg .blname{font-size:16px}
 .blmsg .blstars{pointer-events:none}
@@ -2428,6 +2430,8 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #tipSheet .sub{text-align:left;font-size:.9em;color:var(--muted);margin-bottom:10px;line-height:1.3;margin-top:0;width: 100%}
 #tipSheet .sheetbody { gap: 4px; }
 #welcomeTip { font-size: 15px; padding: 2px 6px;}
+.gifprev{display:grid;place-items:center;background:#000;border:2px solid var(--cyan);min-height:140px;max-height:46vh;overflow:hidden}
+.gifprev img{display:block;max-width:100%;max-height:46vh;object-fit:contain}
 #editBox{min-height:110px;resize:vertical;font-family:var(--body);font-size:17px}
 .edited{opacity:.75;font-style:italic}
 .bubble{touch-action:manipulation}
@@ -3267,6 +3271,29 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 <!-- ============ Report Sheet ============ -->
+<div class="overlay hidden" id="blNoteSheet" role="dialog" aria-modal="true" aria-labelledby="blNoteTitle">
+  <form class="sheet" id="blNoteForm"><div class="sheetbody">
+    <h2 id="blNoteTitle">Share to this chat</h2>
+    <div class="blnoteprev" id="blNotePrev"></div>
+    <label for="blNoteBox" class="sr">Add a message</label>
+    <input class="field" id="blNoteBox" maxlength="300" placeholder="Add a message (optional)" autocomplete="off">
+    <p class="msgline" id="blNoteMsg" role="status"></p>
+    <button class="go" type="submit" id="blNoteSend">Send</button>
+    <button class="ghost" type="button" id="blNoteBack">Pick something else</button>
+  </div></form>
+</div>
+<div class="overlay hidden" id="gifPreview" role="dialog" aria-modal="true" aria-labelledby="gifPrevTitle">
+  <form class="sheet" id="gifPrevForm"><div class="sheetbody">
+    <h2 id="gifPrevTitle">Send this GIF?</h2>
+    <div class="gifprev"><img id="gifPrevImg" alt=""></div>
+    <label for="gifCaption" class="sr">Add a message</label>
+    <input class="field" id="gifCaption" maxlength="500" placeholder="Add a message (optional)" autocomplete="off">
+    <p class="msgline" id="gifPrevMsg" role="status"></p>
+    <button class="go" type="submit" id="gifPrevSend">Send</button>
+    <button class="ghost" type="button" id="gifPrevBack">Pick a different GIF</button>
+    <p class="note gifcredit">Powered by GIPHY</p>
+  </div></form>
+</div>
 <div class="overlay hidden" id="editSheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <form class="sheet" id="editForm"><div class="sheetbody">
     <h2 id="editTitle">Edit message</h2>
@@ -3416,6 +3443,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <h2 id="blShareTitle">Share to…</h2>
     <p class="sub" id="blShareWhat"></p>
+    <label for="blShareNote" class="sr">Add a message</label>
+    <input class="field" id="blShareNote" maxlength="300" placeholder="Add a message (optional)" autocomplete="off">
+    <p class="note left">Then pick where to send it:</p>
     <div class="inbox blsharelist" id="blShareList"></div>
     <button class="ghost" type="button" id="blShareClose">Cancel</button>
   </div></div>
@@ -5325,7 +5355,7 @@ function buildMsg(m,index,noAnim){
   if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.playsInline=true; v.preload="metadata"; bub.append(v); }
   if(media&&m.media_type==="audio") bub.append(voicePlayer(media,m.media_duration));
   if(m.kind==="sticker"&&STICKERS[m.sticker]) bub.append(stickerEl(m.sticker));
-  if(isBlCard(m)) bub.append(backlogMsgCard(m));
+  if(isBlCard(m)){ bub.append(backlogMsgCard(m)); if(typeof m.card.note==="string"&&m.card.note.trim()){ const n=el("div","blnote"); renderTextWithDates(n,m.card.note.slice(0,300),m.mentions,m); bub.append(n); } }
   else if(m.kind==="poll") bub.append(pollEl(m));
   else if(m.kind==="game") bub.append(gameCard(m));
   else if(m.text){ const t=el("div"); renderTextWithDates(t,m.text,m.mentions,m); annotateTimes(t,m); bub.append(t);
@@ -6294,12 +6324,23 @@ function paintTrayBacklog(){
     b.append(mid); b.onclick=()=>shareBlHere(it); list.append(b);
   });
 }
-async function shareBlHere(it){
+function shareBlHere(it){
   if(!room) return;
-  closeTray(); blSharing=it;
-  const here=inboxRows.find(r=>r.code===room)||{code:room,is_dm:isDm,dm_name:isDm&&dmUser?nameOf(dmUser):null,name:roomName};
-  await blShareTo(here);
+  blSharing=it; say("blNoteMsg",""); $("blNoteBox").value="";
+  const prev=$("blNotePrev"); prev.innerHTML=""; prev.append(backlogMsgCard({card:{kind:"backlog",type:it.type,title:it.title,image:it.image,status:it.status,rating:it.rating,platform:it.platform,progress:it.progress,total:it.total},user_id:user.id}));
+  show($("blNoteSheet")); setTimeout(()=>$("blNoteBox").focus({preventScroll:true}),80);
 }
+const closeBlNote=()=>show($("blNoteSheet"),false);
+$("blNoteBack").onclick=closeBlNote;
+$("blNoteSheet").addEventListener("click",e=>{ if(e.target.id==="blNoteSheet") closeBlNote(); });
+$("blNoteBox").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBlNote(); } });
+$("blNoteForm").addEventListener("submit",async e=>{
+  e.preventDefault(); if(!blSharing||!room) return;
+  const here=inboxRows.find(r=>r.code===room)||{code:room,is_dm:isDm,dm_name:isDm&&dmUser?nameOf(dmUser):null,name:roomName};
+  $("blNoteSend").disabled=true;
+  try{ await blShareTo(here,$("blNoteBox").value); closeBlNote(); closeTray(); }
+  finally{ $("blNoteSend").disabled=false; }
+});
 
 /* ---------- polls ---------- */
 async function loadPolls(list){
@@ -8781,11 +8822,30 @@ async function loadGifs(q){
     if(!d.data?.length){ grid.innerHTML='<p class="note">No GIFs for that. Try another word.</p>'; return; }
     d.data.forEach(g=>{ const b=el("button","gifpick"); b.type="button"; b.setAttribute("aria-label","Send GIF: "+(g.title||"gif"));
       const i=document.createElement("img"); i.src=g.images.fixed_height_small.url; i.alt=g.title||""; i.loading="lazy"; b.append(i);
-      b.onclick=async()=>{ closeTray(); try{ await sendFields({kind:"image",image_url:g.images.fixed_height.url,text:null}); }catch(err){ $("status").textContent="GIF didn't send: "+err.message; } };
+      b.onclick=()=>openGifPreview(g);
       grid.append(b); });
     grid.append(el("p","note gifcredit","Powered by GIPHY"));
   }catch(e){ grid.innerHTML='<p class="note">Couldn\'t reach GIPHY. Check your connection.</p>'; }
 }
+/* tap a GIF → see it big, add a message if you want, then send */
+let gifPicked=null;
+function openGifPreview(g){
+  gifPicked=g; say("gifPrevMsg",""); $("gifCaption").value="";
+  const i=$("gifPrevImg"); i.src=g.images.fixed_height_small.url; i.alt=g.title||"GIF";
+  const big=new Image(); big.onload=()=>{ if(gifPicked===g) i.src=big.src; }; big.src=g.images.fixed_height.url;   // small one shows instantly, the sharp one swaps in
+  show($("gifPreview")); setTimeout(()=>$("gifCaption").focus({preventScroll:true}),80);
+}
+$("gifPrevBack").onclick=()=>{ show($("gifPreview"),false); gifPicked=null; };
+$("gifPreview").addEventListener("click",e=>{ if(e.target.id==="gifPreview"){ show($("gifPreview"),false); gifPicked=null; } });
+$("gifCaption").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); show($("gifPreview"),false); gifPicked=null; } });
+$("gifPrevForm").addEventListener("submit",async e=>{
+  e.preventDefault(); const g=gifPicked; if(!g) return;
+  const text=$("gifCaption").value.trim()||null;
+  $("gifPrevSend").disabled=true; say("gifPrevMsg","Sending…");
+  try{ await sendFields({kind:"image",image_url:g.images.fixed_height.url,text}); show($("gifPreview"),false); closeTray(); gifPicked=null; say("gifPrevMsg",""); }
+  catch(err){ say("gifPrevMsg","GIF didn't send: "+err.message,true); }
+  finally{ $("gifPrevSend").disabled=false; }
+});
 $("gifSearch").addEventListener("input",e=>{ clearTimeout(gifTimer); gifTimer=setTimeout(()=>loadGifs(e.target.value.trim()),350); });
 $("trayGifs").onclick=()=>{ trayTab("gifs"); loadGifs($("gifSearch").value.trim()); setTimeout(()=>$("gifSearch").focus(),50); };
 
@@ -10269,8 +10329,14 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30m";
+const APP_VERSION="2026.10.01b";
 const CHANGELOG=[
+  {v:"2026.10.01b", title:"Say something about it 💬", items:[
+    "💬 When you share something from your backlog, you can add a message with it, like \"you HAVE to play this\". It shows right under the card.",
+  ]},
+  {v:"2026.10.01a", title:"Preview your GIFs 🎞️", items:[
+    "🎞️ Tapping a GIF now shows it big first, so you can make sure it's the right one. Add a message under it if you want, then hit Send. Thanks to jimmylikespie21 for the idea!",
+  ]},
   {v:"2026.09.30m", title:"Accessibility ♿", items:[
     "🔠 Profile → Accessibility → Text size: make messages, the typing box, and your chat list smaller or bigger.",
     "🎞️ Animations now has a Less motion choice that calms things down even if your device isn't set to reduce motion.",
@@ -10893,7 +10959,7 @@ function blShareText(it){
   return `${blIcon(it.type)} ${verb}: ${it.title}${stars}`;
 }
 async function openBlShare(it){
-  blSharing=it; $("blShareWhat").textContent=blShareText(it);
+  blSharing=it; $("blShareWhat").textContent=blShareText(it); $("blShareNote").value="";
   const box=$("blShareList"); box.innerHTML="";
   if(!inboxRows.length) await loadInbox();
   const rows=[...inboxRows].sort((a,b)=>(b.code===room)-(a.code===room));
@@ -10906,11 +10972,12 @@ async function openBlShare(it){
   });
   show($("blShareSheet"));
 }
-async function blShareTo(r){
+async function blShareTo(r,note){
   const it=blSharing; if(!it) return; show($("blShareSheet"),false);
-  const card={kind:"backlog",type:it.type,title:it.title,image:safeImg(it.image)||null,status:it.status,rating:it.rating||0,platform:it.platform||null,progress:it.progress||0,total:it.total||null,src:it.source_id||null};
+  note=String(note??$("blShareNote").value??"").trim().slice(0,300);
+  const card={kind:"backlog",type:it.type,title:it.title,image:safeImg(it.image)||null,status:it.status,rating:it.rating||0,platform:it.platform||null,progress:it.progress||0,total:it.total||null,src:it.source_id||null,...(note?{note}:{})};
   try{
-    const m=await api.send(r.code,{kind:"text",text:blShareText(it),image_url:card.image,card});
+    const m=await api.send(r.code,{kind:"text",text:blShareText(it)+(note?"\n"+note:""),image_url:card.image,card});
     if(r.code===room) await addMessages([m]);
     const where=r.is_dm?(r.dm_name||"your DM"):(r.name||"#"+r.code);
     if($("backlogSheet").classList.contains("hidden")) $("status").textContent=`Shared to ${where}.`; else say("blMsg",`Shared to ${where} ✓`);
@@ -10992,7 +11059,7 @@ feed.addEventListener("click",e=>{
 /* ================= BACK BUTTON (Android / browser back) ================= */
 // Each chat or sheet you open adds a history step, so Back closes the top one instead of leaving the app.
 (function(){
-  const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet"];
+  const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet","gifPreview","blNoteSheet"];
   const stack=[]; let popping=false, ignorePops=0, pendingBack=0, flushQueued=false;
   const isOpen=id=>!$(id).classList.contains("hidden");
   function queueBack(){
