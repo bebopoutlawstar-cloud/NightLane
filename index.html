@@ -2428,6 +2428,39 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #tipSheet .sub{text-align:left;font-size:.9em;color:var(--muted);margin-bottom:10px;line-height:1.3;margin-top:0;width: 100%}
 #tipSheet .sheetbody { gap: 4px; }
 #welcomeTip { font-size: 15px; padding: 2px 6px;}
+#editBox{min-height:110px;resize:vertical;font-family:var(--body);font-size:17px}
+.edited{opacity:.75;font-style:italic}
+.bubble{touch-action:manipulation}
+/* ===== accessibility ===== */
+/* Less motion (chosen in NightLane) works like the device setting */
+html.motion-less *,html.motion-less *::before,html.motion-less *::after{animation:none!important}
+/* text size: scales messages, the typing box, and the chat list */
+html.ts-s .feed .msg,html.ts-s .feed .notice-line,html.ts-s #box,html.ts-s .roomrow{zoom:.88}
+html.ts-l .feed .msg,html.ts-l .feed .notice-line,html.ts-l #box,html.ts-l .roomrow{zoom:1.15}
+html.ts-xl .feed .msg,html.ts-xl .feed .notice-line,html.ts-xl #box,html.ts-xl .roomrow{zoom:1.32}
+/* color-blind friendly: status dots differ by SHAPE and use a blue/orange/vermillion palette
+   online = solid blue dot · idle = hollow orange ring · do not disturb = vermillion dot with a white bar */
+html.cb .face.has-status::after{content:""!important;clip-path:none!important;border-radius:50%!important;transform:none!important;animation:none!important;width:13px!important;height:13px!important;right:-4px!important;bottom:-4px!important;box-shadow:none!important;border:2px solid var(--night)!important}
+html.cb .face.status-online::after{background:#56B4E9!important;color:#56B4E9!important}
+html.cb .face.status-idle::after{background:var(--night)!important;border:3px solid #E69F00!important}
+html.cb .face.status-dnd::after{background:linear-gradient(#fff,#fff) center/62% 2px no-repeat,#D55E00!important}
+.a11yrow{display:grid;gap:6px}
+.a11yrow .segmented{display:flex;gap:4px}
+.a11yrow .segmented button{flex:1;padding:8px 2px;font-size:14px}
+.a11yrow .segmented button[aria-checked="true"]{background:var(--cyan);color:var(--night)}
+#tsPick{display:grid!important;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+#tsPick button{margin:0!important;width:100%!important;min-height:44px;font-family:var(--num)!important;letter-spacing:1px}
+#tsPick button:nth-child(1){font-size:14px!important}#tsPick button:nth-child(2){font-size:18px!important}#tsPick button:nth-child(3){font-size:22px!important}#tsPick button:nth-child(4){font-size:26px!important}
+#tsPick button[aria-checked="true"]{background:var(--cyan)!important;color:var(--night)!important;text-shadow:none!important}
+#tsLabel{font-family:var(--tech);font-size:12px;color:var(--cyan)}
+/* double-tap: a little reactions-only bar that pops up by the message */
+.reactpop{position:fixed;z-index:12;display:flex;gap:4px;padding:6px;background:var(--night);border:2px solid var(--cyan);box-shadow:4px 4px 0 var(--mag);transform-origin:center bottom;animation:reactpop .16s ease-out}
+.reactpop.hidden{display:none!important}
+.reactpop button{font-size:24px;width:42px;height:42px;padding:0;background:var(--deep);border:2px solid #3b2d80;line-height:1}
+.reactpop button.on{border-color:var(--volt);box-shadow:2px 2px 0 var(--mag)}
+.reactpop button.more{font-size:22px;color:var(--cyan);font-weight:700}
+@keyframes reactpop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@media (max-width:370px){.reactpop button{width:36px;height:36px;font-size:20px}}   /* double-tap reacts instead of zooming the page */
 #reportSheet [data-reason].on { border-color: var(--volt); color: var(--volt); }
 #reviewSheet .reviewrow { border: 2px solid #3b2d80; padding: 8px 10px; text-align: left; width: 100%; display: grid; gap: 4px; }
 #reviewSheet .reviewlist { width: 100%; display: grid; gap: 8px; }
@@ -2826,9 +2859,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
     <button class="ghost" type="button" id="owlBtn">🦉 Night Owl reminders: On</button>
     <button class="ghost" type="button" id="fxBtn">Screen effects: On</button>
-    <button class="ghost" type="button" id="animPrefBtn">Animations: Match my device</button>
     <details class="fx-list"><summary>Words and emoji that trigger effects</summary><ul id="fxList"></ul></details>
 
+    <h3>Accessibility ♿</h3>
+    <div class="a11yrow">
+      <span class="sub left" id="tsLabel">Text size</span>
+      <div class="segmented" id="tsPick" role="radiogroup" aria-labelledby="tsLabel"></div>
+    </div>
+    <button class="ghost" type="button" id="animPrefBtn">Animations: Match my device</button>
+    <button class="ghost" type="button" id="cbBtn">🎨 Color-blind friendly: Off</button>
     <p class="msgline" id="profMsg" role="status"></p>
     <h3 class="hidden" id="blockedTitle">Blocked people</h3>
     <div class="members" id="blockedList"></div>
@@ -2899,10 +2938,12 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 </div>
 
 <!-- ============ MESSAGE MENU ============ -->
+<div class="reactpop hidden" id="reactPop" role="dialog" aria-label="React to this message"></div>
 <div class="overlay hidden" id="msgMenu" role="dialog" aria-modal="true" aria-label="Message options">
   <div class="sheet"><div class="sheetbody">
     <div class="menu-preview" id="menuPreview"></div>
     <div class="emoji-row" id="emojiRow"></div>
+    <button class="ghost hidden" type="button" id="menuEdit">✏️ Edit message</button>
     <button class="danger hidden" type="button" id="menuDelete">🗑 Delete message</button>
     <button class="go" type="button" id="menuReply">Reply</button>
     <button class="ghost hidden" type="button" id="menuDm">Message privately</button>
@@ -3226,6 +3267,17 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 <!-- ============ Report Sheet ============ -->
+<div class="overlay hidden" id="editSheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <form class="sheet" id="editForm"><div class="sheetbody">
+    <h2 id="editTitle">Edit message</h2>
+    <p class="sub">Everyone in the chat will see your new version, marked "edited".</p>
+    <label for="editBox" class="sr">Your message</label>
+    <textarea class="field" id="editBox" rows="4" maxlength="4000"></textarea>
+    <p class="msgline" id="editMsg" role="status"></p>
+    <button class="go" type="submit" id="editSave">Save</button>
+    <button class="ghost" type="button" id="editClose">Cancel</button>
+  </div></form>
+</div>
 <div class="overlay hidden" id="reportSheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
   <form class="sheet" id="reportForm"><div class="sheetbody">
     <h2 id="reportTitle">Report a message</h2>
@@ -3258,7 +3310,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>🔔 Turn on notifications</h3>
     <p class="sub">Tap your profile icon and scroll down to Notifications and effects, turn on notifications.</p>
     <h3>💬 Message options</h3>
-    <p class="sub">Tap a message to see options like reply, pin, add to checklist, and you can swipe messages, swipe right to reply and swipe left to delete your own messages.</p>
+    <p class="sub">Double-tap a message to react. Press and hold it to see options like reply, pin, add to checklist, and you can swipe messages, swipe right to reply and swipe left to delete your own messages.</p>
     <h3>🛡️ Staying safe (blocking/removing friends)</h3>
     <p class="sub">If you feel unsafe or uncomfortable, you can unfriend users by going to their profile and selecting "Remove friend".</p>
     <p class="sub">You can also block someone: tap one of their messages → Block. You can unblock them later from your Profile.</p>
@@ -3416,8 +3468,16 @@ const LS=(()=>{ const mem={}; let ok=true;
     remove(k){ delete mem[k]; if(ok){ try{ localStorage.removeItem(k); }catch(e){} } } }; })();
 /* Motion: follows the device's "reduce motion" setting, unless you choose "Always play" in Profile */
 const motionAlways=()=>LS.get("nl-motion")==="always";
-const reducedMotion=()=>!motionAlways()&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motionLess=()=>LS.get("nl-motion")==="less";   // "Less motion" picked inside NightLane, whatever the device says
+const reducedMotion=()=>motionLess()||(!motionAlways()&&matchMedia("(prefers-reduced-motion: reduce)").matches);
 if(motionAlways()) document.documentElement.classList.add("motion-always");
+if(motionLess()) document.documentElement.classList.add("motion-less");
+/* Accessibility: text size + color-blind friendly status symbols */
+const TEXT_SIZES=[["s","Small"],["m","Normal"],["l","Large"],["xl","Extra large"]];
+const textSize=()=>{ const v=LS.get("nl-textsize"); return TEXT_SIZES.some(t=>t[0]===v)?v:"m"; };
+const cbMode=()=>LS.get("nl-cb")==="on";
+function applyA11y(){ const h=document.documentElement; TEXT_SIZES.forEach(([k])=>h.classList.toggle("ts-"+k,textSize()===k&&k!=="m")); h.classList.toggle("cb",cbMode()); }
+applyA11y();
 // Checked before anything else runs (startup saves some settings, which would make everyone look "returning")
 const NL_RETURNING=(()=>{ try{ return ["nl-xp","nl-secrets","nl-front-tab","nl-room","nl-uisound","nl-fx"].some(k=>LS.get(k)!==null); }catch(e){ return false; } })();
 /* ================= KING'S COURT ================= */
@@ -3933,6 +3993,7 @@ const live = {
     return must(await sb.from("messages").insert(row).select().single());
   },
   async deleteMessage(id){ must(await sb.from("messages").delete().eq("id",id)); },
+  async editMessage(id,text){ return must(await sb.rpc("edit_message",{p_id:id,p_text:text})); },
   async countMessages(room){ const {count,error}=await sb.from("messages").select("id",{count:"exact",head:true}).eq("room",room); if(error) throw error; return count; },
   async reactions(ids){ return ids.length ? must(await sb.from("message_reactions").select("message_id,user_id,emoji").in("message_id",ids)) : []; },
   async react(message_id,room,emoji){ must(await sb.from("message_reactions").insert({message_id,room,emoji})); },
@@ -3970,6 +4031,7 @@ const live = {
     const pub=sb.channel("room-"+room)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:`room=eq.${room}`},p=>h.msg(p.new))
       .on("postgres_changes",{event:"DELETE",schema:"public",table:"messages"},p=>p.old?.id!=null&&h.msgGone(p.old.id))
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter:`room=eq.${room}`},p=>p.new?.id!=null&&h.msgEdited&&h.msgEdited(p.new))
       .on("postgres_changes",{event:"UPDATE",schema:"public",table:"profiles"},p=>h.profile(p.new))
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_members",filter:`room=eq.${room}`},p=>h.member(p.new))
       .on("postgres_changes",{event:"UPDATE",schema:"public",table:"room_members",filter:`room=eq.${room}`},p=>h.member(p.new))
@@ -4327,6 +4389,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       setTimeout(()=>{ const r={id:nextId++,room,user_id:who,text:lines[Math.floor(Math.random()*lines.length)],reply_to:null,created_at:iso()}; rooms[room].msgs.push(r); fire("msg",r); },3000);
       return m; },
     async countMessages(room){ return (rooms[room]?.msgs||[]).length; },
+    async editMessage(id,text){ for(const r of Object.values(rooms)){ const m=r.msgs.find(x=>x.id===id); if(m){ m.text=text; m.edited_at=iso(); setTimeout(()=>fire("msgEdited",{...m}),30); return {...m}; } } throw new Error("Message not found"); },
     async deleteMessage(id){ for(const r of Object.values(rooms)) r.msgs=r.msgs.filter(m=>m.id!==id); setTimeout(()=>fire("msgGone",id),50); },
     async reactions(ids){ return reacts.filter(r=>ids.includes(r.message_id)); },
     async react(message_id,_room,emoji){ const r={message_id,user_id:"me",emoji}; reacts.push(r); setTimeout(()=>fire("reaction",r,true),30); },
@@ -4617,9 +4680,14 @@ $("amClose").onclick=()=>show($("arcanaSheet"),false);
 $("amRetake").onclick=()=>{ show($("arcanaSheet"),false); openQuiz(); };
 $("arcanaSheet").addEventListener("click",e=>{ if(e.target.id==="arcanaSheet") show($("arcanaSheet"),false); });
 
+const motionName=()=>motionLess()?"Less motion":motionAlways()?"Always play":"Match my device";
 $("animPrefBtn").onclick=()=>{
-  const on=!motionAlways(); LS.set("nl-motion",on?"always":"device"); document.documentElement.classList.toggle("motion-always",on);
-  $("animPrefBtn").textContent="🎞️ Animations: "+(on?"Always play":"Match my device");
+  // Match my device → Less motion → Always play → back
+  const next=motionLess()?"always":motionAlways()?"device":"less"; LS.set("nl-motion",next);
+  document.documentElement.classList.toggle("motion-always",next==="always"); document.documentElement.classList.toggle("motion-less",next==="less");
+  $("animPrefBtn").textContent="🎞️ Animations: "+motionName();
+  if(next==="less") return say("profMsg","Less motion: animations, screen effects, and secrets are calmed down, whatever your device is set to.");
+  const on=next==="always";
   say("profMsg",on?"Animations and secrets will play even if your device asks for less motion.":(matchMedia("(prefers-reduced-motion: reduce)").matches?"Following your device: it asks for less motion, so animations and secrets are calmed down.":"Following your device's motion setting."));
 };
 
@@ -4968,13 +5036,25 @@ document.addEventListener("click",e=>{
 /* ================= PROFILE ================= */
 function paintFxSettings(){
   $("fxBtn").textContent="Screen effects: "+(fxEnabled()?"On":"Off");
-  $("animPrefBtn").textContent="🎞️ Animations: "+(motionAlways()?"Always play":"Match my device");
+  $("animPrefBtn").textContent="🎞️ Animations: "+motionName();
+  paintA11y();
   $("uiSoundBtn").textContent="Sounds: "+(uiSoundOn()?"On":"Off");
   $("buzzBtn").textContent="📳 Vibrate on messages: "+(buzzOn()?"On":"Off"); show($("buzzBtn"),!!navigator.vibrate);
   $("owlBtn").textContent="🦉 Night Owl reminders: "+(owlOn()?"On":"Off");
   const ul=$("fxList"); if(ul.children.length) return;
   FX_TRIGGERS.forEach(t=>{ const li=el("li"); li.append(el("b","",t.label+": ")); li.append([...t.words.map(w=>`"${w}"`),...t.emoji].join(", ")); ul.append(li); });
 }
+function paintA11y(){
+  const box=$("tsPick"); box.innerHTML="";
+  TEXT_SIZES.forEach(([k,name],i)=>{
+    const b=el("button","ghost",["A−","A","A+","A++"][i]); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(textSize()===k)); b.setAttribute("aria-label","Text size: "+name); b.title=name;
+    b.onclick=()=>{ try{ LS.set("nl-textsize",k); }catch(e){} applyA11y(); paintA11y(); say("profMsg",`Text size: ${name}. Messages, the typing box, and your chat list use it.`); };
+    box.append(b);
+  });
+  $("cbBtn").textContent="🎨 Color-blind friendly: "+(cbMode()?"On":"Off");
+}
+$("cbBtn").onclick=()=>{ try{ LS.set("nl-cb",cbMode()?"off":"on"); }catch(e){} applyA11y(); paintA11y();
+  say("profMsg",cbMode()?"Color-blind friendly is on: online is a solid blue dot, away is a hollow orange ring, and do not disturb is an orange-red dot with a white bar.":"Color-blind friendly is off."); };
 $("fxBtn").onclick=()=>{ try{ LS.set("nl-fx",fxEnabled()?"off":"on"); }catch(e){} paintFxSettings(); if(fxEnabled()) FX.play("confetti"); };
 $("uiSoundBtn").onclick=()=>{ try{ LS.set("nl-uisound",uiSoundOn()?"off":"on"); }catch(e){} paintFxSettings(); };
 $("buzzBtn").onclick=()=>{ try{ LS.set("nl-buzz",buzzOn()?"off":"on"); }catch(e){} paintFxSettings(); if(buzzOn()) buzz("message"); };
@@ -5073,6 +5153,7 @@ async function enterRoom(code,token){
     unsub=api.subscribe(room,{
       msg:m=>{ stopTyping(m.user_id); addMessages([m]).then(()=>{ if(m.user_id!==user.id) markReadSoon(); }); },
       msgGone:removeMessage,
+      msgEdited:applyEdit,
       profile:p=>{ const old=cache.get(p.id); cache.set(p.id,p); repaintFaces(p.id); if(p.id===user.id){meProfile=p;paintMe();} if(old?.bubble_color!==p.bubble_color) renderAll(false); paintReceipts(); },
       member:setMember,
       roomUpdated:r=>{ if(r.icon_url!==undefined){ if(r.icon_url) roomIcons.set(r.code,r.icon_url); else roomIcons.delete(r.code); loadInboxSoon(); } if(r.code!==room) return; if(r.name!==undefined) setRoomName(r.name); else paintRoomIcon(); if(r.background!==undefined) setRoomBackground(r.background); if(r.owner!==undefined) roomOwner=r.owner; if(r.disappear_seconds!==undefined){ disappear=+r.disappear_seconds||0; paintDisappear(); } },
@@ -5211,7 +5292,7 @@ function buildMsg(m,index,noAnim){
   const tag=el("div","tag");
   if(fresh&&!noAnim) tag.append(el("b","","NEW"));
   if(pins.has(m.id)) tag.append("📌 ");
-  tag.append(`${nameOf(m.user_id)} · ${timeOf(at)}`);
+  tag.append(`${nameOf(m.user_id)} · ${timeOf(at)}`); if(m.edited_at){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
   const exp=expiryTag(m); if(exp) tag.append(exp);
   const bub=el("div","bubble"); bub.tabIndex=0; bub.setAttribute("role","button"); bub.setAttribute("aria-label",`Message from ${nameOf(m.user_id)}. Open options`);
   if(m.reply_to){
@@ -5252,7 +5333,8 @@ function buildMsg(m,index,noAnim){
     if(/el psy (k|c)ongroo|(^|[^a-z])world ?line([^a-z]|$)/i.test(m.text)&&typeof m.id==="number") bub.append(el("div","d20chip wlchip",`⚗️ world line ${worldLineFor(m)}`));
     if(typeof m.id==="number"&&diceIn(m.text)){ const n=diceIn(m.text), r=dNFor(m,n); bub.append(el("div","d20chip"+(r===n&&n>1?" nat20":r===1&&n>1?" nat1":""),n===2?`🪙 d2 → ${r===1?"heads":"tails"}`:`🎲 d${n} → ${r}${r===n&&n>1?" MAX!":""}`)); }
     if(/(^|[^a-z])roll(s|ed|ing)? (a |the |me a )?d20([^a-z0-9]|$)/i.test(m.text)&&typeof m.id==="number"){ const n=d20For(m); bub.append(el("div","d20chip"+(n===20?" nat20":n===1?" nat1":""),`🎲 d20 → ${n}${n===20?" NAT 20!":n===1?" crit fail":""}`)); } }
-  bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button")) return; openMenu(m); };
+  bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button")) return; bubbleTap(bub,m); };
+  bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
   col.append(tag,bub);
   const map=reactionsById.get(m.id);
@@ -5364,6 +5446,7 @@ function openMenu(m){
   show($("menuCopy"),!!m.text&&m.kind!=="sticker"); show($("menuCal"),!!m.text&&m.kind==="text");
   show($("menuTranslate"),aiOn()&&!!m.text&&m.kind!=="sticker"&&m.kind!=="poll"&&m.kind!=="game"&&!mine);
   show($("menuFx"),!!(secretFor(m.text)||fxFor(m.text))&&m.kind!=="poll"&&m.kind!=="game");
+  show($("menuEdit"),mine&&canEdit(m));
   show($("menuDelete"),mine||roomOwner===user.id);
   $("menuDelete").textContent=mine?"Delete message":"Delete message (room owner)";
   show($("menuBlock"),!mine); $("menuBlock").textContent=`Block ${nameOf(m.user_id)}`;
@@ -5415,6 +5498,40 @@ function startReply(m,focus=true){
   if(focus) $("box").focus();
 }
 $("menuReply").onclick=()=>{ show($("msgMenu"),false); startReply(menuMsg); };
+
+/* double-tap a message for reactions + options (one tap does nothing, so scrolling never opens it by accident) */
+let tapHintTimer=null;
+function bubbleTap(bub,m){
+  const now=Date.now();
+  if(bub._lastTap&&now-bub._lastTap<400){ bub._lastTap=0; clearTimeout(tapHintTimer); try{ getSelection().removeAllRanges(); }catch(e){} openReactPop(m,bub); return; }
+  bub._lastTap=now;
+  // first few single taps: a gentle reminder of the new gesture
+  clearTimeout(tapHintTimer);
+  tapHintTimer=setTimeout(()=>{ const n=+(LS.get("nl-dbltap-hint")||0); if(n<3&&bub._lastTap===now){ $("status").textContent="Double-tap to react · press and hold for reply & more"; try{ LS.set("nl-dbltap-hint",String(n+1)); }catch(e){} } },450);
+}
+
+function openReactPop(m,bub){
+  const pop=$("reactPop"); pop.innerHTML=""; pop.dataset.id=m.id;
+  EMOJIS.forEach(emoji=>{
+    const b=el("button",reactionsById.get(m.id)?.get(emoji)?.has(user.id)?"on":"",emoji); b.type="button"; b.setAttribute("aria-label","React "+emoji);
+    b.onclick=()=>{ closeReactPop(); toggleReaction(m,emoji); if(navigator.vibrate) navigator.vibrate(10); };
+    pop.append(b);
+  });
+  const more=el("button","more","+"); more.type="button"; more.setAttribute("aria-label","More reactions");
+  more.onclick=()=>{ closeReactPop(); openEmojiPicker(m); }; pop.append(more);
+  show(pop); pop._st=$("feed").scrollTop;
+  // sit just above the message (or below it if there's no room up top), never off the screen
+  const r=bub.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight;
+  const top0=($(".top")?.getBoundingClientRect().bottom)||0;
+  let x=Math.min(Math.max(8,r.left+r.width/2-w/2),innerWidth-w-8);
+  let y=r.top-h-8; if(y<top0+6) y=Math.min(r.bottom+8,innerHeight-h-8);
+  pop.style.left=x+"px"; pop.style.top=y+"px";
+  pop.querySelector("button").focus({preventScroll:true});
+}
+function closeReactPop(){ show($("reactPop"),false); }
+document.addEventListener("pointerdown",e=>{ const pop=$("reactPop"); if(!pop.classList.contains("hidden")&&!pop.contains(e.target)) closeReactPop(); },true);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("reactPop").classList.contains("hidden")) closeReactPop(); });
+$("feed").addEventListener("scroll",()=>{ const pop=$("reactPop"); if(!pop.classList.contains("hidden")&&Math.abs($("feed").scrollTop-(pop._st||0))>40) closeReactPop(); },{passive:true});   // only a real scroll closes it
 
 /* swipe right on a message to reply */
 let lpTimer=null, lpFired=false;
@@ -5469,6 +5586,34 @@ function attachSwipe(node,m){
 }
 $("menuCopy").onclick=async()=>{ show($("msgMenu"),false); try{ await navigator.clipboard.writeText(menuMsg.text); $("status").textContent="Copied."; }catch(e){} };
 $("menuDelete").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); deleteMessageFlow(m); };
+/* ---------- edit your own message ---------- */
+// only plain text you sent (not photos, voice, polls, games, stickers, or shared backlog cards)
+const canEdit=m=>typeof m.id==="number"&&(m.kind||"text")==="text"&&!!m.text&&!m.card&&!m.image_url&&!(m.image_urls&&m.image_urls.length)&&!m.media_url;
+let editing=null;
+$("menuEdit").onclick=()=>{
+  editing=menuMsg; show($("msgMenu"),false); say("editMsg","");
+  $("editBox").value=editing.text||""; show($("editSheet"));
+  setTimeout(()=>{ const b=$("editBox"); b.focus(); b.setSelectionRange(b.value.length,b.value.length); },60);
+};
+$("editClose").onclick=()=>show($("editSheet"),false);
+$("editSheet").addEventListener("click",e=>{ if(e.target.id==="editSheet") show($("editSheet"),false); });
+$("editBox").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); show($("editSheet"),false); } else if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $("editForm").requestSubmit(); } });
+$("editForm").addEventListener("submit",async e=>{
+  e.preventDefault(); const m=editing; if(!m) return;
+  const text=$("editBox").value.trim();
+  if(!text) return say("editMsg","Your message can't be empty. To remove it, use Delete instead.",true);
+  if(text===m.text){ show($("editSheet"),false); return; }
+  $("editSave").disabled=true; say("editMsg","Saving…");
+  try{ const row=await api.editMessage(m.id,text); applyEdit(row||{id:m.id,text,edited_at:new Date().toISOString()}); show($("editSheet"),false); $("status").textContent="Message edited."; }
+  catch(err){ say("editMsg",isNetworkError(err)?"Couldn't reach NightLane. Check your connection and try again.":/edit_message|function|schema cache/i.test(err.message||"")?"Editing isn't set up on the server yet.":err.message,true); }
+  finally{ $("editSave").disabled=false; }
+});
+function applyEdit(row){
+  const m=byId.get(row?.id); if(!m) return;
+  m.text=row.text; m.edited_at=row.edited_at||new Date().toISOString();
+  refreshMsg(m.id);
+  if(menuMsg?.id===m.id&&!$("msgMenu").classList.contains("hidden")) $("menuPreview").textContent=`${nameOf(m.user_id)}: ${previewOf(m)}`;
+}
 $("menuBlock").onclick=async()=>{
   const uid=menuMsg.user_id, name=nameOf(uid);
   if(!confirm(`Block ${name}? You won't see their messages anywhere. You can unblock them from your profile.`)) return;
@@ -10124,8 +10269,20 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.09.30j";
+const APP_VERSION="2026.09.30m";
 const CHANGELOG=[
+  {v:"2026.09.30m", title:"Accessibility ♿", items:[
+    "🔠 Profile → Accessibility → Text size: make messages, the typing box, and your chat list smaller or bigger.",
+    "🎞️ Animations now has a Less motion choice that calms things down even if your device isn't set to reduce motion.",
+    "🎨 Color-blind friendly mode: online, away, and do-not-disturb dots get different shapes and easier-to-tell colors.",
+  ]},
+  {v:"2026.09.30l", title:"Double-tap to react 👆👆", items:[
+    "👆👆 Double-tap a message to react. Just the emoji pop up, nothing else.",
+    "✋ Press and hold a message (or right-click on a computer) for reply, pin, report, and the rest. A single tap does nothing now, so no more accidental menus.",
+  ]},
+  {v:"2026.09.30k", title:"Fix your typos ✏️", items:[
+    "✏️ Made a typo? Press and hold your own message, then Edit message. Everyone sees the new version, marked \"edited\".",
+  ]},
   {v:"2026.09.30j", title:"Share your backlog 🎮", items:[
     "🎮 Tap ➕ in any chat, then Backlog, to share a game or anime from your backlog right there.",
   ]},
@@ -10835,7 +10992,7 @@ feed.addEventListener("click",e=>{
 /* ================= BACK BUTTON (Android / browser back) ================= */
 // Each chat or sheet you open adds a history step, so Back closes the top one instead of leaving the app.
 (function(){
-  const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet"];
+  const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet"];
   const stack=[]; let popping=false, ignorePops=0, pendingBack=0, flushQueued=false;
   const isOpen=id=>!$(id).classList.contains("hidden");
   function queueBack(){
