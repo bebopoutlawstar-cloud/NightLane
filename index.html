@@ -823,6 +823,9 @@ html,body{overscroll-behavior:none}
 .trlabel{display:block;font-family:var(--tech);font-size:10px;opacity:.75;margin-top:3px}
 .datechip{font:inherit;font-weight:700;background:rgba(243,255,58,.14);color:inherit;border:none;border-bottom:2px dashed var(--volt);padding:0 3px;cursor:pointer}
 .me .datechip{background:rgba(0,0,0,.25)}
+.calico{display:inline-block;width:1.05em;height:1.05em;margin-right:.25em;vertical-align:-.12em;background:#fff;border-radius:2px;overflow:hidden;line-height:1;box-shadow:0 1px 0 rgba(0,0,0,.35);text-align:center}
+.calico b{display:block;height:34%;background:#ff3d5a;color:#fff;font:800 .26em/1.3 var(--tech);letter-spacing:0;overflow:hidden}
+.calico i{display:block;height:66%;color:#07041a;font:700 .56em/1.15 var(--body);font-style:normal}
 .tasks{display:grid;gap:6px;width:100%}
 .taskrow{display:flex;align-items:center;gap:8px;background:rgba(7,4,26,.6);border:2px solid #3b2d80;padding:6px 8px;text-align:left;cursor:pointer}
 .taskrow input{width:22px;height:22px;accent-color:var(--volt);flex:none}
@@ -1620,10 +1623,19 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .albumgrid .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .albumgrid .tile .more{position:absolute;inset:0;background:rgba(7,4,26,.65);color:var(--white);font-family:var(--num);font-size:22px;display:grid;place-items:center}
 .msg.photo-only .albumgrid{margin:0}
-/* lightbox album nav */
-.lbnav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(7,4,26,.7);border:2px solid var(--cyan);color:var(--white);font-size:18px;z-index:2;border-radius:50%}
-.lbprev{left:10px}
-.lbnext{right:10px}
+/* ===== photo viewer: full screen, nothing covering the photo, pinch / double-tap / scroll to zoom ===== */
+#lightbox{padding:0;background:rgba(0,0,0,.96);backdrop-filter:none;flex-direction:column;align-items:stretch;justify-content:stretch;z-index:30}
+.lbbar,.lbfoot{flex:none;display:flex;align-items:center;gap:12px;padding:10px 14px;color:var(--white)}
+.lbbar{justify-content:space-between;padding-top:calc(env(safe-area-inset-top) + 10px)}
+.lbfoot{justify-content:center;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)}
+.lbcount{font-family:var(--tech);font-size:13px;color:var(--cyan);letter-spacing:1px;min-height:1em}
+.lbclose{width:44px;height:44px;background:none;border:2px solid var(--cyan);color:var(--white);font-size:20px;line-height:1;padding:0}
+.lbnav{width:52px;height:44px;background:rgba(7,4,26,.7);border:2px solid var(--cyan);color:var(--white);font-size:18px;padding:0}
+.lbhint{flex:1;max-width:240px;text-align:center;font-size:13px;color:var(--muted)}
+.lbstage{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:zoom-in}
+.lbstage.zoomed{cursor:grab}
+#lightbox .lbstage img{max-width:100%;max-height:100%;border:none;box-shadow:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;transform-origin:center center;will-change:transform}
+#lightbox .lbstage img.ease{transition:transform .18s ease-out}
 /* ===== habits, stats, quiz, social bonds ===== */
 .statbars{display:grid;gap:10px;width:100%}
 .statrow{display:flex;align-items:center;gap:10px}
@@ -3479,9 +3491,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 
-<div class="overlay lightbox hidden" id="lightbox">
-  <button type="button" class="lbnav lbprev hidden" id="lbPrev" aria-label="Previous photo">&#10094;</button>
-  <button type="button" class="lbnav lbnext hidden" id="lbNext" aria-label="Next photo">&#10095;</button><img id="lightImg" alt="Full size photo"></div>
+<div class="overlay lightbox hidden" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="lbbar"><span class="lbcount" id="lbCount"></span><button type="button" class="lbclose" id="lbClose" aria-label="Close photo">✕</button></div>
+  <div class="lbstage" id="lbStage"><img id="lightImg" alt="Full size photo" draggable="false"></div>
+  <div class="lbfoot">
+    <button type="button" class="lbnav hidden" id="lbPrev" aria-label="Previous photo">&#10094;</button>
+    <span class="lbhint" id="lbHint">Pinch or double-tap to zoom</span>
+    <button type="button" class="lbnav hidden" id="lbNext" aria-label="Next photo">&#10095;</button>
+  </div>
+</div>
 
 
 
@@ -6515,11 +6533,71 @@ function previewOf(m){
 }
 
 /* ---------- overlays ---------- */
-function openLightbox(urls,i){ lbAlbum=urls.length>1?urls:null; lbIndex=i; $("lightImg").src=urls[i]; show($("lbPrev"),!!lbAlbum); show($("lbNext"),!!lbAlbum); show($("lightbox")); }
-function lbStep(d){ if(!lbAlbum) return; lbIndex=(lbIndex+d+lbAlbum.length)%lbAlbum.length; $("lightImg").src=lbAlbum[lbIndex]; }
+function openLightbox(urls,i){
+  lbAlbum=urls.length>1?urls:null; lbIndex=i; lbReset(false); $("lightImg").src=urls[i];
+  show($("lbPrev"),!!lbAlbum); show($("lbNext"),!!lbAlbum); lbPaintCount(); show($("lightbox"));
+}
+function lbStep(d){ if(!lbAlbum) return; lbIndex=(lbIndex+d+lbAlbum.length)%lbAlbum.length; lbReset(false); $("lightImg").src=lbAlbum[lbIndex]; lbPaintCount(); }
+function lbPaintCount(){ $("lbCount").textContent=lbAlbum?`${lbIndex+1} / ${lbAlbum.length}`:""; $("lbHint").textContent=lbAlbum?"Swipe for more · pinch or double-tap to zoom":"Pinch or double-tap to zoom"; }
 $("lbPrev").onclick=e=>{ e.stopPropagation(); lbStep(-1); };
 $("lbNext").onclick=e=>{ e.stopPropagation(); lbStep(1); };
-$("lightbox").onclick=()=>show($("lightbox"),false);
+$("lbClose").onclick=e=>{ e.stopPropagation(); show($("lightbox"),false); };
+/* zoom + pan: the photo is scaled by lbZ and moved by lbX/lbY (pixels from the center) */
+let lbZ=1, lbX=0, lbY=0;
+const LB_MAX=5;
+function lbApply(ease){ const img=$("lightImg"); img.classList.toggle("ease",!!ease); img.style.transform=lbZ===1&&!lbX&&!lbY?"":`translate(${lbX}px,${lbY}px) scale(${lbZ})`; $("lbStage").classList.toggle("zoomed",lbZ>1); }
+function lbReset(ease){ lbZ=1; lbX=0; lbY=0; lbApply(ease); }
+function lbClamp(){   // keep the photo from being dragged off into empty space
+  const img=$("lightImg"), st=$("lbStage").getBoundingClientRect();
+  const w=img.offsetWidth*lbZ, h=img.offsetHeight*lbZ, mx=Math.max(0,(w-st.width)/2), my=Math.max(0,(h-st.height)/2);
+  lbX=Math.min(mx,Math.max(-mx,lbX)); lbY=Math.min(my,Math.max(-my,lbY));
+}
+function lbZoomAt(z,cx,cy,ease){   // zoom to z, keeping the screen point (cx,cy) under your finger
+  const st=$("lbStage").getBoundingClientRect(), px=cx-(st.left+st.width/2), py=cy-(st.top+st.height/2);
+  z=Math.min(LB_MAX,Math.max(1,z)); const k=z/lbZ;
+  lbX=px-(px-lbX)*k; lbY=py-(py-lbY)*k; lbZ=z;
+  if(lbZ<=1.01){ lbZ=1; lbX=0; lbY=0; } else lbClamp();
+  lbApply(ease);
+}
+(()=>{
+  const stage=$("lbStage"), pts=new Map();
+  let pinch=null, pan=null, swipe=null, lastTap=0, tapTimer=null;
+  const dist=()=>{ const [a,b]=[...pts.values()]; return Math.hypot(a.x-b.x,a.y-b.y); };
+  const mid=()=>{ const [a,b]=[...pts.values()]; return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}; };
+  stage.addEventListener("pointerdown",e=>{
+    stage.setPointerCapture?.(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY,t:Date.now(),sx:e.clientX,sy:e.clientY,onImg:e.target===$("lightImg")});
+    if(pts.size===2){ pinch={d:dist(),z:lbZ}; pan=null; swipe=null; }
+    else if(pts.size===1){ pan={x:e.clientX,y:e.clientY,ox:lbX,oy:lbY}; swipe={x:e.clientX,y:e.clientY}; }
+  });
+  stage.addEventListener("pointermove",e=>{
+    const p=pts.get(e.pointerId); if(!p) return; p.x=e.clientX; p.y=e.clientY;
+    if(pinch&&pts.size===2){ const m=mid(); lbZoomAt(pinch.z*dist()/pinch.d,m.x,m.y,false); }
+    else if(pan&&lbZ>1){ lbX=pan.ox+(e.clientX-pan.x); lbY=pan.oy+(e.clientY-pan.y); lbClamp(); lbApply(false); }
+    else if(swipe&&lbAlbum){ const dx=e.clientX-swipe.x; $("lightImg").style.transform=`translateX(${dx}px)`; }
+  });
+  const end=e=>{
+    const p=pts.get(e.pointerId); if(!p) return; pts.delete(e.pointerId);
+    if(pts.size<2) pinch=null;
+    if(pts.size===1){ const q=[...pts.values()][0]; pan={x:q.x,y:q.y,ox:lbX,oy:lbY}; return; }   // lifted one finger of a pinch: keep panning with the other
+    const moved=Math.hypot(e.clientX-p.sx,e.clientY-p.sy), quick=Date.now()-p.t<300;
+    if(swipe&&lbZ===1){
+      const dx=e.clientX-swipe.x;
+      if(lbAlbum&&Math.abs(dx)>60&&Math.abs(dx)>Math.abs(e.clientY-swipe.y)){ lbStep(dx<0?1:-1); swipe=null; pan=null; return; }
+      if(!moved||moved<10) lbApply(false); else lbReset(true);
+    }
+    swipe=null; pan=null;
+    if(moved<10&&quick&&e.type==="pointerup"){
+      const now=Date.now();
+      if(now-lastTap<300){ clearTimeout(tapTimer); lastTap=0; if(lbZ>1) lbReset(true); else lbZoomAt(2.5,e.clientX,e.clientY,true); return; }
+      lastTap=now;
+      const onPhoto=p.onImg;   // where the finger went down (pointerup reports the stage because of pointer capture)
+      clearTimeout(tapTimer); tapTimer=setTimeout(()=>{ if(!onPhoto&&lbZ===1) show($("lightbox"),false); },300);   // one tap on the dark area closes
+    }
+  };
+  stage.addEventListener("pointerup",end); stage.addEventListener("pointercancel",end);
+  stage.addEventListener("wheel",e=>{ e.preventDefault(); lbZoomAt(lbZ*(e.deltaY<0?1.2:1/1.2),e.clientX,e.clientY,false); },{passive:false});
+  addEventListener("resize",()=>{ if(!$("lightbox").classList.contains("hidden")){ lbClamp(); lbApply(false); } });
+})();
 ["profile","roomSheet","msgMenu","pollSheet","summarySheet","calSheet","searchSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet"].forEach(id=>$(id).addEventListener("click",e=>{ if(e.target.id===id) show($(id),false); }));
 addEventListener("keydown",e=>{
   if(e.key==="Escape") closeTray();
@@ -8389,7 +8467,7 @@ function parseWhen(phrase,base=new Date()){
 }
 let calDraft=null;
 function openCalendar(phrase,m){
-  const {date,hasTime}=parseWhen(phrase);
+  const {date,hasTime}=parseWhen(phrase,m?.created_at?new Date(m.created_at):new Date());
   calDraft={m,phrase};
   const pad=n=>String(n).padStart(2,"0");
   $("calTitle").value=(m.text||"NightLane plan").replace(/\s+/g," ").slice(0,60);
@@ -8417,7 +8495,11 @@ function renderTextWithDates(node,text,mentionIds,m){
   const hits=findDates(text); if(!hits.length){ renderText(node,text,mentionIds); return; }
   let last=0;
   for(const h of hits){ const s=el("span"); renderText(s,text.slice(last,h.start),mentionIds); node.append(s);
-    const chip=el("button","datechip","📅 "+h.text); chip.type="button"; chip.title="Looks like a date — tap to add it to your calendar"; chip.onclick=e=>{ e.stopPropagation(); openCalendar(h.text,m); }; node.append(chip); last=h.end; }
+    // a tiny calendar page with the REAL month/day (the 📅 emoji always shows "JUL 17" on most phones)
+    const when=parseWhen(h.text,m?.created_at?new Date(m.created_at):new Date()).date;
+    const chip=el("button","datechip"); chip.type="button"; chip.title=`${when.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})} · tap to add it to your calendar`;
+    const ico=el("span","calico"); ico.setAttribute("aria-hidden","true"); ico.append(el("b","",when.toLocaleDateString("en-US",{month:"short"}).toUpperCase()),el("i","",String(when.getDate())));
+    chip.append(ico,document.createTextNode(h.text)); chip.setAttribute("aria-label",`${h.text}, ${when.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}. Add to calendar`); chip.onclick=e=>{ e.stopPropagation(); openCalendar(h.text,m); }; node.append(chip); last=h.end; }
   const s=el("span"); renderText(s,text.slice(last),mentionIds); node.append(s);
 }
 
@@ -10329,8 +10411,16 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.01b";
+const APP_VERSION="2026.10.02b";
 const CHANGELOG=[
+  {v:"2026.10.02b", title:"Real dates 📆", items:[
+    "📆 Dates in messages (\"tonight\", \"Friday\", \"Oct 12\") now show a little calendar with the actual day, instead of the phone's calendar emoji that always says July 17.",
+    "🗓️ \"Tomorrow\" in an older message now means the day after it was sent, both on the little calendar and when you add it to your calendar.",
+  ]},
+  {v:"2026.10.02a", title:"A better look at photos 🔍", items:[
+    "🔍 Tap a photo for a full-screen view with nothing covering it. Pinch or double-tap to zoom in, and drag to look around. On a computer, scroll to zoom.",
+    "👉 In albums, swipe left or right (or use the arrows at the bottom) to see the next photo.",
+  ]},
   {v:"2026.10.01b", title:"Say something about it 💬", items:[
     "💬 When you share something from your backlog, you can add a message with it, like \"you HAVE to play this\". It shows right under the card.",
   ]},
