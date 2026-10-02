@@ -3437,7 +3437,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Halloween pixel art</h3>
     <p class="sub">Halloween Graphics by finalbossblues · Jacko by Tyler Warren</p>
     <h3>Powered by</h3>
-    <p class="sub">Supabase and GIPHY</p>
+    <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA)</p>
     <h3>🐛Bug hunters & testers</h3>
     <p class="sub">Xen, Ren, Justin, Han, Kenneth, Freddy, and Malcolm</p>
       <p class="sub">Thanks to everyone who helped test NightLane and find bugs!</p>
@@ -3491,7 +3491,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <h2 id="blTitle">Media Backlog</h2>
     <div class="segmented bltabs" id="blTabs" role="radiogroup" aria-label="Backlog sections">
-      <button type="button" role="radio" data-tab="library">Library</button><button type="button" role="radio" data-tab="game">+ Games</button><button type="button" role="radio" data-tab="anime">+ Anime</button>
+      <button type="button" role="radio" data-tab="library">Library</button><button type="button" role="radio" data-tab="game">+ Games</button><button type="button" role="radio" data-tab="anime">+ Anime</button><button type="button" role="radio" data-tab="tv">+ TV</button><button type="button" role="radio" data-tab="movie">+ Movies</button>
     </div>
     <div class="blbody" id="blBody"></div>
     <p class="msgline" id="blMsg" role="status"></p>
@@ -10606,8 +10606,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02e";
+const APP_VERSION="2026.10.02f";
 const CHANGELOG=[
+  {v:"2026.10.02f", title:"Movies & TV 🎬", items:[
+    "🎬 Your Media Backlog now holds TV shows and movies, not just games and anime. Tap + TV to search for shows, with posters and episode counts.",
+    "✅ Movies get a simple Mark as watched button instead of hours or episodes. Add movies by hand for now. Movie search is on the way.",
+  ]},
   {v:"2026.10.02e", title:"Spooky season 🎃", items:[
     "👻 Boo! and the ghost hunt got real pixel-art ghosts, outlined in NightLane neon.",
     "🎃 Four new Halloween secrets are hiding in the vault. Happy hunting!",
@@ -11011,7 +11015,7 @@ QX.rankup=function(name,arcana,rank){
    and any item can be shared into a chat as a card that friends can add to their own list. */
 const RAWG_KEY="bdc93c6f8ede4fb2b7427360172996ae";   // same key as the Media Backlog site
 const BL_STATUS={planned:"Planned","in-progress":"In Progress",completed:"Completed"};
-let blOwner=null, blItems=[], myBl=null, blTab="library", blFilters={q:"",type:"all",status:"all",sort:"default"}, blResults={game:null,anime:null}, blQuery={game:"",anime:""};
+let blOwner=null, blItems=[], myBl=null, blTab="library", blFilters={q:"",type:"all",status:"all",sort:"default"}, blResults={game:null,anime:null,tv:null,movie:null}, blQuery={game:"",anime:"",tv:"",movie:""};
 const blMine=()=>blOwner===user?.id;
 const isBlCard=m=>m?.card&&typeof m.card==="object"&&m.card.kind==="backlog"&&typeof m.card.title==="string";
 const blKey=it=>it.source_id||("title:"+String(it.title||"").toLowerCase()+"|"+it.type);
@@ -11041,12 +11045,12 @@ $("blTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ blTab=b.datase
 /* ---------- library ---------- */
 function paintBlLibrary(){
   const box=$("blBody"); box.innerHTML="";
-  const anime=blItems.filter(i=>i.type==="anime"), games=blItems.filter(i=>i.type==="game");
+  const anime=blItems.filter(i=>i.type==="anime"||i.type==="tv"), games=blItems.filter(i=>i.type==="game");
   const stats=[[blItems.length,"Total"],[blItems.filter(i=>i.status==="in-progress").length,"Active"],[blItems.filter(i=>i.status==="completed").length,"Done"],
                [anime.reduce((n,i)=>n+(+i.progress||0),0),"Eps"],[games.reduce((n,i)=>n+(+i.progress||0),0),"Hours"]];
   const st=el("div","blstats"); stats.forEach(([n,l])=>{ const d=el("div","blstat"); d.append(el("b","",String(n)),el("span","",l)); st.append(d); }); box.append(st);
   if(!blItems.length){
-    box.append(el("p","note",blMine()?"Your backlog is empty. Tap + Games or + Anime to find something to add.":"Nothing to show. A backlog only shows to people its owner has added as a friend."));
+    box.append(el("p","note",blMine()?"Your backlog is empty. Tap + Games, + Anime, + TV, or + Movies to find something to add.":"Nothing to show. A backlog only shows to people its owner has added as a friend."));
     if(blMine()) box.append(blManualForm());
     return;
   }
@@ -11054,7 +11058,7 @@ function paintBlLibrary(){
   const q=el("input","field"); q.placeholder="Search this backlog…"; q.value=blFilters.q; q.setAttribute("aria-label","Search this backlog");
   q.oninput=()=>{ blFilters.q=q.value; paintBlList(); };
   const mk=(key,opts,label)=>{ const s=document.createElement("select"); s.className="blsel"; s.setAttribute("aria-label",label); opts.forEach(([v,t])=>s.append(new Option(t,v))); s.value=blFilters[key]; s.onchange=()=>{ blFilters[key]=s.value; paintBlList(); }; return s; };
-  fb.append(q, mk("type",[["all","All"],["game","Games"],["anime","Anime"]],"Type"),
+  fb.append(q, mk("type",[["all","All"],["game","Games"],["anime","Anime"],["tv","TV"],["movie","Movies"]],"Type"),
     mk("status",[["all","Status"],["planned","Planned"],["in-progress","In Progress"],["completed","Completed"]],"Status"),
     mk("sort",[["default","Newest"],["title","A–Z"],["rating","Top rated"],["progress","Most progress"]],"Sort"));
   box.append(fb, el("div","bllist"));
@@ -11078,22 +11082,32 @@ function blStars(rating,onRate){
     if(onRate) b.onclick=()=>onRate(s===rating?0:s); else b.disabled=true; row.append(b); }
   return row;
 }
-const blProgressText=it=>it.type==="anime"?`Episode ${it.progress} / ${it.total??"?"}`:`${it.progress} hrs played`;
-function blCover(it){ const u=safeImg(it.image); if(!u) return null; const i=document.createElement("img"); i.src=u; i.alt=""; i.loading="lazy"; i.className=it.type==="anime"?"blposter":"blcover"; i.onerror=()=>i.remove(); return i; }
+const blProgressText=it=>{
+  if(it.type==="anime"||it.type==="tv") return `Episode ${it.progress} / ${it.total??"?"}`;
+    if(it.type==="movie") return it.status==="completed" ? "Watched" : "Not watched yet";
+  return `${it.progress} hrs played`;
+};
+function blCover(it){ const u=safeImg(it.image); if(!u) return null; const i=document.createElement("img"); i.src=u; i.alt=""; i.loading="lazy"; i.className=it.type==="game"?"blcover":"blposter"; i.onerror=()=>i.remove(); return i; }
 function blCard(it){
   const c=el("article","blcard"+(it.status==="completed"?" done":""));
   const cov=blCover(it); if(cov) c.append(cov);
   const mid=el("div","blmid"), top=el("div","bltop");
-  top.append(el("span","bltype "+it.type,it.type==="anime"?"📺 ANIME":"🎮 GAME")); if(it.platform) top.append(el("span","blplat",it.platform));
+top.append(el("span","bltype "+it.type, blIcon(it.type) + " " + BL_TYPE_LABEL[it.type].toUpperCase() )); if(it.platform) top.append(el("span","blplat",it.platform));
   let prog;
-  if(blMine()){ prog=el("button","blprog bledit",blProgressText(it)+" ✎"); prog.type="button"; prog.setAttribute("aria-label",`Change progress for ${it.title}`); prog.onclick=()=>openProgressEditor(it,c); }
+  if(it.type!=="movie" && blMine()){ prog=el("button","blprog bledit",blProgressText(it)+" ✎"); prog.type="button"; prog.setAttribute("aria-label",`Change progress for ${it.title}`); prog.onclick=()=>openProgressEditor(it,c); }
   else prog=el("div","blprog",blProgressText(it));
   mid.append(top, el("div","blname",it.title), prog, blStars(it.rating,blMine()?(r=>blUpdate(it,{rating:r})):null));
   if(blMine()){
     const row=el("div","blactions");
     const sel=document.createElement("select"); sel.className="blsel"; sel.setAttribute("aria-label","Status for "+it.title);
     Object.entries(BL_STATUS).forEach(([v,t])=>sel.append(new Option(t,v))); sel.value=it.status; sel.onchange=()=>blUpdate(it,{status:sel.value});
-    const plus=el("button","blbtn","+1"); plus.type="button"; plus.disabled=!!(it.total&&it.progress>=it.total); plus.setAttribute("aria-label",(it.type==="anime"?"Add an episode to ":"Add an hour to ")+it.title); plus.onclick=()=>blPlusOne(it);
+    let plus;
+if(it.type==="movie"){
+  plus=el("button","blbtn",it.status==="completed"?"Mark as not watched":"Mark as watched"); plus.type="button";
+  plus.onclick=()=>blUpdate(it,{status:it.status==="completed"?"planned":"completed"});
+} else {
+  plus=el("button","blbtn","+1"); plus.type="button"; plus.disabled=!!(it.total&&it.progress>=it.total); plus.setAttribute("aria-label",(it.type==="anime"||it.type==="tv"?"Add an episode to ":"Add an hour to ")+it.title); plus.onclick=()=>blPlusOne(it);
+}
     const share=el("button","blbtn","Share"); share.type="button"; share.onclick=()=>openBlShare(it);
     const del=el("button","blbtn bldel","✕"); del.type="button"; del.setAttribute("aria-label","Remove "+it.title); del.onclick=()=>blDelete(it);
     row.append(sel,plus,share,del); mid.append(row);
@@ -11119,7 +11133,7 @@ async function blUpdate(it,patch){
   catch(err){ Object.assign(it,before); paintBlList(); paintBlStatsOnly(); say("blMsg","Didn't save: "+blFriendlyError(err),true); }
 }
 function paintBlStatsOnly(){ if(blTab!=="library") return; const st=$("blBody").querySelector(".blstats"); if(!st) return;   // update just the numbers
-  const anime=blItems.filter(i=>i.type==="anime"), games=blItems.filter(i=>i.type==="game");
+  const anime=blItems.filter(i=>i.type==="anime"||i.type==="tv"), games=blItems.filter(i=>i.type==="game");
   const nums=[blItems.length,blItems.filter(i=>i.status==="in-progress").length,blItems.filter(i=>i.status==="completed").length,anime.reduce((n,i)=>n+(+i.progress||0),0),games.reduce((n,i)=>n+(+i.progress||0),0)];
   st.querySelectorAll("b").forEach((b,i)=>b.textContent=String(nums[i])); }
 function blProgressPatch(it,progress,total){
@@ -11139,7 +11153,7 @@ function blPlusOne(it){
 /* Tap the progress line: − / + / type a number / +1 +5 +10 / set total episodes. Saves once on Done. */
 function openProgressEditor(it,card){
   card.querySelector(".blpedit")?.remove();
-  const anime=it.type==="anime", unit=anime?"episode":"hour";
+  const anime=it.type==="anime"||it.type==="tv", unit=anime?"episode":"hour";
   let prog=+it.progress||0, total=it.total||null;
   const box=el("div","blpedit"); box.setAttribute("role","group"); box.setAttribute("aria-label",`Progress for ${it.title}`);
   const minus=el("button","blbtn","−"), plus=el("button","blbtn","+"); minus.type=plus.type="button";
@@ -11168,7 +11182,7 @@ function openProgressEditor(it,card){
 function blCompleted(it){
   gainXP("backlogdone");
   const t=el("button","toast mention"); t.type="button"; const body=el("span","tbody");
-  body.append(el("div","ttitle",it.type==="anime"?"📺 Finished watching!":"🎮 Game complete!"), el("div","ttext",`${it.title} · tap to share it`));
+  body.append(el("div","ttitle",it.type==="game" ? "🎮 Game complete!" : blIcon(it.type)+" Finished watching!"), el("div","ttext",`${it.title} · tap to share it`));
   t.append(el("span","sx-lock","🏆"),body); t.onclick=()=>{ t.remove(); openBlShare(it); };
   $("toasts").prepend(t); setTimeout(()=>{ if(t.isConnected){ t.classList.add("out"); setTimeout(()=>t.remove(),260); } },6000);
   if(fxEnabled()) FX.play("confetti");
@@ -11179,7 +11193,10 @@ async function blDelete(it){
   try{ await api.deleteBacklog(it.id); }catch(err){ blItems.splice(i,0,it); paintBlLibrary(); say("blMsg","Couldn't remove it: "+blFriendlyError(err),true); }
 }
 async function blAdd(fields){
-  const clean={type:fields.type==="anime"?"anime":"game", title:String(fields.title||"").trim().slice(0,120),
+  if(fields.type==="tv"&&!fields.total&&/^tvmaze:\d+$/.test(fields.source_id||"")){
+    try{ const r=await fetch(`https://api.tvmaze.com/shows/${fields.source_id.slice(7)}/episodes`); if(r.ok) fields={...fields,total:(await r.json()).length||null}; }catch(e){}   // no count? you can still set it later
+  }
+  const clean={type: BL_TYPE_LABEL[fields.type] ? fields.type : "game", title:String(fields.title||"").trim().slice(0,120),
     image:safeImg(fields.image)&&String(fields.image).startsWith("https://")?String(fields.image).slice(0,500):null,
     platform:fields.platform?String(fields.platform).slice(0,40):null,
     total:Number.isInteger(+fields.total)&&+fields.total>0?+fields.total:null,
@@ -11197,42 +11214,63 @@ async function blAdd(fields){
 function blManualForm(){
   const d=el("details","blmanual"); d.append(el("summary","","+ Add one manually"));
   const t=el("input","field"); t.placeholder="Title"; t.maxLength=120; t.setAttribute("aria-label","Title");
-  const type=document.createElement("select"); type.className="blsel"; type.setAttribute("aria-label","Type"); type.append(new Option("Game","game"),new Option("Anime","anime"));
+  const type=document.createElement("select"); type.className="blsel"; type.setAttribute("aria-label","Type"); type.append(new Option("Game","game"),new Option("Anime","anime"),new Option("TV","tv"),new Option("Movie","movie"));
   const plat=el("input","field"); plat.placeholder="Platform"; plat.maxLength=40; plat.setAttribute("aria-label","Platform");
   const tot=el("input","field"); tot.type="number"; tot.min="1"; tot.placeholder="Episodes"; tot.setAttribute("aria-label","Total episodes");
-  type.onchange=()=>{ tot.style.visibility=type.value==="anime"?"visible":"hidden"; }; tot.style.visibility="hidden";
+  type.onchange=()=>{ tot.style.visibility=type.value==="anime"||type.value==="tv"?"visible":"hidden"; }; tot.style.visibility="hidden";
   const go=el("button","blbtn add","Add"); go.type="button";
-  go.onclick=async()=>{ go.disabled=true; try{ await blAdd({title:t.value,type:type.value,platform:plat.value,total:type.value==="anime"?tot.value:null}); t.value=""; plat.value=""; tot.value=""; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
+  go.onclick=async()=>{ go.disabled=true; try{ await blAdd({title:t.value,type:type.value,platform:plat.value,total:type.value==="anime"||type.value==="tv"?tot.value:null}); t.value=""; plat.value=""; tot.value=""; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
   const r=el("div","row2"); r.append(type,plat,tot);
   d.append(t,r,go); return d;
 }
 
-/* ---------- search (RAWG for games, Kitsu for anime) ---------- */
+/* ---------- search (RAWG for games, Kitsu for anime, TVmaze for TV, TMDB for movies) ---------- */
+const TMDB_KEY="";   // paste your free TMDB "API Key" here (themoviedb.org → Settings → API) to turn on movie search
+const BL_SEARCH_TEXT={
+  game:{ph:"Search games…", help:"Find a game to add. Covers and platforms come from RAWG."},
+  anime:{ph:"Search anime…", help:"Find an anime to add. Posters and episode counts come from Kitsu."},
+  tv:{ph:"Search TV shows…", help:"Find a TV show to add. Posters and episode counts come from TVmaze."},
+  movie:{ph:"Search movies…", help:"Find a movie to add. Posters come from TMDB."}
+};
 function paintBlSearch(type){
   const box=$("blBody"); box.innerHTML="";
+  if(type==="movie"&&!TMDB_KEY){
+    box.append(el("p","note","Movie search is coming soon. For now, add a movie by hand:"));
+    const f=blManualForm(); f.open=true; const sel=f.querySelector("select"); if(sel){ sel.value="movie"; sel.onchange?.(); } box.append(f);
+    return;
+  }
   const form=document.createElement("form"); form.className="blsearch";
-  const q=el("input","field"); q.placeholder=type==="game"?"Search games…":"Search anime…"; q.value=blQuery[type]; q.setAttribute("aria-label",q.placeholder);
+  const q=el("input","field"); q.placeholder=BL_SEARCH_TEXT[type].ph; q.value=blQuery[type]; q.setAttribute("aria-label",q.placeholder);
   const go=el("button","blbtn add","Search"); go.type="submit";
   form.append(q,go); form.onsubmit=e=>{ e.preventDefault(); blRunSearch(type,q.value); };
   const res=el("div","bllist blresults"); box.append(form,res);
-  if(blResults[type]) paintBlResults(type); else res.append(el("p","note",type==="game"?"Find a game to add. Covers and platforms come from RAWG.":"Find an anime to add. Posters and episode counts come from Kitsu."));
+  if(blResults[type]) paintBlResults(type); else res.append(el("p","note",BL_SEARCH_TEXT[type].help));
   setTimeout(()=>q.focus(),60);
 }
 async function blRunSearch(type,query){
   query=String(query||"").trim(); blQuery[type]=query;
   const res=$("blBody").querySelector(".blresults"); if(!res) return;
-  if(!query){ say("blMsg",type==="game"?"Type a game name to search.":"Type an anime name to search.",true); return; }
+  const what={game:"a game",anime:"an anime",tv:"a TV show",movie:"a movie"}[type]||"a title";
+  if(!query){ say("blMsg",`Type ${what} name to search.`,true); return; }
   say("blMsg",""); res.innerHTML='<p class="note">Searching…</p>';
   try{
     if(type==="game"){
       const r=await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(query)}&page_size=12`); if(!r.ok) throw new Error(r.status);
       blResults.game=((await r.json()).results||[]).map(g=>({type:"game",title:g.name,image:g.background_image||null,platform:g.platforms?.[0]?.platform?.name||null,total:null,source_id:"rawg:"+g.id,meta:[g.released?.slice(0,4),(g.platforms||[]).slice(0,3).map(p=>p.platform.name).join(", ")].filter(Boolean).join(" · ")}));
+    } else if(type==="tv"){
+      const r=await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`); if(!r.ok) throw new Error(r.status);
+      blResults.tv=(await r.json()).slice(0,12).map(x=>{ const s=x.show||{}, net=s.network?.name||s.webChannel?.name||null; return {
+        type:"tv", title:s.name||"Untitled", image:s.image?.medium||null, platform:net, total:null, source_id:"tvmaze:"+s.id,
+        meta:[s.premiered?.slice(0,4), net, s.status==="Running"?"still airing":null].filter(Boolean).join(" · ") }; });
+    } else if(type==="movie"){
+      const r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&include_adult=false&query=${encodeURIComponent(query)}`); if(!r.ok) throw new Error(r.status);
+      blResults.movie=((await r.json()).results||[]).slice(0,12).map(m=>({type:"movie",title:m.title||"Untitled",image:m.poster_path?"https://image.tmdb.org/t/p/w185"+m.poster_path:null,platform:null,total:null,source_id:"tmdb:"+m.id,meta:[m.release_date?.slice(0,4)].filter(Boolean).join(" · ")}));
     } else {
       const r=await fetch(`https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=12`); if(!r.ok) throw new Error(r.status);
       blResults.anime=((await r.json()).data||[]).map(a=>{ const x=a.attributes||{}; return {type:"anime",title:x.titles?.en||x.canonicalTitle||"Untitled",image:x.posterImage?.small||null,platform:"Streaming",total:x.episodeCount||null,source_id:"kitsu:"+a.id,meta:[x.startDate?.slice(0,4),x.episodeCount?x.episodeCount+" eps":null,x.subtype?.toUpperCase()].filter(Boolean).join(" · ")}; });
     }
     if(blQuery[type]===query&&blTab===type) paintBlResults(type);
-  }catch(err){ res.innerHTML=""; res.append(el("p","msgline bad",`Couldn't reach the ${type==="game"?"game":"anime"} database. Wait a few seconds and try again.`)); }
+  }catch(err){ res.innerHTML=""; res.append(el("p","msgline bad",`Couldn't find ${what} right now. Wait a few seconds and try again.`)); }
 }
 function paintBlResults(type){
   const res=$("blBody").querySelector(".blresults"); if(!res) return; res.innerHTML="";
@@ -11284,10 +11322,11 @@ $("blShareClose").onclick=()=>show($("blShareSheet"),false);
 /* ---------- the card friends see in chat ---------- */
 function backlogMsgCard(m){
   const c=m.card, box=el("div","blmsg");
-  const type=c.type==="anime"?"anime":"game", img=safeImg(c.image);
+  const type=BL_TYPE_LABEL[c.type] ? c.type : "game", img=safeImg(c.image);
+  const typeLabel=blIcon(type)+" "+BL_TYPE_LABEL[type].toUpperCase();
   if(img){ const i=document.createElement("img"); i.src=img; i.alt=""; i.loading="lazy"; if(type==="game") i.className="wide"; i.onerror=()=>i.remove(); box.append(i); }
   const mid=el("div","blmid");
-  mid.append(el("div","bleye",`${type==="anime"?"📺 ANIME":"🎮 GAME"} · ${(BL_STATUS[c.status]||"Planned").toUpperCase()}`), el("div","blname",String(c.title).slice(0,120)));
+  mid.append(el("div","bleye",`${typeLabel} · ${(BL_STATUS[c.status]||"Planned").toUpperCase()}`), el("div","blname",String(c.title).slice(0,120)));
   const meta=[c.platform?String(c.platform).slice(0,40):null, c.status!=="planned"?blProgressText({type,progress:+c.progress||0,total:c.total||null}):null].filter(Boolean).join(" · ");
   if(meta) mid.append(el("div","blprog",meta));
   if(+c.rating>0) mid.append(blStars(Math.min(5,+c.rating),null));
