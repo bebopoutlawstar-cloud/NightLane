@@ -1514,6 +1514,19 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .hf-burst{position:absolute;left:50%;top:44%;width:0;height:0}
 .hf-burst i{position:absolute;left:0;top:0;width:5px;height:16px;background:var(--volt);box-shadow:0 0 6px var(--volt);transform:rotate(var(--a));transform-origin:50% 0;animation:hfspark .5s ease-out forwards}
 @keyframes hfspark{to{transform:rotate(var(--a)) translateY(-46px);opacity:0}}
+.hfprompt{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 10px 8px;padding:10px 12px 14px;background:var(--night);border:2px solid var(--volt);box-shadow:4px 4px 0 var(--mag);animation:hfin .2s ease-out;overflow:hidden}
+.hfprompt.out{opacity:0;transform:translateY(8px);transition:.25s}
+.hfprompt .hftext{flex:1 1 160px;font-weight:700;font-size:16px}
+.hfprompt .hfbtn{width:auto;flex:none;padding:8px 14px;font-size:16px;margin:0}
+.hfprompt .hfx{flex:none;background:none;border:none;color:var(--muted);font-size:18px;padding:4px 6px}
+.hfprompt .hfbar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--volt);transform-origin:left;animation:hfbar linear forwards}
+@keyframes hfbar{to{transform:scaleX(0)}}
+@keyframes hfin{from{opacity:0;transform:translateY(10px)}}
+.hf-nice{position:absolute;left:50%;top:22%;transform:translateX(-50%) rotate(-6deg);font-family:var(--num);font-size:min(18vw,96px);line-height:.9;color:var(--volt);text-align:center;text-shadow:-3px 0 var(--cyan),5px 5px 0 var(--mag);animation:hfnice 1.7s cubic-bezier(.2,1.4,.4,1) forwards}
+.hf-nice small{display:block;font-family:var(--tech);font-size:.22em;letter-spacing:1px;color:var(--white);text-shadow:2px 2px 0 var(--night);margin-top:6px}
+@keyframes hfnice{0%{opacity:0;transform:translateX(-50%) rotate(-6deg) scale(.4)}15%{opacity:1;transform:translateX(-50%) rotate(-6deg) scale(1.1)}25%{transform:translateX(-50%) rotate(-6deg) scale(1)}80%{opacity:1}100%{opacity:0}}
+.hf-hang{position:absolute;right:12%;top:40%;font-size:min(22vw,110px);animation:hfhang 1.8s ease-in-out forwards}
+@keyframes hfhang{0%{opacity:0;transform:translateY(20px)}20%{opacity:1;transform:none}60%{transform:rotate(-12deg)}100%{opacity:0;transform:translateY(60px) rotate(-30deg)}}
 
 /* ===== splash screen (covers the raw-HTML flash while everything loads) ===== */
 #splash{position:fixed;inset:0;z-index:999;background:#07041A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;overflow:hidden;transition:opacity .5s ease,visibility .5s;font-family:var(--body,sans-serif)}
@@ -4114,9 +4127,11 @@ const live = {
       .subscribe(s=>h.status(s==="SUBSCRIBED"?"Live":"Reconnecting…"));
     const priv=sb.channel("typing:"+room,{config:{private:true,broadcast:{self:false}}})
       .on("broadcast",{event:"typing"},({payload})=>h.typing(payload))
+      .on("broadcast",{event:"hifive"},({payload})=>h.hifive&&h.hifive(payload))
       .subscribe();
     const stop=()=>{ sb.removeChannel(pub); sb.removeChannel(priv); };
     stop.typing=payload=>priv.send({type:"broadcast",event:"typing",payload});
+    stop.hifive=payload=>priv.send({type:"broadcast",event:"hifive",payload});
     return stop;
   }
 };
@@ -4490,7 +4505,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async saveArcana(arcana){ people.me.arcana=arcana; },
     _setLinkXp(otherId,xp){ const a="me"<otherId?"me":otherId, b="me"<otherId?otherId:"me", key=a+"|"+b; const row=demoSocialLinks.get(key); if(row){ row.xp=xp; row.today_xp=0; row.today_date=null; } },
     _seedHabitLogs(n){ demoHabitLogs.length=0; for(let i=0;i<n;i++) demoHabitLogs.push({habit_id:1,user_id:"me",done_on:new Date(Date.now()-i*864e5).toISOString().slice(0,10)}); },
-    subscribe(_room,h){ H=h; h.status("Demo mode"); const stop=()=>{H=null}; stop.typing=()=>{}; return stop; }
+    subscribe(_room,h){ H=h; h.status("Demo mode"); const stop=()=>{H=null}; stop.typing=()=>{}; stop.hifive=()=>{}; return stop; }
   };
 })();
 // The server library comes from a CDN. If it couldn't load (no signal on a cold start), use a stand-in that
@@ -5236,6 +5251,7 @@ async function enterRoom(code,token){
       },
       reaction:(r,added)=>{ if(!byId.has(r.message_id)) return; setReaction(r,added); refreshMsg(r.message_id); },
       typing:onTyping,
+      hifive:onHifiveSignal,
       status:s=>{ const was=liveStatus; liveStatus=s; $("status").textContent=navigator.onLine===false?"Offline · will reconnect":s; if(s==="Live"&&was&&was!=="Live") catchUp("reconnected"); }
     });
   }catch(err){ $("status").textContent="Can't load messages. Check your Supabase setup."; }
@@ -6785,6 +6801,7 @@ function hypeText(text){
 function playFx(m,force){
   if(m.kind==="notice") return;
   if(!m?.text||m.kind==="poll"||m.kind==="game"||isBlCard(m)) return;   // a shared title like "Dragon Ball" shouldn't fire the dragon secret
+  if(!force) maybeHifive(m);
   const s=secretFor(m.text), t=s?null:fxFor(m.text); if(!s&&!t) return;
   if(!force){ if(!fxEnabled()||document.hidden||fxPlayed.has(m.id)) return; if(Date.now()-new Date(m.created_at)>15000) return; }
   fxPlayed.add(m.id);
@@ -9456,6 +9473,62 @@ QX.hifive=function(m){
   },420);
   setTimeout(()=>{ left.remove(); right.remove(); },1600);
 };
+/* ===== interactive high five =====
+   Someone says "high five" while others are in the chat → everyone else gets a "✋ High five back!" button for 15s.
+   Tap it and both of you get the big double slap (and your Social Bond grows). Nobody taps → the sender is left hanging. */
+const HIFIVE_RE=/hi-?five|hi-?5\b|high[- ]?five/i, HIFIVE_MS=15000;
+const hifiveSeen=new Set(), hifiveMine=new Map();   // msg ids already handled · my open high fives (id → {timer, got})
+const hfFx=()=>fxEnabled()&&!reducedMotion();
+function othersHere(){ return [...online.keys()].filter(id=>id!==user?.id&&whereIs(id)?.room===room&&!blocked.has(id)).length + (!sb&&room==="5959"?1:0); }
+function maybeHifive(m){
+  if(!m||typeof m.id!=="number"||hifiveSeen.has(m.id)||!HIFIVE_RE.test(m.text||"")) return;
+  if(Date.now()-new Date(m.created_at)>HIFIVE_MS-2000) return;   // only live ones, not old history
+  hifiveSeen.add(m.id);
+  if(m.user_id===user.id){
+    if(!othersHere()) return;                                       // nobody around: just the normal animation
+    const t=setTimeout(()=>{ const h=hifiveMine.get(m.id); hifiveMine.delete(m.id); if(h&&!h.got) hifiveHanging(); },HIFIVE_MS+1500);
+    hifiveMine.set(m.id,{timer:t,got:0});
+  } else if(m.room===room||!m.room){ setTimeout(()=>hifivePrompt(m),hfFx()?900:0); }   // let the hands finish first
+}
+function hifivePrompt(m){
+  if(m.room&&m.room!==room) return;
+  document.querySelector(".hfprompt")?.remove();
+  const box=el("div","hfprompt"); box.setAttribute("role","alert");
+  const txt=el("span","hftext",`✋ ${nameOf(m.user_id)} wants a high five!`);
+  const btn=el("button","go hfbtn","✋ High five back!"); btn.type="button";
+  const bar=el("i","hfbar"); bar.style.animationDuration=HIFIVE_MS+"ms";
+  const x=el("button","hfx","✕"); x.type="button"; x.setAttribute("aria-label","Ignore");
+  box.append(txt,btn,x,bar);
+  const done=()=>{ clearTimeout(tm); box.classList.add("out"); setTimeout(()=>box.remove(),250); };
+  const tm=setTimeout(done,HIFIVE_MS);
+  btn.onclick=()=>{
+    done();
+    try{ unsub?.hifive?.({kind:"back",msg:m.id,to:m.user_id,toName:nameOf(m.user_id),from:user.id,name:nameOf(user.id)}); }catch(e){}
+    hifiveCelebrate(nameOf(m.user_id),true); bumpLink(m.user_id);
+  };
+  x.onclick=done;
+  $("sendForm").before(box); btn.focus({preventScroll:true});
+}
+function onHifiveSignal(p){
+  if(!p||p.kind!=="back"||p.from===user.id||blocked.has(p.from)) return;
+  const who=p.name||nameOf(p.from);
+  if(p.to===user.id){
+    const h=hifiveMine.get(p.msg); if(h){ h.got++; if(h.got===1){ clearTimeout(h.timer); setTimeout(()=>hifiveMine.delete(p.msg),HIFIVE_MS); } }
+    hifiveCelebrate(who,false);   // (the person who tapped grows the bond, so it only counts once)
+  } else $("status").textContent=`🙌 ${who} high-fived ${p.to===user.id?"you":(p.toName||nameOf(p.to))}!`;
+}
+function hifiveCelebrate(name,iTapped){
+  $("status").textContent=iTapped?`🙌 You high-fived ${name}!`:`🙌 ${name} high-fived you back!`;
+  if(navigator.vibrate) navigator.vibrate([30,40,60]);
+  if(!hfFx()) return;
+  QX.hifive();
+  setTimeout(()=>{ const n=document.createElement("div"); n.className="hf-nice"; n.textContent="NICE!"; n.append(el("small","",iTapped?"you + "+name:name+" + you")); $("sfx").append(n); setTimeout(()=>n.remove(),1700); },380);
+}
+function hifiveHanging(){
+  $("status").textContent="😅 Left hanging… nobody high-fived back.";
+  if(!hfFx()) return;
+  const n=document.createElement("div"); n.className="hf-hang"; n.textContent="✋"; $("sfx").append(n); setTimeout(()=>n.remove(),1800);
+}
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
   {id:"hifive", name:"Hi-five", re:/hi-?five|hi-?5\b|high[- ]?five/i, play:m=>QX.hifive(m)}
 );
@@ -10429,8 +10502,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02c";
+const APP_VERSION="2026.10.02d";
 const CHANGELOG=[
+  {v:"2026.10.02d", title:"Real high fives ✋", items:[
+    "✋ Say \"high five\" while friends are in the chat and they get a High five back! button. If they tap it in time, you both get a big NICE! slap and your Social Bond grows.",
+    "😅 Nobody tapped? You'll know you were left hanging.",
+  ]},
   {v:"2026.10.02c", title:"Cleaner date stamp 🗓️", items:[
     "🗓️ The big date on the home screen now spaces itself out for two-digit months like 10, 11, and 12, so the slash sits neatly between the month and day.",
   ]},
