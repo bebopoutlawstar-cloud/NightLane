@@ -3442,7 +3442,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Halloween pixel art</h3>
     <p class="sub">Halloween Graphics by finalbossblues · Jacko by Tyler Warren</p>
     <h3>Powered by</h3>
-    <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA)</p>
+    <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA) · Movie info from TMDB</p>
+    <p class="sub">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
     <h3>🐛Bug hunters & testers</h3>
     <p class="sub">Xen, Ren, Justin, Han, Kenneth, Freddy, and Malcolm</p>
       <p class="sub">Thanks to everyone who helped test NightLane and find bugs!</p>
@@ -10611,8 +10612,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02f";
+const APP_VERSION="2026.10.02g";
 const CHANGELOG=[
+  {v:"2026.10.02g", title:"Movie posters 🎞️", items:[
+    "🎞️ + Movies now searches real movies, with posters and the year. Movie info comes from TMDB.",
+  ]},
   {v:"2026.10.02f", title:"Movies & TV 🎬", items:[
     "🎬 Your Media Backlog now holds TV shows and movies, not just games and anime. Tap + TV to search for shows, with posters and episode counts.",
     "✅ Movies get a simple Mark as watched button instead of hours or episodes. Add movies by hand for now. Movie search is on the way.",
@@ -11230,7 +11234,7 @@ function blManualForm(){
 }
 
 /* ---------- search (RAWG for games, Kitsu for anime, TVmaze for TV, TMDB for movies) ---------- */
-const TMDB_KEY="";   // paste your free TMDB "API Key" here (themoviedb.org → Settings → API) to turn on movie search
+const TMDB_KEY="418351e92058ca51c541ec97a1506aa1";   // paste your free TMDB "API Key" here (themoviedb.org → Settings → API) to turn on movie search
 const BL_SEARCH_TEXT={
   game:{ph:"Search games…", help:"Find a game to add. Covers and platforms come from RAWG."},
   anime:{ph:"Search anime…", help:"Find an anime to add. Posters and episode counts come from Kitsu."},
