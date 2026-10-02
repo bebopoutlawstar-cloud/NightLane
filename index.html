@@ -3837,7 +3837,25 @@ function paintDate(){
   $("sWeek").textContent=DAYS[d.getDay()]; $("sPhase").textContent=phaseOf(h);
   $("sIcon").innerHTML=(h>=6&&h<19)?sun:moon;
   $("miniDate").innerHTML=`${d.getMonth()+1}/${d.getDate()}<small>${DAYS[d.getDay()].slice(0,3)}</small>`;
+  layoutStamp();
 }
+/* Lay the month, slash, and day out side by side based on their real widths, so "10/2" or "12/25"
+   gets the same clean divider as "9/30". If the whole date is too wide, both numbers shrink a little. */
+function layoutStamp(){
+  const mo=$("sMonth"), sl=mo?.parentElement.querySelector(".slash"), dy=$("sDay"); if(!mo||!sl||!dy) return;
+  const st=mo.parentElement, W=st.clientWidth; if(!W) return;
+  [mo,dy].forEach(n=>n.style.fontSize="");          // start from the normal CSS sizes
+  for(let pass=0;pass<5;pass++){
+    const moL=mo.offsetLeft, moR=moL+mo.offsetWidth, slW=sl.offsetWidth;
+    const slL=moR-slW*0.15, dyL=slL+slW*0.85, dyR=dyL+dy.offsetWidth, ico=st.querySelector(".icon"), room=ico?ico.offsetLeft+ico.offsetWidth*0.12:W*0.8;   // keep the day clear of the sun/moon sticker
+    sl.style.left=slL+"px"; dy.style.left=dyL+"px";
+    if(dyR<=room+1||pass===4) break;
+    const k=Math.max(0.85,(room-moL)/(dyR-moL));    // too wide: shrink both numbers to fit, then lay out again
+    [mo,dy].forEach(n=>n.style.fontSize=(parseFloat(getComputedStyle(n).fontSize)*k)+"px");
+  }
+}
+try{ document.fonts?.ready.then(layoutStamp); }catch(e){}
+try{ new ResizeObserver(()=>layoutStamp()).observe(document.querySelector(".stamp")); }catch(e){ addEventListener("resize",layoutStamp); }
 paintDate(); setInterval(paintDate,60000);
 let lastDay=new Date().toDateString();
 setInterval(()=>{ const now=new Date().toDateString(); if(now===lastDay) return; lastDay=now;
@@ -10411,8 +10429,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02b";
+const APP_VERSION="2026.10.02c";
 const CHANGELOG=[
+  {v:"2026.10.02c", title:"Cleaner date stamp 🗓️", items:[
+    "🗓️ The big date on the home screen now spaces itself out for two-digit months like 10, 11, and 12, so the slash sits neatly between the month and day.",
+  ]},
   {v:"2026.10.02b", title:"Real dates 📆", items:[
     "📆 Dates in messages (\"tonight\", \"Friday\", \"Oct 12\") now show a little calendar with the actual day, instead of the phone's calendar emoji that always says July 17.",
     "🗓️ \"Tomorrow\" in an older message now means the day after it was sent, both on the little calendar and when you add it to your calendar.",
