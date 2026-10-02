@@ -1806,6 +1806,11 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 /* ===== media backlog ===== */
 .bltabs{width:100%}
 .bltabs button{white-space:nowrap;font-size:clamp(14px,4.4vw,18px)}
+/* five tabs (Library + Games/Anime/TV/Movies) must fit inside the sheet: equal columns, text shrinks instead of pushing the sheet wider */
+.bltabs{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px!important}
+.bltabs button{min-width:0;padding:8px 1px!important;font-size:clamp(11px,3.5vw,16px)!important;letter-spacing:0!important;overflow:hidden;text-overflow:ellipsis}
+#backlogSheet .sheetbody>*{min-width:0;max-width:100%}
+@media (max-width:350px){.bltabs button{font-size:10px!important}}
 .blbody{width:100%;text-align:left;display:grid;gap:12px}
 .blstats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
 .blstat{display:grid;justify-items:center;border:2px solid #3b2d80;padding:6px 2px;background:rgba(0,0,0,.25)}
