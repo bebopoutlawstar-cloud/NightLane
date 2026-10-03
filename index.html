@@ -6895,7 +6895,7 @@ const FX=(()=>{
   const sweep=()=>{ if(Date.now()>=endsAt) stop(); };
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) sweep(); });
   addEventListener("pageshow",sweep); addEventListener("focus",sweep);
-  return {play,stop};
+  return {play,stop,busy:()=>canvas.style.display==="block"&&Date.now()<endsAt};
 })();
 
 function hypeText(text){
@@ -9040,11 +9040,23 @@ function gainXP(kind,mult=1){
   d.xp+=amt; d.log[kind]=(d.log[kind]||0)+1; try{ LS.set(XP_KEY,JSON.stringify(d)); }catch(e){} progressChanged();
   const now=xpLevel(d.xp);
   if(!$("profile").classList.contains("hidden")) paintXP(); paintHomeLevel();
-  if(now.lvl>before){ setTimeout(checkUnlocks,2500); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
+  if(now.lvl>before) whenEffectsQuiet(()=>{   // wait for any easter egg on screen to finish first, so they don't pile up
+    setTimeout(checkUnlocks,2500); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
     const t=el("div","toast mention"); const body=el("span","tbody"); body.append(el("div","ttitle",`⬆ Level ${now.lvl} · ${LEVEL_TITLES[Math.min(now.lvl-1,LEVEL_TITLES.length-1)]}`), el("div","ttext","Keep going, you're on a roll."));
     t.append(el("span","sx-lock","⬆"),body); $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },5000);
     if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
-  } else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
+  }); else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
+}
+/* is an easter egg / screen effect playing right now? (the effects layer has something in it, or the confetti canvas is running) */
+function effectsBusy(){
+  const s=document.getElementById("sfx"), t=document.getElementById("fxText");
+  return !!(s&&s.children.length) || !!(t&&t.children.length) || (typeof FX!=="undefined"&&!!FX.busy?.());
+}
+/* run fn once the screen has been calm for a moment (gives up waiting after 20 seconds) */
+function whenEffectsQuiet(fn){
+  const start=Date.now(); let calm=0;
+  const tick=()=>{ calm=effectsBusy()?0:calm+250; if(calm>=750||Date.now()-start>20000) fn(); else setTimeout(tick,250); };
+  setTimeout(tick,250);
 }
 function paintXP(){
   const d=xpData(), L=xpLevel(d.xp), pct=Math.round(L.rem/L.need*100);
@@ -10764,8 +10776,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03a";
+const APP_VERSION="2026.10.03b";
 const CHANGELOG=[
+  {v:"2026.10.03b", title:"Smoother level ups", items:[
+    "⬆ If you level up while a secret effect is playing, the LEVEL UP now waits until the effect is done instead of piling on top of it.",
+  ]},
   {v:"2026.10.03a", title:"Don't forget ⌚", items:[
     "⌚ Open NightLane on October 3rd for a little surprise.",
   ]},
