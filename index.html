@@ -63,10 +63,10 @@ button:disabled{opacity:.5;cursor:default}
 body.halloween .plate{border-color:#FF7A1A;box-shadow:0 0 0 4px #9B4DFF inset}
 body.halloween .glow{background:#d6c90d;filter:blur(18px);opacity:.35;z-index:-1}
 body.halloween .stamp::after{content:"🎃";position:absolute;left:-3%;top:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
-body.halloween .stamp::before{content:"👻";position:absolute;right:-2%;bottom:2%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+body.halloween .stamp::before{content:"👻";position:absolute;right:-4%;bottom:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
 /* the other holidays use the same two stickers: ::after = top-left, ::before = bottom-right */
 body:is(.thanksgiving,.winter,.newyear,.valentine,.stpat,.easter,.july4) .stamp::after{position:absolute;left:-3%;top:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
-body:is(.thanksgiving,.winter,.newyear,.valentine,.stpat,.easter,.july4) .stamp::before{position:absolute;right:-2%;bottom:2%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+body:is(.thanksgiving,.winter,.newyear,.valentine,.stpat,.easter,.july4) .stamp::before{position:absolute;right:-4%;bottom:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
 /* Thanksgiving (November) */
 body.thanksgiving .plate{border-color:#E07A2C;box-shadow:0 0 0 4px #8A4A1C inset}
 body.thanksgiving .glow{background:#FFB347}
@@ -102,6 +102,10 @@ body.july4 .plate{border-color:#E8303A;box-shadow:0 0 0 4px #3D6BFF inset}
 body.july4 .glow{background:#F4F7FF}
 body.july4 .stamp::after{content:"🎆"}
 body.july4 .stamp::before{content:"⭐"}
+/* on the home screen (after logging in) the stamp is smaller, so the stickers shrink and move out to the corners */
+#front.logged .stamp::after{left:-7%;top:-14%;font-size:clamp(26px,8vw,38px)}
+#front.logged .stamp::before{right:-9%;bottom:-4%;font-size:clamp(24px,7.5vw,36px)}
+.stamp::before{z-index:2}
 /* ===== cards / forms ===== */
 .card{display:grid;gap:12px;animation:rise .45s .15s both}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}}
@@ -10857,8 +10861,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03e";
+const APP_VERSION="2026.10.03f";
 const CHANGELOG=[
+  {v:"2026.10.03f", title:"Tidier holiday stickers", items:[
+    "🎃 Holiday stickers on the home screen are smaller and sit in the corners, so they don't cover the date anymore.",
+  ]},
   {v:"2026.10.03e", title:"Holiday date stamps 🎄", items:[
     "🎄 The date stamp now dresses up for more holidays: Thanksgiving, winter holidays, New Year, Valentine's, St. Patrick's, Easter, and the Fourth of July.",
   ]},
