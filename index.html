@@ -767,6 +767,26 @@ html,body{overscroll-behavior:none}
 #chat.px-mirror{animation:pxmirror 1.8s ease both}
 @keyframes pxmirror{25%,75%{transform:scaleX(-1)}}
 .px-center{position:absolute;left:0;right:0;top:44%;text-align:center;animation:sxflash 1.8s ease both}
+/* ===== October 3rd ===== */
+.o3-scene{position:absolute;inset:0;animation:o3scene 9.2s ease both}
+.o3-sky{position:absolute;inset:0;background:linear-gradient(180deg,#05030f 0%,#0d0a2a 45%,#2a1640 75%,#5a2a3a 100%)}
+.o3-stars{position:absolute;inset:0;background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),radial-gradient(circle,rgba(243,255,58,.8) 0 1px,transparent 2px);background-size:80px 90px,140px 120px;opacity:.6}
+.o3-part{position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center}
+.o3-one{top:50%;width:min(56vw,230px);margin-top:calc(min(56vw,230px) * -0.82);animation:o3one 4.6s ease both}
+.o3-watch{width:100%;height:auto;overflow:visible;filter:drop-shadow(0 0 18px rgba(0,240,255,.25)) drop-shadow(6px 6px 0 #07041A)}
+.o3-lid{transform-box:fill-box;transform-origin:50% 100%;animation:o3lid 1.2s .5s cubic-bezier(.2,1.3,.4,1) both}
+.o3-scratch{opacity:0;animation:o3fade .9s 1.5s ease both}
+.o3-hand{transform-box:view-box;transform-origin:100px 242px;animation:o3tick 4s steps(4) .4s infinite}
+.o3-two{bottom:0;width:min(60vw,270px);opacity:0;animation:o3two 4.8s 4.2s ease both}
+.o3-arm{width:100%;height:auto;filter:drop-shadow(0 0 22px rgba(0,240,255,.35))}
+.o3-cap{position:absolute;left:0;right:0;top:16%;text-align:center;font-family:var(--tech);font-size:clamp(18px,5.5vw,28px);letter-spacing:4px;color:#F4F7FF;text-shadow:0 0 12px rgba(0,240,255,.6),2px 2px 0 #07041A;opacity:0;animation:o3cap 3s 6s ease both}
+@keyframes o3scene{0%{opacity:0}6%{opacity:1}92%{opacity:1}100%{opacity:0}}
+@keyframes o3one{0%{opacity:0;transform:translateX(-50%) translateY(30px) scale(.9)}12%{opacity:1;transform:translateX(-50%)}82%{opacity:1;transform:translateX(-50%)}100%{opacity:0;transform:translateX(-50%) scale(.96)}}
+@keyframes o3lid{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes o3fade{to{opacity:1}}
+@keyframes o3tick{to{transform:rotate(24deg)}}
+@keyframes o3two{0%{opacity:0;transform:translateX(-50%) translateY(70%) rotate(-6deg)}30%{opacity:1}65%{transform:translateX(-50%) translateY(0) rotate(2deg)}100%{opacity:1;transform:translateX(-50%) translateY(-2%) rotate(0)}}
+@keyframes o3cap{0%{opacity:0;transform:translateY(8px)}30%{opacity:1;transform:none}100%{opacity:1}}
 .px-shades{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:max(18px,.9em);animation:pxdrop .5s cubic-bezier(.3,1.6,.5,1) both;z-index:4;filter:drop-shadow(0 0 4px #fff)}
 @keyframes pxdrop{from{transform:translate(-50%,-160%) rotate(-30deg);opacity:0}}
 .px-nixie{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:#0b0604;border:4px solid #3a2410;border-radius:8px;box-shadow:0 0 40px rgba(255,120,30,.35),8px 8px 0 #07041A;padding:14px 12px;text-align:center;animation:sxfadein .3s ease both}
@@ -8427,6 +8447,39 @@ const PX=(()=>{
     },
     halloween(){ if(typeof HW!=="undefined"){ HW.halloween(); return; } for(let i=0;i<22;i++){ const b=add("px-drift",i%3?"🦇":"🎃"); b.style.left=R(0,95)+"%"; b.style.animationDelay=R(0,2)+"s"; b.style.fontSize=R(22,44)+"px"; later(()=>b.remove(),5500); } },
     newyear(){ if(typeof FX!=="undefined"){ FX.play("confetti"); later(()=>FX.play("boom"),1200); } const b=add("sx-banner sx-showtime",`HAPPY ${new Date().getFullYear()}!`); later(()=>b.remove(),2200); },
+    oct3(){   /* October 3rd: an engraved pocket watch, then a metal arm reaching for the sky */
+      const scene=add("o3-scene",`<div class="o3-sky"></div><div class="o3-stars"></div><div class="o3-part o3-one"><svg class="o3-watch" viewBox="0 0 200 330" aria-hidden="true"><defs>
+<radialGradient id="o3steel" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f4f6fb"/><stop offset=".55" stop-color="#aab1c2"/><stop offset="1" stop-color="#5d6476"/></radialGradient>
+<radialGradient id="o3inner" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#d9dde8"/><stop offset="1" stop-color="#8d94a6"/></radialGradient>
+<radialGradient id="o3face" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#e7e1cf"/></radialGradient></defs>
+<g class="o3-lid"><circle cx="100" cy="88" r="74" fill="url(#o3steel)" stroke="#2b2f3a" stroke-width="4"/><circle cx="100" cy="88" r="62" fill="url(#o3inner)" stroke="#6b7284" stroke-width="2"/>
+<g class="o3-scratch" fill="none" stroke-linecap="round"><g stroke="#3a3f4c" stroke-width="1.4" font-family="Courier New,monospace" font-size="14" font-weight="700" letter-spacing="1">
+<text x="100" y="82" text-anchor="middle" fill="none" transform="rotate(-4 100 82)">DON'T FORGET</text><text x="100" y="108" text-anchor="middle" fill="none" transform="rotate(-2 100 108)">3. OCT</text></g>
+<g stroke="#f5f7ff" stroke-opacity=".55" stroke-width=".6" font-family="Courier New,monospace" font-size="14" font-weight="700" letter-spacing="1"><text x="100.8" y="82.8" text-anchor="middle" fill="none" transform="rotate(-4 100 82)">DON'T FORGET</text><text x="100.8" y="108.8" text-anchor="middle" fill="none" transform="rotate(-2 100 108)">3. OCT</text></g>
+<path d="M58 66 l18 -6 M124 118 l20 4 M70 122 l8 -14 M136 60 l-10 10" stroke="#4a4f5c" stroke-width=".9" stroke-opacity=".7"/></g></g>
+<rect x="88" y="158" width="24" height="12" rx="3" fill="#7d8496" stroke="#2b2f3a" stroke-width="3"/>
+<g class="o3-body"><circle cx="100" cy="242" r="74" fill="url(#o3steel)" stroke="#2b2f3a" stroke-width="4"/><circle cx="100" cy="242" r="60" fill="url(#o3face)" stroke="#6b7284" stroke-width="3"/>
+<g stroke="#2b2f3a" stroke-linecap="round"><line x1="100" y1="188" x2="100" y2="200" stroke-width="3.5" transform="rotate(0 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(30 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(60 100 242)"/><line x1="100" y1="188" x2="100" y2="200" stroke-width="3.5" transform="rotate(90 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(120 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(150 100 242)"/><line x1="100" y1="188" x2="100" y2="200" stroke-width="3.5" transform="rotate(180 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(210 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(240 100 242)"/><line x1="100" y1="188" x2="100" y2="200" stroke-width="3.5" transform="rotate(270 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(300 100 242)"/><line x1="100" y1="188" x2="100" y2="196" stroke-width="2" transform="rotate(330 100 242)"/></g>
+<line x1="100" y1="242" x2="100" y2="210" stroke="#1a1d26" stroke-width="4" stroke-linecap="round" transform="rotate(95 100 242)"/>
+<line class="o3-hand" x1="100" y1="250" x2="100" y2="196" stroke="#c0263a" stroke-width="2" stroke-linecap="round"/><circle cx="100" cy="242" r="5" fill="#1a1d26"/></g></svg></div><div class="o3-part o3-two"><svg class="o3-arm" viewBox="0 0 220 420" aria-hidden="true"><defs>
+<linearGradient id="o3metal" x1="0" x2="1"><stop offset="0" stop-color="#5a6274"/><stop offset=".35" stop-color="#e6ebf5"/><stop offset=".6" stop-color="#a3abbd"/><stop offset="1" stop-color="#4b5263"/></linearGradient>
+<linearGradient id="o3dark" x1="0" x2="1"><stop offset="0" stop-color="#2c313d"/><stop offset=".5" stop-color="#7b8396"/><stop offset="1" stop-color="#2c313d"/></linearGradient></defs>
+<g stroke="#12141b" stroke-width="3" stroke-linejoin="round">
+<path d="M78 420 L72 250 Q72 236 86 234 L134 234 Q148 236 148 250 L142 420 Z" fill="url(#o3metal)"/>
+<path d="M80 300 L140 300 M79 360 L141 360" stroke="#3a404e" stroke-width="2"/>
+<circle cx="92" cy="270" r="3.5" fill="#2c313d"/><circle cx="128" cy="270" r="3.5" fill="#2c313d"/><circle cx="92" cy="330" r="3.5" fill="#2c313d"/><circle cx="128" cy="330" r="3.5" fill="#2c313d"/>
+<rect x="76" y="212" width="68" height="26" rx="6" fill="url(#o3dark)"/>
+<path d="M70 214 L66 150 Q66 132 84 130 L136 130 Q154 132 154 150 L150 214 Z" fill="url(#o3metal)"/>
+<path d="M72 172 L148 172" stroke="#3a404e" stroke-width="2"/>
+<g fill="url(#o3metal)">
+<path d="M70 140 L56 104 Q52 92 60 88 Q68 86 72 96 L86 132 Z"/>
+<rect x="76" y="44" width="17" height="88" rx="7"/><path d="M76 86 h17 M76 64 h17" stroke="#3a404e" stroke-width="2"/>
+<rect x="97" y="30" width="17" height="102" rx="7"/><path d="M97 80 h17 M97 56 h17" stroke="#3a404e" stroke-width="2"/>
+<rect x="118" y="38" width="17" height="94" rx="7"/><path d="M118 84 h17 M118 60 h17" stroke="#3a404e" stroke-width="2"/>
+<rect x="139" y="58" width="15" height="76" rx="7"/><path d="M139 96 h15 M139 78 h15" stroke="#3a404e" stroke-width="2"/></g></g>
+<path d="M84 140 L86 410" stroke="#fff" stroke-opacity=".5" stroke-width="3" fill="none"/></svg></div><div class="o3-cap">Don't forget.</div>`);
+      later(()=>scene.remove(),9200);
+    },
     aprilfools(){ chatClass("px-flip",4200); const c=add("sx-caption px-center","April Fools! 🤡"); later(()=>c.remove(),2200); },
     milestone(n){ if(typeof FX!=="undefined") FX.play("confetti"); const b=add("px-ach",`<div class="px-achicon">🎉</div><div><small>ROOM MILESTONE</small><b>Message #${n.toLocaleString()}!</b></div>`); later(()=>b.remove(),3500); }
   };
@@ -8482,6 +8535,7 @@ function seasonalCheck(where){
   const run=fn=>{ if(done) return; try{ LS.set(key,"1"); }catch(e){} setTimeout(fn,700); };
   if(where==="login"&&md==="10-31") run(()=>PX.halloween());
   if(where==="login"&&md==="1-1") run(()=>PX.newyear());
+  if(where==="login"&&md==="10-3") run(()=>PX.oct3());
   if(where==="room"&&md==="4-1") run(()=>PX.aprilfools());
 }
 
@@ -10710,8 +10764,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02h";
+const APP_VERSION="2026.10.03a";
 const CHANGELOG=[
+  {v:"2026.10.03a", title:"Don't forget ⌚", items:[
+    "⌚ Open NightLane on October 3rd for a little surprise.",
+  ]},
   {v:"2026.10.02h", title:"Bond styles 💞", items:[
     "💞 Your Social Bond with a friend now unlocks styles for your DM with them. Open the DM → Room → Bond styles.",
     "🔥 Backgrounds: Campfire (rank 3), Twin Stars (rank 6), and Constellation (rank 9).",
