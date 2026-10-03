@@ -346,6 +346,36 @@ html,body{overflow-x:hidden}
 .tray-tabs{display:flex;gap:6px;margin-bottom:8px}
 .tray-tabs .ghost{margin:0;flex:1;padding:8px}
 .tray-tabs .ghost[aria-pressed="true"]{background:var(--cyan);color:var(--night)}
+.tray-tabs{flex-wrap:wrap}
+.tray-tabs .ghost{min-width:0}
+/* ===== e-cards ===== */
+.ecard{position:relative;background:var(--night);border:3px solid var(--ec);box-shadow:5px 5px 0 var(--ec);padding:16px 18px 12px;text-align:center;min-width:min(220px,62vw);max-width:300px;color:var(--white)}
+.ecard .ec-emoji{font-size:56px;line-height:1.1}
+.ecard .ec-title{font-family:var(--tech);font-weight:900;font-size:22px;color:var(--ec);margin-top:4px;text-shadow:2px 2px 0 #07041A}
+.ecard .ec-msg{margin-top:8px;font-size:17px;font-weight:600;line-height:1.3;white-space:pre-wrap;overflow-wrap:anywhere}
+.ecard .ec-from{margin-top:10px;font-size:13px;color:var(--muted);font-style:italic}
+.ecard.revealed{animation:ecpop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes ecpop{from{transform:scale(.7) rotate(-4deg);opacity:0}}
+.ecard.closed{cursor:pointer;padding-top:14px}
+.ec-env{position:relative;width:150px;height:96px;margin:0 auto 10px;background:color-mix(in srgb,var(--ec) 35%,#1a1440);border:3px solid var(--ec);perspective:400px}
+.ec-flap{position:absolute;left:-3px;right:-3px;top:-3px;height:62%;background:var(--ec);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;transition:transform .6s ease}
+.ec-seal{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:#07041A;border:3px solid var(--ec);display:grid;place-items:center;font-size:24px;z-index:1}
+.ec-tap{font-family:var(--tech);font-weight:900;font-size:15px;color:var(--ec)}
+.ec-hint{font-size:13px;color:var(--muted);margin-top:2px;animation:echint 1.6s ease-in-out infinite}
+@keyframes echint{50%{opacity:.45}}
+.ecard.opening .ec-flap{transform:rotateX(180deg)}
+.ecard.opening .ec-seal{animation:ecseal .6s ease forwards}
+.ecard.opening .ec-env{animation:ecshake .6s ease}
+@keyframes ecseal{to{transform:translate(-50%,-140%) scale(.4);opacity:0}}
+@keyframes ecshake{20%{transform:rotate(-3deg)}40%{transform:rotate(3deg)}60%{transform:rotate(-2deg)}80%{transform:rotate(1deg)}}
+.ecpicks{width:100%;align-self:stretch;display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:6px 0 12px}
+.ecpick{background:var(--deep);border:2px solid #3b2d80;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--white);min-width:0}
+.ecpick[aria-checked="true"]{border-color:var(--ec);box-shadow:3px 3px 0 var(--ec)}
+.ecp-emoji{font-size:28px;line-height:1}
+.ecp-name{font-family:var(--tech);font-size:10.5px;line-height:1.2;text-align:center;overflow-wrap:anywhere}
+.ecpreview{width:100%;align-self:stretch;display:flex;justify-content:center;padding:6px 0 14px}
+#ecMsg{width:100%;align-self:stretch;resize:vertical;min-height:70px}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .ecard.revealed,html:not(.motion-always) .ec-hint{animation:none}}
 .stickers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:200px;overflow-y:auto}
 .stickers button{background:none;border:2px solid transparent;padding:2px;aspect-ratio:1}
 .stickers button:hover,.stickers button:focus-visible{border-color:var(--volt)}
@@ -2909,6 +2939,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
         <button type="button" class="ghost" id="trayGames" aria-pressed="false">Games</button>
         <button type="button" class="ghost" id="trayBacklog" aria-pressed="false">Backlog</button>
         <button type="button" class="ghost" id="trayPoll">Poll</button>
+        <button type="button" class="ghost" id="trayCard">Card</button>
       </div>
       <div class="stickers" id="stickerGrid"></div>
       <div class="hidden" id="gifPane"><div class="gifbar"><label for="gifSearch" class="sr">Search GIFs</label><input class="field" id="gifSearch" placeholder="Search GIPHY…" autocomplete="off"></div><div class="gifgrid" id="gifGrid"></div></div>
@@ -3184,6 +3215,21 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="msgline" id="pollMsg" role="status"></p>
     <button class="go" type="submit" id="pollCreate">Post poll</button>
     <button class="ghost" type="button" id="pollClose">Cancel</button>
+  </div></form>
+</div>
+
+<!-- ============ E-CARD SHEET ============ -->
+<div class="overlay hidden" id="ecardSheet" role="dialog" aria-modal="true" aria-labelledby="ecTitle">
+  <form class="sheet" id="ecardForm"><div class="sheetbody">
+    <h2 id="ecTitle">💌 Send a card</h2>
+    <div class="ecpicks" id="ecPicks" role="radiogroup" aria-label="Card design"></div>
+    <label for="ecMsg" class="bondsub">Your message</label>
+    <textarea class="field" id="ecMsg" maxlength="300" rows="3"></textarea>
+    <p class="bondsub">Preview</p>
+    <div class="ecpreview" id="ecPreview"></div>
+    <p class="msgline" id="ecMsgLine" role="status"></p>
+    <button class="go" type="submit" id="ecSend">Send card</button>
+    <button class="ghost" type="button" id="ecClose">Cancel</button>
   </div></form>
 </div>
 
@@ -5599,6 +5645,7 @@ function buildMsg(m,index,noAnim){
   if(media&&m.media_type==="audio") bub.append(voicePlayer(media,m.media_duration));
   if(m.kind==="sticker"&&STICKERS[m.sticker]) bub.append(stickerEl(m.sticker));
   if(isBlCard(m)){ bub.append(backlogMsgCard(m)); if(typeof m.card.note==="string"&&m.card.note.trim()){ const n=el("div","blnote"); renderTextWithDates(n,m.card.note.slice(0,300),m.mentions,m); bub.append(n); } }
+  else if(isEcard(m)) bub.append(ecardMsgCard(m));
   else if(m.kind==="poll") bub.append(pollEl(m));
   else if(m.kind==="game") bub.append(gameCard(m));
   else if(m.text){ const t=el("div"); renderTextWithDates(t,m.text,m.mentions,m); annotateTimes(t,m); bub.append(t);
@@ -5606,7 +5653,7 @@ function buildMsg(m,index,noAnim){
     if(/el psy (k|c)ongroo|(^|[^a-z])world ?line([^a-z]|$)/i.test(m.text)&&typeof m.id==="number") bub.append(el("div","d20chip wlchip",`⚗️ world line ${worldLineFor(m)}`));
     if(typeof m.id==="number"&&diceIn(m.text)){ const n=diceIn(m.text), r=dNFor(m,n); bub.append(el("div","d20chip"+(r===n&&n>1?" nat20":r===1&&n>1?" nat1":""),n===2?`🪙 d2 → ${r===1?"heads":"tails"}`:`🎲 d${n} → ${r}${r===n&&n>1?" MAX!":""}`)); }
     if(/(^|[^a-z])roll(s|ed|ing)? (a |the |me a )?d20([^a-z0-9]|$)/i.test(m.text)&&typeof m.id==="number"){ const n=d20For(m); bub.append(el("div","d20chip"+(n===20?" nat20":n===1?" nat1":""),`🎲 d20 → ${n}${n===20?" NAT 20!":n===1?" crit fail":""}`)); } }
-  bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button")) return; bubbleTap(bub,m); };
+  bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
   bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
   col.append(tag,bub);
@@ -6748,6 +6795,7 @@ function previewOf(m){
   if(m.kind==="notice") return noticeWhat(m);
   if(!m) return "";
   if(isBlCard(m)) return m.text||"🎮 Backlog item";
+  if(isEcard(m)) return "💌 Card: "+ECARD_TEMPLATES[m.card.template].title;
   if(m.kind==="poll") return "📊 "+(m.text||"Poll");
   if(m.kind==="game") return "🎮 "+(m.text||"Game");
   if(m.kind==="sticker"||m.sticker) return "Sticker "+(STICKERS[m.sticker]?.label?`(${STICKERS[m.sticker].label})`:"");
@@ -6992,7 +7040,7 @@ function hypeText(text){
 }
 function playFx(m,force){
   if(m.kind==="notice") return;
-  if(!m?.text||m.kind==="poll"||m.kind==="game"||isBlCard(m)) return;   // a shared title like "Dragon Ball" shouldn't fire the dragon secret
+  if(!m?.text||m.kind==="poll"||m.kind==="game"||isBlCard(m)||isEcard(m)) return;   // a shared title like "Dragon Ball" shouldn't fire the dragon secret
   if(!force) maybeHifive(m);
   const s=secretFor(m.text), t=s?null:fxFor(m.text); if(!s&&!t) return;
   if(!force){ if(!fxEnabled()||document.hidden||fxPlayed.has(m.id)) return; if(Date.now()-new Date(m.created_at)>15000) return; }
@@ -10861,8 +10909,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03f";
+const APP_VERSION="2026.10.03g";
 const CHANGELOG=[
+  {v:"2026.10.03g", title:"E-cards 💌", items:[
+    "💌 Send a card! Tap + → Card, pick a design (birthday, congrats, get well, holidays, and more), write a message, and send.",
+    "✉️ Your friend gets a sealed envelope in the chat. They tap it to open the card.",
+  ]},
   {v:"2026.10.03f", title:"Tidier holiday stickers", items:[
     "🎃 Holiday stickers on the home screen are smaller and sit in the corners, so they don't cover the date anymore.",
   ]},
@@ -11600,6 +11652,94 @@ async function blShareTo(r,note){
   }catch(err){ say("blMsg","Couldn't share: "+blFriendlyError(err),true); }
 }
 $("blShareClose").onclick=()=>show($("blShareSheet"),false);
+
+/* ================= E-CARDS =================
+   The templates and the isEcard check were written by Cole. A card rides in the message's "card" slot:
+   { kind:"ecard", template:"birthday", message:"..." }. Friends see a sealed envelope until they tap it. */
+const ECARD_TEMPLATES={
+  birthday:{ title:"Happy Birthday!", emoji:"🎂", color:"#FF5C9A", message:"Wishing you a wonderful birthday!" },
+  congrats:{ title:"Congratulations!", emoji:"🎉", color:"#FFD700", message:"Well done!" },
+  getwell:{ title:"Feel better soon!", emoji:"🌸", color:"#87CEEB", message:"Wishing you a speedy recovery!" },
+  thanksgiving:{ title:"Happy Thanksgiving!", emoji:"🦃", color:"#FF8C00", message:"Wishing you a joyful Thanksgiving!" },
+  christmas:{ title:"Merry Christmas!", emoji:"🎄", color:"#FF0000", message:"Wishing you a festive Christmas!" },
+  halloween:{ title:"Happy Halloween!", emoji:"🎃", color:"#FF7518", message:"Wishing you a spooky and fun Halloween!" },
+  easter:{ title:"Happy Easter!", emoji:"🐰", color:"#98FB98", message:"Wishing you a joyful Easter!" },
+  newyear:{ title:"Happy New Year!", emoji:"🎆", color:"#00FFFF", message:"Wishing you a prosperous New Year!" },
+  mothersday:{ title:"Happy Mother's Day!", emoji:"🌷", color:"#FF69B4", message:"Wishing you a wonderful Mother's Day!" },
+  fathersday:{ title:"Happy Father's Day!", emoji:"👔", color:"#1E90FF", message:"Wishing you a wonderful Father's Day!" },
+  valentines:{ title:"Happy Valentine's Day!", emoji:"💖", color:"#FF69B4", message:"Wishing you a sweet Valentine's Day!" },
+};
+const isEcard=m=>m?.card&&typeof m.card==="object"&&m.card.kind==="ecard"&&ECARD_TEMPLATES[m.card.template];
+
+/* cards you've opened stay open (remembered on this device) */
+const ECARD_OPEN_KEY="nl-ecards-open";
+function ecOpened(){ try{ return new Set(JSON.parse(LS.get(ECARD_OPEN_KEY)||"[]")); }catch(e){ return new Set(); } }
+function markEcardOpen(id){ try{ const ids=[...ecOpened()].filter(x=>x!==id); ids.push(id); LS.set(ECARD_OPEN_KEY,JSON.stringify(ids.slice(-300))); }catch(e){} }
+
+function ecardMsgCard(m){
+  const t=ECARD_TEMPLATES[m.card.template];            // look up the design: birthday, congrats...
+  const box=el("div","ecard");                          // the card box
+  box.style.setProperty("--ec",t.color);                // hand the card its color, so the CSS can use it
+  const inside=()=>{                                    // the open card: emoji, title, message, who it's from
+    box.append(el("div","ec-emoji",t.emoji), el("div","ec-title",t.title));
+    box.append(el("div","ec-msg",String(m.card.message||t.message).slice(0,300)));
+    box.append(el("div","ec-from","from "+nameOf(m.user_id)));
+  };
+  const sealed=m.user_id!==user?.id && typeof m.id==="number" && !ecOpened().has(m.id);   // your friends get an envelope first
+  if(!sealed){ inside(); return box; }
+  box.classList.add("closed"); box.tabIndex=0; box.setAttribute("role","button"); box.setAttribute("aria-label",`Card from ${nameOf(m.user_id)}. Tap to open`);
+  const env=el("div","ec-env"); env.append(el("div","ec-flap"), el("div","ec-seal",t.emoji));
+  box.append(env, el("div","ec-tap","A card from "+nameOf(m.user_id)), el("div","ec-hint","Tap to open"));
+  const open=e=>{
+    e?.stopPropagation(); if(!box.classList.contains("closed")||box.classList.contains("opening")) return;
+    markEcardOpen(m.id); box.classList.add("opening"); if(navigator.vibrate) navigator.vibrate(20);
+    setTimeout(()=>{
+      box.classList.remove("closed","opening"); box.removeAttribute("role"); box.removeAttribute("aria-label"); box.removeAttribute("tabindex");
+      box.innerHTML=""; inside(); box.classList.add("revealed");
+      if(typeof FX!=="undefined"&&fxEnabled()&&!reducedMotion()) FX.play("confetti");
+    }, reducedMotion()?0:650);
+  };
+  box.onclick=open; box.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(e); } };
+  return box;
+}
+
+/* ---------- the "Send a card" sheet ---------- */
+let ecPick="birthday", ecTyped=false;
+function ecSuggested(){   // pick a card that fits today
+  if(isDm&&dmUser&&isBirthdayToday(cache.get(dmUser)?.birthday)) return "birthday";
+  const h=typeof holidayFor==="function"?holidayFor(new Date()):"";
+  return ({halloween:"halloween",thanksgiving:"thanksgiving",winter:"christmas",newyear:"newyear",valentine:"valentines",easter:"easter"})[h]||"birthday";
+}
+function openEcardSheet(){
+  ecPick=ecSuggested(); ecTyped=false; $("ecMsg").value=ECARD_TEMPLATES[ecPick].message; say("ecMsgLine","");
+  paintEcPicks(); paintEcPreview(); show($("ecardSheet"));
+}
+function paintEcPicks(){
+  const box=$("ecPicks"); box.innerHTML="";
+  Object.entries(ECARD_TEMPLATES).forEach(([key,t])=>{
+    const b=el("button","ecpick"); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(key===ecPick));
+    b.style.setProperty("--ec",t.color); b.append(el("span","ecp-emoji",t.emoji), el("span","ecp-name",t.title.replace(/!$/,"")));
+    b.onclick=()=>{ ecPick=key; if(!ecTyped) $("ecMsg").value=t.message; paintEcPicks(); paintEcPreview(); };
+    box.append(b);
+  });
+}
+function paintEcPreview(){
+  const pv=$("ecPreview"); pv.innerHTML="";
+  pv.append(ecardMsgCard({id:"preview",user_id:user?.id,card:{kind:"ecard",template:ecPick,message:$("ecMsg").value.trim()}}));
+}
+$("ecMsg").addEventListener("input",()=>{ ecTyped=true; paintEcPreview(); });
+$("trayCard").onclick=()=>{ closeTray(); openEcardSheet(); };
+$("ecClose").onclick=()=>show($("ecardSheet"),false);
+$("ecardForm").onsubmit=async e=>{
+  e.preventDefault(); const t=ECARD_TEMPLATES[ecPick]; if(!t||!room) return;
+  const msg=$("ecMsg").value.trim().slice(0,300)||t.message;
+  $("ecSend").disabled=true;
+  try{
+    await sendFields({kind:"text",text:`💌 ${t.title}\n${msg}`,card:{kind:"ecard",template:ecPick,message:msg}});
+    show($("ecardSheet"),false);
+  }catch(err){ say("ecMsgLine","Couldn't send the card: "+err.message,true); }
+  finally{ $("ecSend").disabled=false; }
+};
 
 /* ---------- the card friends see in chat ---------- */
 function backlogMsgCard(m){
