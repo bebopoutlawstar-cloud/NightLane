@@ -3457,6 +3457,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub">Samsung Internet: it can't install NightLane properly at all. Switch to Chrome.</p>
     <h3>🔔 Turn on notifications</h3>
     <p class="sub">Tap your profile icon and scroll down to Notifications and effects, turn on notifications.</p>
+    <h3>🔕 Android: notifications not popping up?</h3>
+    <p class="sub">Check your phone's settings: Settings → Apps → Chrome → Notifications → turn them on.</p>
+    <p class="sub">Phone putting apps to sleep? Settings → Battery → Background usage limits → make sure Chrome is NOT in "sleeping apps"</p>
+    <h3>📱 iPhone: notifications not working?</h3>
+    <p class="sub">Notifications only work if NightLane was added to your home screen and opened from that icon, not from the browser directly.</p>
+    <p class="sub">Settings → Notifications → NightLane → Allow Notifications.</p>
+    <h3>🔔 General notification troubleshooting</h3>
+    <p class="sub">Make sure your device is not in "Do Not Disturb" mode and that NightLane has permission to send notifications.</p>
+    <p class="sub">NightLane has its own settings for each chat: open the chat → Room → Notifications → pick All. If it's set to @ Mentions or Off, you won't get a pop-up for every message.</p>
+    <p class="sub">If issues persist, try restarting your device or reinstalling the NightLane app.</p>
     <h3>💬 Message options</h3>
     <p class="sub">Double-tap a message to react. Press and hold it to see options like reply, pin, add to checklist, and you can swipe messages, swipe right to reply and swipe left to delete your own messages.</p>
     <h3>🛡️ Staying safe (blocking/removing friends)</h3>
@@ -10776,8 +10786,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03b";
+const APP_VERSION="2026.10.03c";
 const CHANGELOG=[
+  {v:"2026.10.03c", title:"Notifications troubleshooting added to the Tips", items:[
+    "🔔 Added troubleshooting tips for notifications in the Tips section.",
+  ]},
   {v:"2026.10.03b", title:"Smoother level ups", items:[
     "⬆ If you level up while a secret effect is playing, the LEVEL UP now waits until the effect is done instead of piling on top of it.",
   ]},
