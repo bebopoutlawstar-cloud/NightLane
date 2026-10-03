@@ -5860,12 +5860,20 @@ function attachLongPress(bub,m){
   let sx=0,sy=0;
   bub.addEventListener("pointerdown",e=>{ if(e.button>0||e.target.closest("video,.voice,.poll button,.gamecard button,a")) return;
     sx=e.clientX; sy=e.clientY; lpFired=false; cancelLongPress();
-    lpTimer=setTimeout(()=>{ lpTimer=null; lpFired=true; if(navigator.vibrate) navigator.vibrate(25); openMenu(m); },450); });
+    lpTimer=setTimeout(()=>{ lpTimer=null; lpFired=true; if(navigator.vibrate) navigator.vibrate(25); menuGuard=true; openMenu(m); },450); });
   bub.addEventListener("pointermove",e=>{ if(lpTimer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10) cancelLongPress(); });
   ["pointerup","pointercancel","pointerleave"].forEach(ev=>bub.addEventListener(ev,cancelLongPress));
   bub.addEventListener("contextmenu",e=>e.preventDefault());
   bub.addEventListener("click",e=>{ if(lpFired){ e.stopPropagation(); e.preventDefault(); lpFired=false; } },true);
 }
+/* after a long-press opens the menu, the finger is still down on the screen. Ignore it: the menu's buttons
+   only work once you lift your finger and tap again (so you can't hit Report or Copy by accident). */
+let menuGuard=false, menuGuardUntil=0;
+const releaseMenuGuard=()=>{ if(menuGuard){ menuGuard=false; menuGuardUntil=Date.now()+350; } };
+document.addEventListener("pointerup",releaseMenuGuard,true);
+document.addEventListener("pointercancel",releaseMenuGuard,true);
+document.addEventListener("touchend",releaseMenuGuard,true);
+$("msgMenu").addEventListener("click",e=>{ if(menuGuard||Date.now()<menuGuardUntil){ e.stopPropagation(); e.preventDefault(); } },true);
 async function deleteMessageFlow(m){
   const mine=m.user_id===user.id;
   if(!confirm(mine?"Delete this message for everyone?":`Delete ${nameOf(m.user_id)}'s message for everyone?`)) return;
@@ -10909,8 +10917,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03g";
+const APP_VERSION="2026.10.03h";
 const CHANGELOG=[
+  {v:"2026.10.03h", title:"No more accidental taps", items:[
+    "👆 Press and hold a message to open its options, then lift your finger. The menu won't react to the finger that opened it, so you can't hit Report or Copy by accident.",
+  ]},
   {v:"2026.10.03g", title:"E-cards 💌", items:[
     "💌 Send a card! Tap + → Card, pick a design (birthday, congrats, get well, holidays, and more), write a message, and send.",
     "✉️ Your friend gets a sealed envelope in the chat. They tap it to open the card.",
