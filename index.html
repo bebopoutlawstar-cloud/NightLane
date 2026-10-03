@@ -376,6 +376,38 @@ body.desktop #authCard label.agree::before{content:none}
 .bgtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%}
 .bgtile{height:56px;border:2px solid #3b2d80;font-family:var(--tech);font-size:9px;color:var(--white);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;text-shadow:0 1px 2px #000}
 .bgtile[aria-pressed="true"]{border-color:var(--volt);box-shadow:3px 3px 0 var(--mag)}
+/* ===== bond styles ===== */
+.bondbox{margin-top:14px;padding-top:6px;border-top:2px dashed #3b2d80}
+.bondsub{margin:10px 0 4px;font-family:var(--tech);font-size:12px;letter-spacing:1px;color:var(--cyan);text-transform:uppercase}
+.bondtile{font-size:11px}
+.bondtile.locked{opacity:.55;filter:grayscale(.6);cursor:not-allowed}
+.bondtile[data-bond="none"]{background:#07041A}
+.bondtile[data-bond="campfire"]{background:radial-gradient(ellipse at 50% 110%,#ff8a2a,transparent 60%),linear-gradient(180deg,#120608,#3a1206)}
+.bondtile[data-bond="twinstars"]{background:radial-gradient(circle at 32% 45%,#fff 0 2px,#00F0FF 3px,transparent 12px),radial-gradient(circle at 68% 55%,#fff 0 2px,#E07AC6 3px,transparent 12px),linear-gradient(180deg,#040b2a,#140d3d)}
+.bondtile[data-bond="constellation"]{background:radial-gradient(circle at 50% 40%,rgba(243,255,58,.35),transparent 40%),linear-gradient(180deg,#0a0420,#2a0c46)}
+.bondtile[data-bond="synced"]{background:linear-gradient(120deg,#0b3a5a 0 50%,#3a1a6a 50%)}
+.bondtile[data-bond="heartline"]{background:linear-gradient(135deg,#4a0f2e,#a0235c)}
+/* bond backgrounds */
+#chat[data-bg="bond-campfire"]::before{background:linear-gradient(180deg,#0e0507,#240b08 55%,#3d1405)}
+#chat[data-bg="bond-campfire"]::after{background-image:radial-gradient(circle,#ffb347 0 1.5px,rgba(255,140,40,.35) 3px,transparent 6px),radial-gradient(circle,#ff6a2a 0 1px,rgba(255,90,40,.3) 2.5px,transparent 5px);background-size:140px 220px,190px 260px;animation:bondembers 9s linear infinite}
+#chat[data-bg="bond-campfire"]>.bgfx::before{top:auto;height:45%;background:radial-gradient(ellipse at 50% 100%,rgba(255,150,50,.55),rgba(255,80,30,.18) 45%,transparent 70%);animation:bondflicker 2.4s ease-in-out infinite alternate}
+@keyframes bondembers{to{background-position:20px -440px,-30px -520px}}
+@keyframes bondflicker{0%{opacity:.75}40%{opacity:1}70%{opacity:.85}100%{opacity:1}}
+#chat[data-bg="bond-twinstars"]::before{background:linear-gradient(180deg,#030820,#0d0b33 60%,#1a0d3f)}
+#chat[data-bg="bond-twinstars"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),radial-gradient(circle,rgba(0,240,255,.8) 0 1px,transparent 2px);background-size:90px 110px,150px 130px;opacity:.6}
+#chat[data-bg="bond-twinstars"]>.bgfx::before{inset:auto;left:50%;top:40%;width:min(80vw,380px);aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(circle at 22% 50%,#fff 0 5px,rgba(0,240,255,.7) 8px,rgba(0,240,255,.15) 26px,transparent 46px),radial-gradient(circle at 78% 50%,#fff 0 5px,rgba(224,122,198,.75) 8px,rgba(224,122,198,.15) 26px,transparent 46px);animation:bondorbit 22s linear infinite}
+@keyframes bondorbit{to{transform:translate(-50%,-50%) rotate(360deg)}}
+#chat[data-bg="bond-constellation"]::before{background:linear-gradient(180deg,#07031a,#1a0838 55%,#2a0c46)}
+#chat[data-bg="bond-constellation"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),radial-gradient(circle,rgba(243,255,58,.8) 0 1px,transparent 2px);background-size:70px 90px,130px 110px;animation:ffblink 3.4s ease-in-out infinite}
+#chat[data-bg="bond-constellation"]>.bgfx::before{inset:auto;left:50%;top:38%;width:min(78vw,360px);aspect-ratio:1;transform:translate(-50%,-50%);background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='%23F3FF3A' stroke-opacity='.55' stroke-width='.6'><path d='M50 82 L22 54 L20 34 L32 22 L50 32 L68 22 L80 34 L78 54 Z'/><path d='M32 22 L50 32 L68 22' stroke='%2300F0FF'/></g><g fill='%23fff'><circle cx='50' cy='82' r='1.8'/><circle cx='22' cy='54' r='1.5'/><circle cx='20' cy='34' r='1.4'/><circle cx='32' cy='22' r='1.7'/><circle cx='50' cy='32' r='2'/><circle cx='68' cy='22' r='1.7'/><circle cx='80' cy='34' r='1.4'/><circle cx='78' cy='54' r='1.5'/></g></svg>") center/contain no-repeat;filter:drop-shadow(0 0 6px rgba(243,255,58,.6));animation:bondpulse 4s ease-in-out infinite}
+@keyframes bondpulse{50%{opacity:.6;filter:drop-shadow(0 0 12px rgba(224,122,198,.8))}}
+/* bond bubbles: both people's bubbles match in this DM */
+#chat[data-bubbles="synced"] .msg .bubble::before{background:linear-gradient(120deg,#0b3a5a,#2c1a66)!important;box-shadow:inset 0 0 0 2px var(--cyan)!important}
+#chat[data-bubbles="synced"] .msg.me .bubble::before{background:linear-gradient(120deg,#2c1a66,#0b3a5a)!important;box-shadow:inset 0 0 0 2px var(--mag)!important}
+#chat[data-bubbles="synced"] .msg .bubble,#chat[data-bubbles="heartline"] .msg .bubble{color:#F4F7FF!important}
+#chat[data-bubbles="heartline"] .msg .bubble::before{background:linear-gradient(135deg,#3d0c27,#7a1747)!important;box-shadow:inset 0 0 0 2px #ff6fae!important}
+#chat[data-bubbles="heartline"] .msg .bubble{filter:drop-shadow(3px 3px 0 rgba(255,60,140,.55)) drop-shadow(0 0 8px rgba(255,111,174,.45))}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) #chat>.bgfx::before{animation:none!important}}
 #chat{isolation:isolate}
 #chat::before,#chat::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
 #chat[data-bg="grid"]::before,.bgtile[data-bg="grid"]{background:linear-gradient(180deg,#07041A 0%,#170a3a 55%,#35105a 100%)}
@@ -2992,6 +3024,13 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Chat background</h3>
     <div class="bgtiles" id="bgTiles"></div>
     <label class="colorpick left"><span>Custom color</span><input type="color" id="bgCustom" value="#1a2b6b"></label>
+    <div id="bondBox" class="bondbox hidden">
+      <h3>💞 Bond styles</h3>
+      <p class="note" id="bondRankLine"></p>
+      <p class="bondsub">Background</p><div class="bgtiles" id="bondBgTiles"></div>
+      <p class="bondsub">Bubbles</p><div class="bgtiles" id="bondBubbleTiles"></div>
+      <p class="note" id="bondDuoLine"></p>
+    </div>
     <h3 id="pinTitle" class="hidden">Pinned</h3>
     <div class="members" id="pinList"></div>
     <h3 id="memTitle">Members</h3>
@@ -4133,6 +4172,8 @@ const live = {
   async toggleHabit(id,date){ return must(await sb.rpc("toggle_habit",{p_habit:id,...(date?{p_date:date}:{})})); },
   async bumpHabit(id,date,delta){ return must(await sb.rpc("bump_habit",{p_habit:id,p_date:date,p_delta:delta})); },
   async socialLinks(){ return must(await sb.from("social_links").select("*")); },
+  async dmStyle(room){ return must(await sb.from("dm_styles").select("*").eq("room",room).maybeSingle()); },
+  async setDmStyle(room,bg,bubbles){ return must(await sb.rpc("set_dm_style",{p_room:room,p_bg:bg||null,p_bubbles:bubbles||null})); },
   async bumpSocialLink(otherId,amount){ return must(await sb.rpc("bump_social_link",{p_other:otherId,...(amount?{p_amount:amount}:{})})); },
   async saveArcana(arcana){ must(await sb.from("profiles").update({arcana}).eq("id",user.id)); },
   async deletePush(endpoint){ await sb.from("push_subscriptions").delete().eq("endpoint",endpoint); },
@@ -4168,10 +4209,12 @@ const live = {
     const priv=sb.channel("typing:"+room,{config:{private:true,broadcast:{self:false}}})
       .on("broadcast",{event:"typing"},({payload})=>h.typing(payload))
       .on("broadcast",{event:"hifive"},({payload})=>h.hifive&&h.hifive(payload))
+      .on("broadcast",{event:"dmstyle"},({payload})=>h.dmstyle&&h.dmstyle(payload))
       .subscribe();
     const stop=()=>{ sb.removeChannel(pub); sb.removeChannel(priv); };
     stop.typing=payload=>priv.send({type:"broadcast",event:"typing",payload});
     stop.hifive=payload=>priv.send({type:"broadcast",event:"hifive",payload});
+    stop.dmstyle=payload=>priv.send({type:"broadcast",event:"dmstyle",payload});
     return stop;
   }
 };
@@ -4533,6 +4576,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       if(i>=0){ demoHabitLogs.splice(i,1); return false; } demoHabitLogs.push({habit_id:id,user_id:"me",done_on:today}); return true; },
           async bumpHabit(id,date,delta){ const log=demoHabitLogs.find(l=>l.habit_id===id&&l.done_on===date); if(!log){ if(delta<0) return 0; demoHabitLogs.push({habit_id:id,user_id:"me",done_on:date,count:1}); return 1; } log.count=(log.count||1)+delta; if(log.count<=0){ demoHabitLogs.splice(demoHabitLogs.indexOf(log),1); return 0; } return log.count; },
     async socialLinks(){ return [...demoSocialLinks.values()]; },
+    async dmStyle(room){ return (window.__demoDmStyles||{})[room]||null; },
+    async setDmStyle(room,bg,bubbles){ const d=window.__demoDmStyles||(window.__demoDmStyles={}); d[room]={room,bg:bg||null,bubbles:bubbles||null}; return d[room]; },
     async bumpSocialLink(otherId,amount){
       const a="me"<otherId?"me":otherId, b="me"<otherId?otherId:"me", key=a+"|"+b;
       let row=demoSocialLinks.get(key);
@@ -4545,7 +4590,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async saveArcana(arcana){ people.me.arcana=arcana; },
     _setLinkXp(otherId,xp){ const a="me"<otherId?"me":otherId, b="me"<otherId?otherId:"me", key=a+"|"+b; const row=demoSocialLinks.get(key); if(row){ row.xp=xp; row.today_xp=0; row.today_date=null; } },
     _seedHabitLogs(n){ demoHabitLogs.length=0; for(let i=0;i<n;i++) demoHabitLogs.push({habit_id:1,user_id:"me",done_on:new Date(Date.now()-i*864e5).toISOString().slice(0,10)}); },
-    subscribe(_room,h){ H=h; h.status("Demo mode"); const stop=()=>{H=null}; stop.typing=()=>{}; stop.hifive=()=>{}; return stop; }
+    subscribe(_room,h){ H=h; h.status("Demo mode"); const stop=()=>{H=null}; stop.typing=()=>{}; stop.hifive=()=>{}; stop.dmstyle=()=>{}; return stop; }
   };
 })();
 // The server library comes from a CDN. If it couldn't load (no signal on a cold start), use a stand-in that
@@ -5259,7 +5304,7 @@ async function enterRoom(code,token){
     if(isDm){ dmUser=(mem.find(x=>x.user_id!==user.id)||{}).user_id||null; await ensureProfiles([dmUser].filter(Boolean)); if(seq!==enterSeq) return; }
     myNotify=(mem.find(x=>x.user_id===user.id)||{}).notify||"all";
     if(info&&!info.is_dm){ if(info.icon_url) roomIcons.set(room,info.icon_url); else roomIcons.delete(room); }
-    setRoomName(info?.name); setRoomBackground(info?.background);
+    setRoomName(info?.name); setRoomBackground(info?.background); loadDmStyle();
     closeRoomNotifications(room);
     pinRows.forEach(p=>pins.set(p.message_id,p));
     mem.forEach(setMember);
@@ -5292,6 +5337,7 @@ async function enterRoom(code,token){
       reaction:(r,added)=>{ if(!byId.has(r.message_id)) return; setReaction(r,added); refreshMsg(r.message_id); },
       typing:onTyping,
       hifive:onHifiveSignal,
+      dmstyle:p=>onDmStyleSignal(p),
       status:s=>{ const was=liveStatus; liveStatus=s; $("status").textContent=navigator.onLine===false?"Offline · will reconnect":s; if(s==="Live"&&was&&was!=="Live") catchUp("reconnected"); }
     });
   }catch(err){ $("status").textContent="Can't load messages. Check your Supabase setup."; }
@@ -5304,7 +5350,7 @@ function exitRoom(){
   sendTyping(false); if(unsub){unsub();unsub=null;}
   clearPending(); clearReply();
   ["chat","roomSheet","msgMenu"].forEach(id=>show($(id),false)); show($("front")); show($("roomCard"));
-  room=""; isDm=false; dmUser=null; loadInbox(); if(typeof paintTermBar==="function") paintTermBar();
+  room=""; isDm=false; dmUser=null; clearDmStyle(); loadInbox(); if(typeof paintTermBar==="function") paintTermBar();
 }
 $("back").onclick=exitRoom;
 
@@ -5771,7 +5817,7 @@ function inviteUrl(code,token){ return location.origin+location.pathname+"?join=
 $("roomBtn").onclick=async()=>{
   say("rsMsg",""); paintRoomTitle(); $("roomName").value=roomName||""; $("invLink").value="Loading…"; show($("roomSheet"));
   show($("roomOnly"),!isDm); show($("riBox"),!isDm); paintRoomIcon(); $("leaveRoom").textContent=isDm?"Hide this chat":"Leave this room";
-  paintMembers(); paintBgTiles(); paintPins(); paintNotifyModes(); paintDisappear(); paintTasks(); show($("rsSummarize"),aiOn());
+  paintMembers(); paintBgTiles(); paintBondStyles(); paintPins(); paintNotifyModes(); paintDisappear(); paintTasks(); show($("rsSummarize"),aiOn());
   try{
     const info=await api.roomInfo(room); if(!info) throw new Error("Couldn't find this room.");
     roomOwner=info.owner; setRoomName(info.name); if(document.activeElement!==$("roomName")) $("roomName").value=roomName||""; paintMembers();
@@ -6344,6 +6390,7 @@ function voicePlayer(url,duration){
 const STK=(body,rot=-6)=>`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g transform="rotate(${rot} 60 60)">${body}</g></svg>`;
 const STAMP=(txt,bg,fg,size=34,extra="")=>STK(`<polygon points="10,34 108,24 112,86 14,96" fill="#07041A" transform="translate(5 5)"/><polygon points="10,34 108,24 112,86 14,96" fill="${bg}" stroke="#07041A" stroke-width="4"/>${extra}<text x="61" y="${66+size*.33}" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="${size}" fill="${fg}" stroke="#07041A" stroke-width="1.5" paint-order="stroke">${txt}</text>`);
 const STICKERS={
+  duo:{label:"Duo",bond:10,svg:STK(`<circle cx="44" cy="60" r="34" fill="#07041A" transform="translate(4 4)"/><circle cx="78" cy="60" r="34" fill="#07041A" transform="translate(4 4)"/><circle cx="44" cy="60" r="34" fill="#00F0FF" stroke="#07041A" stroke-width="4"/><circle cx="78" cy="60" r="34" fill="#E07AC6" fill-opacity=".92" stroke="#07041A" stroke-width="4"/><path d="M61 36 l3 7 7 1 -5 5 2 7 -7 -4 -6 4 1 -7 -5 -5 7 -1z" fill="#F3FF3A" stroke="#07041A" stroke-width="2.5"/><text x="61" y="84" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="32" fill="#F3FF3A" stroke="#07041A" stroke-width="5" paint-order="stroke">DUO</text>`)},
   nice:{label:"NICE!",svg:STAMP("NICE!","#F3FF3A","#07041A",36)},
   gg:{label:"GG",svg:STAMP("GG","#00F0FF","#07041A",50)},
   lol:{label:"LOL",svg:STAMP("LOL","#E07AC6","#F4F7FF",46,"") },
@@ -6377,7 +6424,7 @@ const STICKERS={
 function stickerEl(id){ const s=el("span","stk"); s.innerHTML=STICKERS[id].svg; s.setAttribute("role","img"); s.setAttribute("aria-label",STICKERS[id].label+" sticker"); return s; }
 function paintStickers(){
   const g=$("stickerGrid"); if(g.children.length) return;
-  Object.keys(STICKERS).filter(id=>!STICKERS[id].secret||hasSecret(STICKERS[id].secret)).forEach(id=>{ const b=el("button"); b.type="button"; b.setAttribute("aria-label","Send "+STICKERS[id].label+" sticker"); b.append(stickerEl(id));
+  Object.keys(STICKERS).filter(id=>(!STICKERS[id].secret||hasSecret(STICKERS[id].secret))&&(!STICKERS[id].bond||(isDm&&dmUser&&bondRankWith(dmUser)>=STICKERS[id].bond))).forEach(id=>{ const b=el("button"); b.type="button"; b.setAttribute("aria-label","Send "+STICKERS[id].label+" sticker"); b.append(stickerEl(id));
     b.onclick=async()=>{ closeTray(); try{ await sendFields({kind:"sticker",sticker:id}); }catch(err){ $("status").textContent="Sticker didn't send: "+err.message; } };
     g.append(b); });
 }
@@ -10537,6 +10584,57 @@ function paintArcanaBadge(){
 const RANK_STEPS=[0,30,70,120,180,250,330,420,520,630];
 function rankFromXp(xp){ let r=1; for(let i=1;i<RANK_STEPS.length;i++) if(xp>=RANK_STEPS[i]) r=i+1; const into=xp-RANK_STEPS[r-1], need=r>=10?0:RANK_STEPS[r]-RANK_STEPS[r-1]; return {rank:Math.min(r,10),into,need}; }
 let socialLinks=new Map();   // other uid -> row
+/* ===== Bond styles: a higher Social Bond rank with a friend unlocks looks that only work in your DM with them =====
+   Both of you see the same style. The server double-checks the rank (set_dm_style), so nobody can skip ahead. */
+const BOND_BGS=[["campfire","🔥 Campfire",3],["twinstars","✨ Twin Stars",6],["constellation","🌌 Constellation",9]];
+const BOND_BUBBLES=[["synced","💞 Synced",4],["heartline","💗 Heartline",7]];
+const DUO_RANK=10;
+let dmStyle={bg:null,bubbles:null};
+function bondRankWith(uid){ const r=uid&&socialLinks.get(uid); return r?rankFromXp(r.xp||0).rank:1; }
+function applyDmStyle(st){
+  dmStyle={bg:isDm&&st?.bg||null, bubbles:isDm&&st?.bubbles||null};
+  const c=$("chat"); if(dmStyle.bubbles) c.dataset.bubbles=dmStyle.bubbles; else delete c.dataset.bubbles;
+  setRoomBackground(roomBg);
+}
+function clearDmStyle(){ dmStyle={bg:null,bubbles:null}; delete $("chat").dataset.bubbles; $("stickerGrid").innerHTML=""; }
+async function loadDmStyle(){
+  clearDmStyle(); applyDmStyle(null); if(!isDm) return;
+  const r=room; try{ const st=await api.dmStyle(r); if(r===room) applyDmStyle(st); }catch(e){}   // before the SQL is run this just stays plain
+}
+function onDmStyleSignal(p){
+  if(!p||p.room!==room||p.from===user.id) return;
+  applyDmStyle(p); if(!$("roomSheet").classList.contains("hidden")) paintBondStyles();
+  $("status").textContent=`💞 ${nameOf(p.from)} changed your DM style`;
+}
+async function chooseDmStyle(bg,bubbles){
+  const prev={...dmStyle}; applyDmStyle({bg,bubbles}); paintBondStyles(); paintBgTiles();
+  try{ await api.setDmStyle(room,bg,bubbles); try{ unsub?.dmstyle?.({room,bg,bubbles,from:user.id}); }catch(e){} say("rsMsg","Bond style updated for both of you."); }
+  catch(err){ applyDmStyle(prev); paintBondStyles(); paintBgTiles(); say("rsMsg","Couldn't change it: "+err.message,true); }
+}
+function paintBondStyles(){
+  const box=$("bondBox"); const on=isDm&&!!dmUser; show(box,on); if(!on) return;
+  const rank=bondRankWith(dmUser), who=nameOf(dmUser);
+  $("bondRankLine").textContent=`Your Social Bond with ${who} is rank ${rank}. These styles only work in this DM, and you both see them.`;
+  const tiles=(list,cur,id,pick)=>{
+    const g=$(id); g.innerHTML="";
+    const none=el("button","bgtile bondtile","None"); none.type="button"; none.dataset.bond="none"; none.setAttribute("aria-pressed",String(!cur)); none.onclick=()=>pick(null); g.append(none);
+    list.forEach(([key,label,need])=>{
+      const ok=rank>=need, t=el("button","bgtile bondtile"+(ok?"":" locked"),ok?label:`🔒 Rank ${need}`);
+      t.type="button"; t.dataset.bond=key; t.setAttribute("aria-pressed",String(cur===key));
+      if(ok) t.onclick=()=>pick(key); else { t.disabled=true; t.setAttribute("aria-label",`${label} (locked: reach Social Bond rank ${need} with ${who})`); }
+      g.append(t);
+    });
+  };
+  tiles(BOND_BGS,dmStyle.bg,"bondBgTiles",k=>chooseDmStyle(k,dmStyle.bubbles));
+  tiles(BOND_BUBBLES,dmStyle.bubbles,"bondBubbleTiles",k=>chooseDmStyle(dmStyle.bg,k));
+  $("bondDuoLine").textContent=rank>=DUO_RANK?"🤝 Duo sticker unlocked! Find it in + → Stickers, only in this DM.":`🔒 Rank ${DUO_RANK}: a Duo sticker only you two can send.`;
+}
+/* a bond background sits on top of the normal room background (only in the DM) */
+const _setRoomBackground=setRoomBackground;
+setRoomBackground=function(bg){ _setRoomBackground(bg); if(isDm&&dmStyle.bg){ const c=$("chat"); c.dataset.bg="bond-"+dmStyle.bg; c.style.removeProperty("--roombg"); } };
+/* picking a normal background in a DM turns the bond background off, so you actually see your pick */
+const _chooseBackground=chooseBackground;
+chooseBackground=async function(bg){ if(isDm&&dmStyle.bg){ await chooseDmStyle(null,dmStyle.bubbles); } return _chooseBackground(bg); };
 async function loadSocialLinks(){ try{ const rows=await api.socialLinks(); socialLinks=new Map(rows.map(r=>[r.user_a===user.id?r.user_b:r.user_a,r])); }catch(e){} }
 function linkBadge(uid){
   const row=socialLinks.get(uid); if(!row) return null;
@@ -10612,8 +10710,14 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.02g";
+const APP_VERSION="2026.10.02h";
 const CHANGELOG=[
+  {v:"2026.10.02h", title:"Bond styles 💞", items:[
+    "💞 Your Social Bond with a friend now unlocks styles for your DM with them. Open the DM → Room → Bond styles.",
+    "🔥 Backgrounds: Campfire (rank 3), Twin Stars (rank 6), and Constellation (rank 9).",
+    "💗 Matching bubbles for both of you: Synced (rank 4) and Heartline (rank 7).",
+    "🤝 Max rank (10) unlocks a Duo sticker only you two can send each other.",
+  ]},
   {v:"2026.10.02g", title:"Movie posters 🎞️", items:[
     "🎞️ + Movies now searches real movies, with posters and the year. Movie info comes from TMDB.",
   ]},
