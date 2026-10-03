@@ -60,7 +60,48 @@ button:disabled{opacity:.5;cursor:default}
 .icon svg{width:74%;height:74%}
 .weekday{right:2%;bottom:22%;font-family:var(--tech);font-weight:900;font-size:clamp(17px,5.6vw,26px);background:var(--mag);color:var(--night);padding:2px 10px 0;transform:rotate(-12deg);border:3px solid var(--night);letter-spacing:1px}
 .phase{left:-2%;bottom:-10%;font-family:var(--tech);font-weight:900;font-size:clamp(24px,8.5vw,40px);color:var(--cyan);background:var(--night);padding:0 12px;border:3px solid var(--cyan);transform:rotate(4deg)}
-
+body.halloween .plate{border-color:#FF7A1A;box-shadow:0 0 0 4px #9B4DFF inset}
+body.halloween .glow{background:#d6c90d;filter:blur(18px);opacity:.35;z-index:-1}
+body.halloween .stamp::after{content:"🎃";position:absolute;left:-3%;top:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+body.halloween .stamp::before{content:"👻";position:absolute;right:-2%;bottom:2%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+/* the other holidays use the same two stickers: ::after = top-left, ::before = bottom-right */
+body:is(.thanksgiving,.winter,.newyear,.valentine,.stpat,.easter,.july4) .stamp::after{position:absolute;left:-3%;top:-4%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+body:is(.thanksgiving,.winter,.newyear,.valentine,.stpat,.easter,.july4) .stamp::before{position:absolute;right:-2%;bottom:2%;font-size:clamp(34px,11vw,52px);transform:rotate(-14deg)}
+/* Thanksgiving (November) */
+body.thanksgiving .plate{border-color:#E07A2C;box-shadow:0 0 0 4px #8A4A1C inset}
+body.thanksgiving .glow{background:#FFB347}
+body.thanksgiving .stamp::after{content:"🦃"}
+body.thanksgiving .stamp::before{content:"🍂"}
+/* Winter holidays (December) */
+body.winter .plate{border-color:#E8303A;box-shadow:0 0 0 4px #2FBF71 inset}
+body.winter .glow{background:#BDEBFF}
+body.winter .stamp::after{content:"🎄"}
+body.winter .stamp::before{content:"❄️"}
+/* New Year (Jan 1–7) */
+body.newyear .plate{border-color:#F3D36B;box-shadow:0 0 0 4px #B18CFF inset}
+body.newyear .glow{background:#FFE680}
+body.newyear .stamp::after{content:"🎉"}
+body.newyear .stamp::before{content:"🥂"}
+/* Valentine's (Feb 1–14) */
+body.valentine .plate{border-color:#FF5C9A;box-shadow:0 0 0 4px #FFB3CF inset}
+body.valentine .glow{background:#FF7AB6}
+body.valentine .stamp::after{content:"💘"}
+body.valentine .stamp::before{content:"💌"}
+/* St. Patrick's (Mar 14–17) */
+body.stpat .plate{border-color:#2FBF71;box-shadow:0 0 0 4px #F3D36B inset}
+body.stpat .glow{background:#7CFF6B}
+body.stpat .stamp::after{content:"🍀"}
+body.stpat .stamp::before{content:"🌈"}
+/* Easter week */
+body.easter .plate{border-color:#B18CFF;box-shadow:0 0 0 4px #7CE8C6 inset}
+body.easter .glow{background:#FFE9A8}
+body.easter .stamp::after{content:"🐣"}
+body.easter .stamp::before{content:"🌷"}
+/* Fourth of July (Jul 1–4) */
+body.july4 .plate{border-color:#E8303A;box-shadow:0 0 0 4px #3D6BFF inset}
+body.july4 .glow{background:#F4F7FF}
+body.july4 .stamp::after{content:"🎆"}
+body.july4 .stamp::before{content:"⭐"}
 /* ===== cards / forms ===== */
 .card{display:grid;gap:12px;animation:rise .45s .15s both}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}}
@@ -3953,9 +3994,39 @@ const timeOf = t => new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-
 const sun='<svg viewBox="0 0 100 100"><g fill="#07041A"><circle cx="50" cy="50" r="22"/>'+[...Array(8)].map((_,i)=>`<polygon points="50,2 58,20 42,20" transform="rotate(${i*45} 50 50)"/>`).join("")+'</g></svg>';
 const moon='<svg viewBox="0 0 100 100"><path fill="#07041A" d="M62 12a40 40 0 1 0 28 60A32 32 0 0 1 62 12z"/><polygon fill="#07041A" points="24,18 27,26 35,27 29,32 31,40 24,36 17,40 19,32 13,27 21,26"/></svg>';
 const phaseOf = h => h<5?"Late Night":h<12?"Morning":h<17?"Afternoon":h<21?"Evening":"Night";
+/* ===== holiday looks for the date stamp =====
+   holidayFor() looks at the date and returns the name of the holiday tag to put on the page ("" = no holiday).
+   Each tag has matching CSS (body.halloween, body.winter, ...) that recolors the stamp and adds two emoji stickers. */
+const HOLIDAYS=["halloween","thanksgiving","winter","newyear","valentine","stpat","easter","july4"];
+function holidayFor(d){
+  const m=d.getMonth()+1, day=d.getDate();   // +1 so January is 1 and December is 12 (easier to read)
+  if(m===10) return "halloween";                       // all October
+  if(m===11) return "thanksgiving";                    // all November
+  if(m===12) return "winter";                          // all December
+  if(m===1&&day<=7) return "newyear";                  // Jan 1–7
+  if(m===2&&day<=14) return "valentine";               // Feb 1–14
+  if(m===3&&day>=14&&day<=17) return "stpat";          // Mar 14–17
+  if(m===7&&day<=4) return "july4";                    // Jul 1–4
+  if(isEasterWeek(d)) return "easter";                 // the week leading up to Easter Sunday
+  return "";
+}
+/* Easter moves every year, so this works out Easter Sunday for the year (a famous old math recipe) */
+function easterSunday(y){
+  const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  return new Date(y,month-1,day);
+}
+function isEasterWeek(d){
+  const today=new Date(d.getFullYear(),d.getMonth(),d.getDate()), easter=easterSunday(d.getFullYear());
+  const daysBefore=Math.round((easter-today)/864e5);
+  return daysBefore>=0&&daysBefore<=6;
+}
 function paintDate(){
   const d=new Date(), h=d.getHours();
   $("sMonth").textContent=d.getMonth()+1; $("sDay").textContent=d.getDate();
+    document.body.classList.remove(...HOLIDAYS);          // take off yesterday's holiday tag (if any)
+    const hol=holidayFor(d); if(hol) document.body.classList.add(hol);
   $("sWeek").textContent=DAYS[d.getDay()]; $("sPhase").textContent=phaseOf(h);
   $("sIcon").innerHTML=(h>=6&&h<19)?sun:moon;
   $("miniDate").innerHTML=`${d.getMonth()+1}/${d.getDate()}<small>${DAYS[d.getDay()].slice(0,3)}</small>`;
@@ -10786,8 +10857,14 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03c";
+const APP_VERSION="2026.10.03e";
 const CHANGELOG=[
+  {v:"2026.10.03e", title:"Holiday date stamps 🎄", items:[
+    "🎄 The date stamp now dresses up for more holidays: Thanksgiving, winter holidays, New Year, Valentine's, St. Patrick's, Easter, and the Fourth of July.",
+  ]},
+  {v:"2026.10.03d", title:"Halloween vibes 🎃", items:[
+    "🎃 The date stamp dresses up for Halloween all October.",
+  ]},
   {v:"2026.10.03c", title:"Notifications troubleshooting added to the Tips", items:[
     "🔔 Added troubleshooting tips for notifications in the Tips section.",
   ]},
