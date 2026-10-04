@@ -11018,8 +11018,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04c";
+const APP_VERSION="2026.10.04d";
 const CHANGELOG=[
+  {v:"2026.10.04d", title:"Shared movies fix", items:[
+    "🎬 A movie you share as Completed now says \"Watched\" in the chat (it wrongly said \"Not watched yet\").",
+  ]},
   {v:"2026.10.04c", title:"Your own posters 🖼️", items:[
     "🖼️ Add your own poster or cover to anything in your backlog: tap 🖼️ on the item, or add one when you add a movie.",
     "🎬 Share it and your friends see your poster too.",
@@ -11894,7 +11897,7 @@ function backlogMsgCard(m){
   if(img){ const i=document.createElement("img"); i.src=img; i.alt=""; i.loading="lazy"; if(type==="game") i.className="wide"; i.onerror=()=>i.remove(); box.append(i); }
   const mid=el("div","blmid");
   mid.append(el("div","bleye",`${typeLabel} · ${(BL_STATUS[c.status]||"Planned").toUpperCase()}`), el("div","blname",String(c.title).slice(0,120)));
-  const meta=[c.platform?String(c.platform).slice(0,40):null, c.status!=="planned"?blProgressText({type,progress:+c.progress||0,total:c.total||null}):null].filter(Boolean).join(" · ");
+  const meta=[c.platform?String(c.platform).slice(0,40):null, c.status!=="planned"?blProgressText({type,status:c.status,progress:+c.progress||0,total:c.total||null}):null].filter(Boolean).join(" · ");
   if(meta) mid.append(el("div","blprog",meta));
   if(+c.rating>0) mid.append(blStars(Math.min(5,+c.rating),null));
   if(m.user_id!==user.id){
