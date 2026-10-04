@@ -199,6 +199,19 @@ body.july4 .stamp::before{content:"⭐"}
 .sheet{width:min(100%,380px);background:var(--night);border:3px solid var(--cyan);box-shadow:8px 8px 0 var(--mag);padding:26px 22px;display:grid;gap:14px;justify-items:center;text-align:center;transform:rotate(-1.5deg)}
 .sheet h2{font-family:var(--tech);font-size:20px;color:var(--cyan)}
 .sheet .uname{font-family:var(--tech);font-size:18px;color:var(--mag)}
+/* ===== status ===== */
+.mystatus{background:rgba(7,4,26,.6);border:2px dashed var(--cyan);color:var(--white);font-size:16px;font-weight:600;padding:7px 14px;margin:2px auto 4px;max-width:100%;overflow-wrap:anywhere;width:auto}
+.mystatus.empty{color:var(--muted);border-color:#3b2d80}
+.statusline{margin:-4px 0 6px;font-size:17px;font-weight:600;color:var(--white);background:rgba(7,4,26,.55);border-left:3px solid var(--cyan);padding:4px 10px;max-width:100%;overflow-wrap:anywhere}
+.contactrow .cstatus{color:var(--white);opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.stpresets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%;margin:4px 0 10px}
+.stpreset{background:var(--deep);border:2px solid #3b2d80;color:var(--white);font-size:14px;padding:6px 10px;width:auto;margin:0}
+.stpreset:active,.stpreset:hover{border-color:var(--cyan)}
+.stedit{display:flex;gap:8px;width:100%;align-items:stretch}
+.stedit .field{flex:1;min-width:0}
+.stemoji{flex:none;width:52px;font-size:24px;background:var(--deep);border:2px solid var(--cyan);padding:0;margin:0}
+.stemojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px;width:100%;margin-top:8px}
+.stemojis button{font-size:22px;background:var(--deep);border:2px solid #3b2d80;padding:4px 0;margin:0;width:auto}
 .sheet .email{color:var(--muted);font-size:15px;margin-top:-10px}
 .sheet .go{width:100%}
 .sheet .ghost{margin:0;width:100%;padding:10px;font-size:13px}
@@ -3006,6 +3019,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h2 id="profTitle">Your profile</h2>
     <div class="face lg" id="profFace"></div>
     <div class="uname" id="profName"></div>
+    <button type="button" class="mystatus" id="myStatus" aria-label="Set your status"></button>
     <button type="button" class="myarcana hidden" id="myArcana"></button>
     <div class="email" id="profEmail"></div>
     <input type="file" id="avatarPicker" accept="image/*" class="sr">
@@ -3218,6 +3232,25 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></form>
 </div>
 
+<!-- ============ STATUS SHEET ============ -->
+<div class="overlay hidden" id="statusSheet" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+  <form class="sheet" id="statusForm"><div class="sheetbody">
+    <h2 id="stTitle">💭 Your status</h2>
+    <p class="sub">Let friends know what you're up to. It shows on your profile and in their Friends list.</p>
+    <div class="stpresets" id="stPresets"></div>
+    <div class="stedit">
+      <button type="button" class="stemoji" id="stEmoji" aria-label="Pick an emoji">💭</button>
+      <label for="stText" class="sr">Status</label>
+      <input class="field" id="stText" maxlength="60" placeholder="What's up?" autocomplete="off">
+    </div>
+    <div class="stemojis hidden" id="stEmojis" role="group" aria-label="Pick an emoji"></div>
+    <p class="msgline" id="stMsg" role="status"></p>
+    <button class="go" type="submit" id="stSave">Save status</button>
+    <button class="ghost" type="button" id="stClear">Clear status</button>
+    <button class="ghost" type="button" id="stClose">Cancel</button>
+  </div></form>
+</div>
+
 <!-- ============ E-CARD SHEET ============ -->
 <div class="overlay hidden" id="ecardSheet" role="dialog" aria-modal="true" aria-labelledby="ecTitle">
   <form class="sheet" id="ecardForm"><div class="sheetbody">
@@ -3320,6 +3353,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
+    <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
     <p class="friendtag hidden" id="personTag"></p>
     <div class="myarcana theirarcana hidden" id="personArcana"></div>
@@ -4193,11 +4227,14 @@ const live = {
   async resetPassword(email){ must(await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname})); },
   async updatePassword(pw){ must(await sb.auth.updateUser({password:pw})); },
   async deleteAccount(){ must(await sb.rpc("delete_my_account")); await sb.auth.signOut(); },
-  async profiles(ids){   // (falls back without tz until the new SQL has been run)
+  async profiles(ids){   // (falls back without status / tz until the new SQL has been run)
+    const st=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at").in("id",ids);
+    if(!st.error) return st.data||[];
     const r=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz").in("id",ids);
     if(r.error&&/tz/.test(r.error.message||"")) return must(await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana").in("id",ids));
     return must(r); },
   async saveTz(uid,tz){ await sb.from("profiles").update({tz}).eq("id",uid); },
+  async setStatus(uid,emoji,text){ must(await sb.from("profiles").update({status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null}).eq("id",uid)); },
   async setRoomIcon(room,url){ must(await sb.rpc("set_room_icon",{p_room:room,p_url:url})); },
   async addFriendsToRoom(room,ids){ return must(await sb.rpc("add_friends_to_room",{p_room:room,p_users:ids})); },
   async reportMessage(id,reason,details){ must(await sb.rpc("report_message",{p_message:id,p_reason:reason,p_details:details||null})); },
@@ -4555,6 +4592,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async upload(_b,_u,blob){ await new Promise(r=>setTimeout(r,300)); return URL.createObjectURL(blob); },
     async setAvatar(uid,url){ people[uid].avatar_url=url; },
     async saveStyle(uid,style){ Object.assign(people[uid],style); setTimeout(()=>fire("profile",{...people[uid]}),30); },
+    async setStatus(uid,emoji,text){ Object.assign(people[uid],{status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null}); setTimeout(()=>fire("profile",{...people[uid]}),30); },
     async setBackground(room,bg){ const old=rooms[room].background||null; rooms[room].background=bg; setTimeout(()=>fire("roomUpdated",{code:room,name:rooms[room].name||null,background:bg,owner:rooms[room].owner}),30); if(old!==(bg||null)) demoNotice(room,"bg:"+(bg||"stars")); },
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
     async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
@@ -4809,7 +4847,7 @@ function paintFace(node,p){
   else if(node.title&&node.title.startsWith("It's ")) node.removeAttribute("title");
 }
 function paintHomeLevel(){ try{ const L=xpLevel(xpData().xp); $("homeLevel").textContent="LV "+L.lvl; }catch(e){} }
-function paintMe(){ paintHomeLevel();
+function paintMe(){ paintHomeLevel(); paintMyStatus();
   ["meFace","openProfile2","profFace"].forEach(id=>paintFace($(id),meProfile));
   $("meName").textContent=meProfile?.username||""; $("profName").textContent=meProfile?.username||""; $("profEmail").textContent=user?.email||"";
 }
@@ -5471,7 +5509,7 @@ async function enterRoom(code,token){
       msg:m=>{ stopTyping(m.user_id); addMessages([m]).then(()=>{ if(m.user_id!==user.id) markReadSoon(); }); },
       msgGone:removeMessage,
       msgEdited:applyEdit,
-      profile:p=>{ const old=cache.get(p.id); cache.set(p.id,p); repaintFaces(p.id); if(p.id===user.id){meProfile=p;paintMe();} if(old?.bubble_color!==p.bubble_color) renderAll(false); paintReceipts(); },
+      profile:p=>{ const old=cache.get(p.id); cache.set(p.id,p); repaintFaces(p.id); if(personUid===p.id&&!$("personSheet").classList.contains("hidden")) paintPerson(); if(p.id===user.id){meProfile=p;paintMe();} if(old?.bubble_color!==p.bubble_color) renderAll(false); paintReceipts(); },
       member:setMember,
       roomUpdated:r=>{ if(r.icon_url!==undefined){ if(r.icon_url) roomIcons.set(r.code,r.icon_url); else roomIcons.delete(r.code); loadInboxSoon(); } if(r.code!==room) return; if(r.name!==undefined) setRoomName(r.name); else paintRoomIcon(); if(r.background!==undefined) setRoomBackground(r.background); if(r.owner!==undefined) roomOwner=r.owner; if(r.disappear_seconds!==undefined){ disappear=+r.disappear_seconds||0; paintDisappear(); } },
       task:p=>{ if(p.eventType==="DELETE"){ tasks.delete(p.old.id); } else tasks.set(p.new.id,p.new); paintTasks(); },
@@ -7168,6 +7206,7 @@ async function loadContacts(){
     const p=cache.get(uid), row=el("div","contactrow");
     const f=el("span","face"); paintFace(f,p); f.style.cursor="pointer"; f.onclick=()=>openPerson(uid);
     const n=el("span","cname",p.username);
+    { const sl=statusLine(p,true); if(sl) n.append(el("span","tagline cstatus",sl)); }
     if(addedMe(uid)) n.append(el("span","tagline","🤝 mutual friends"));
     const dm=inboxRows.find(r=>r.is_dm&&r.dm_user===uid); if(dm&&+dm.unread>0) n.append(el("small","",`${dm.unread} unread`));
     const badge=linkBadge(uid); if(badge){ badge.onclick=e=>{ e.stopPropagation(); openSocialLink(uid); }; badge.style.cursor="pointer"; n.append(badge); }
@@ -7208,6 +7247,56 @@ async function openDm(uid){
 
 /* ---------- person card (tap someone's picture) ---------- */
 let personUid=null;
+/* ===== profile status (MySpace style): an emoji + a short line, set from your Profile ===== */
+const STATUS_PRESETS=[["🎮","Gaming"],["📚","Studying"],["💼","At work"],["🍿","Watching something"],["🎧","Vibing to music"],["😴","Sleeping"],["🍕","Eating"],["🏋️","At the gym"],["🚗","On the road"],["🤒","Feeling sick"],["🎉","Out with friends"],["💭","Thinking…"]];
+const STATUS_EMOJIS=["💭","🎮","📚","💼","🍿","🎧","😴","🍕","🏋️","🚗","🤒","🎉","😎","🥳","😤","😭","🔥","💀","✨","🌙","☕","🎨","💻","⚽","🏀","🎤","❤️","👻"];
+function statusAgo(at){
+  const t=Date.parse(at); if(!t) return ""; const m=Math.max(0,Math.round((Date.now()-t)/60000));
+  return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";
+}
+function statusLine(p,short){   // "🎮 grinding ranked · 2h ago"
+  if(!p||!(p.status_emoji||p.status_text)) return "";
+  const txt=[p.status_emoji,p.status_text].filter(Boolean).join(" ");
+  return short?txt:txt+(p.status_at?" · "+statusAgo(p.status_at):"");
+}
+function paintMyStatus(){
+  const b=$("myStatus"); if(!b) return;
+  const sl=statusLine(meProfile);
+  b.textContent=sl||"💭 Set a status"; b.classList.toggle("empty",!sl);
+}
+let stEmoji="💭";
+function openStatusSheet(){
+  stEmoji=meProfile?.status_emoji||"💭"; $("stText").value=meProfile?.status_text||""; say("stMsg","");
+  $("stEmoji").textContent=stEmoji; show($("stEmojis"),false); show($("stClear"),!!(meProfile?.status_emoji||meProfile?.status_text));
+  const pr=$("stPresets"); pr.innerHTML="";
+  STATUS_PRESETS.forEach(([e,t])=>{ const b=el("button","stpreset",e+" "+t); b.type="button"; b.onclick=()=>{ stEmoji=e; $("stEmoji").textContent=e; $("stText").value=t; $("stText").focus(); }; pr.append(b); });
+  const em=$("stEmojis"); em.innerHTML="";
+  STATUS_EMOJIS.forEach(e=>{ const b=el("button","",e); b.type="button"; b.setAttribute("aria-label","Use "+e); b.onclick=()=>{ stEmoji=e; $("stEmoji").textContent=e; show(em,false); }; em.append(b); });
+  show($("statusSheet"));
+}
+async function saveMyStatus(emoji,text){
+  text=String(text||"").trim().slice(0,60);
+  if(text&&!emoji) emoji="💭";
+  await api.setStatus(user.id,text?emoji:null,text||null);
+  meProfile={...meProfile,status_emoji:text?emoji:null,status_text:text||null,status_at:text?new Date().toISOString():null};
+  cache.set(user.id,meProfile); paintMyStatus();
+}
+$("myStatus").onclick=openStatusSheet;
+$("stEmoji").onclick=()=>show($("stEmojis"),$("stEmojis").classList.contains("hidden"));
+$("stClose").onclick=()=>show($("statusSheet"),false);
+$("statusForm").onsubmit=async e=>{
+  e.preventDefault(); const text=$("stText").value.trim();
+  if(!text) return say("stMsg","Type a status, or tap Clear status.",true);
+  $("stSave").disabled=true;
+  try{ await saveMyStatus(stEmoji,text); show($("statusSheet"),false); say("profMsg","💭 Status updated."); }
+  catch(err){ say("stMsg",/status_/.test(err.message)?"Statuses aren't switched on yet. Ask Cole to run the status SQL.":"Couldn't save: "+err.message,true); }
+  finally{ $("stSave").disabled=false; }
+};
+$("stClear").onclick=async()=>{
+  try{ await saveMyStatus(null,""); show($("statusSheet"),false); say("profMsg","Status cleared."); }
+  catch(err){ say("stMsg","Couldn't clear: "+err.message,true); }
+};
+
 function openPerson(uid){
   if(!uid||uid===user.id){ if(uid===user.id) openProfile(); return; }
   personUid=uid; say("personMsg",""); paintPerson(); show($("personSheet"));
@@ -7216,6 +7305,7 @@ function paintPerson(){
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
   paintFace($("personFace"),p);
   $("personName").textContent=nick||p.username;
+  { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
   $("personSub").textContent=(nick&&nick!==p.username?`@${p.username} · `:"@"+p.username+" · ")+(isBirthdayToday(p.birthday)?"🎂 birthday today! · "+(presenceLine(uid)||""):(presenceLine(uid)||(roomName&&!isDm?`in ${roomName}`:"NightLane")));
   const f=isFriend(uid), back=addedMe(uid);
   $("personTag").textContent = f&&back?"🤝 You're friends": f?"✓ On your friends list": back?"👋 Added you as a friend":"";
@@ -10917,8 +11007,12 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.03h";
+const APP_VERSION="2026.10.04a";
 const CHANGELOG=[
+  {v:"2026.10.04a", title:"Status updates 💭", items:[
+    "💭 Set a status! Tap \"Set a status\" under your name in Profile, pick a quick one (🎮 Gaming, 📚 Studying, 😴 Sleeping…) or write your own.",
+    "👀 Friends see your status on your profile and in their Friends list, with how long ago you set it.",
+  ]},
   {v:"2026.10.03h", title:"No more accidental taps", items:[
     "👆 Press and hold a message to open its options, then lift your finger. The menu won't react to the finger that opened it, so you can't hit Report or Copy by accident.",
   ]},
