@@ -362,6 +362,9 @@ html,body{overflow-x:hidden}
 .tray-tabs{flex-wrap:wrap}
 .tray-tabs .ghost{min-width:0}
 /* ===== e-cards ===== */
+.blposterpick{display:flex;align-items:center;gap:10px;margin:8px 0}
+.blposterpick .blbtn{width:auto;margin:0}
+.blposterprev img{height:72px;width:auto;max-width:60px;object-fit:cover;border:2px solid var(--cyan);display:block}
 .ecard{position:relative;background:var(--night);border:3px solid var(--ec);box-shadow:5px 5px 0 var(--ec);padding:16px 18px 12px;text-align:center;min-width:min(220px,62vw);max-width:300px;color:var(--white)}
 .ecard .ec-emoji{font-size:56px;line-height:1.1}
 .ecard .ec-title{font-family:var(--tech);font-weight:900;font-size:22px;color:var(--ec);margin-top:4px;text-shadow:2px 2px 0 #07041A}
@@ -3636,8 +3639,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Halloween pixel art</h3>
     <p class="sub">Halloween Graphics by finalbossblues · Jacko by Tyler Warren</p>
     <h3>Powered by</h3>
-    <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA) · Movie info from TMDB</p>
-    <p class="sub">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA)</p>
     <h3>🐛Bug hunters & testers</h3>
     <p class="sub">Xen, Ren, Justin, Han, Kenneth, Freddy, and Malcolm</p>
       <p class="sub">Thanks to everyone who helped test NightLane and find bugs!</p>
@@ -4854,6 +4856,13 @@ function paintMe(){ paintHomeLevel(); paintMyStatus();
 async function ensureProfiles(ids){
   const need=[...new Set(ids)].filter(i=>i&&!cache.has(i)); if(!need.length) return;
   (await api.profiles(need).catch(()=>[])).forEach(p=>cache.set(p.id,p));
+}
+/* re-download profiles we already have, so things like a friend's new status show up even if the live update was missed */
+async function refreshProfiles(ids){
+  const want=[...new Set(ids)].filter(i=>i&&i!==user?.id); if(!want.length) return [];
+  const rows=await api.profiles(want).catch(()=>[]);
+  rows.forEach(p=>{ cache.set(p.id,{...cache.get(p.id),...p}); });
+  return rows;
 }
 const nameOf = uid => (room && members.get(uid)?.nick) || cache.get(uid)?.username || "Someone";
 
@@ -7185,6 +7194,7 @@ async function loadContacts(){
   if(!user) return;
   [contactIds,addedMeIds]=await Promise.all([api.contacts().catch(()=>contactIds),api.addedMe().catch(()=>addedMeIds)]);
   await ensureProfiles([...contactIds,...addedMeIds]);
+  if(Date.now()-(loadContacts.fresh||0)>30000){ loadContacts.fresh=Date.now(); await refreshProfiles(contactIds); }   // fresh statuses, at most every 30s
   // people who added you, that you haven't added back
   const reqBox=$("requestList"); reqBox.innerHTML="";
   const reqs=pendingRequests();
@@ -7300,6 +7310,7 @@ $("stClear").onclick=async()=>{
 function openPerson(uid){
   if(!uid||uid===user.id){ if(uid===user.id) openProfile(); return; }
   personUid=uid; say("personMsg",""); paintPerson(); show($("personSheet"));
+  refreshProfiles([uid]).then(()=>{ if(personUid===uid&&!$("personSheet").classList.contains("hidden")) paintPerson(); });
 }
 function paintPerson(){
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
@@ -11007,8 +11018,16 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04a";
+const APP_VERSION="2026.10.04c";
 const CHANGELOG=[
+  {v:"2026.10.04c", title:"Your own posters 🖼️", items:[
+    "🖼️ Add your own poster or cover to anything in your backlog: tap 🖼️ on the item, or add one when you add a movie.",
+    "🎬 Share it and your friends see your poster too.",
+    "🎞️ Movies are now added by hand (movie search is gone).",
+  ]},
+  {v:"2026.10.04b", title:"Statuses show up for friends", items:[
+    "💭 Opening someone's profile or your Friends list now grabs their latest status, so you always see what friends just set.",
+  ]},
   {v:"2026.10.04a", title:"Status updates 💭", items:[
     "💭 Set a status! Tap \"Set a status\" under your name in Profile, pick a quick one (🎮 Gaming, 📚 Studying, 😴 Sleeping…) or write your own.",
     "👀 Friends see your status on your profile and in their Friends list, with how long ago you set it.",
@@ -11548,8 +11567,9 @@ if(it.type==="movie"){
   plus=el("button","blbtn","+1"); plus.type="button"; plus.disabled=!!(it.total&&it.progress>=it.total); plus.setAttribute("aria-label",(it.type==="anime"||it.type==="tv"?"Add an episode to ":"Add an hour to ")+it.title); plus.onclick=()=>blPlusOne(it);
 }
     const share=el("button","blbtn","Share"); share.type="button"; share.onclick=()=>openBlShare(it);
+    const pic=el("button","blbtn blpic","🖼️"); pic.type="button"; pic.title=it.image?"Change the picture":"Add your own picture"; pic.setAttribute("aria-label",(it.image?"Change the picture for ":"Add a picture for ")+it.title); pic.onclick=()=>blChangePoster(it);
     const del=el("button","blbtn bldel","✕"); del.type="button"; del.setAttribute("aria-label","Remove "+it.title); del.onclick=()=>blDelete(it);
-    row.append(sel,plus,share,del); mid.append(row);
+    row.append(sel,plus,share,pic,del); mid.append(row);
   } else {
     mid.append(el("div","blstatus "+it.status,BL_STATUS[it.status]||it.status));
     if(!(myBl||[]).some(x=>blKey(x)===blKey(it))) mid.append(blAddToMineButton(it));   // you both have it: no button needed
@@ -11650,6 +11670,24 @@ async function blAdd(fields){
 }
 
 /* ---------- manual add (for things the search can't find) ---------- */
+/* your own poster/cover picture: pick a photo, it's shrunk and uploaded, and the link is saved on the backlog item
+   (so when you share it, friends see the same picture) */
+function blPickImage(){
+  return new Promise(res=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=()=>res(inp.files[0]||null); inp.click(); });
+}
+async function blUploadPoster(file){
+  if(!file) return null;
+  if(!/^image\//.test(file.type||"")) throw new Error("Pick a picture file.");
+  if(file.size>15e6) throw new Error("That picture is over 15 MB. Pick a smaller one.");
+  const blob=await shrink(file,600,false);
+  return await api.upload("avatars",user.id,blob);
+}
+async function blChangePoster(it){
+  const f=await blPickImage(); if(!f) return;
+  say("blMsg","Uploading poster…");
+  try{ const url=await blUploadPoster(f); await blUpdate(it,{image:url}); say("blMsg","Poster saved 🖼️"); }
+  catch(err){ say("blMsg","Couldn't add the poster: "+err.message,true); }
+}
 function blManualForm(){
   const d=el("details","blmanual"); d.append(el("summary","","+ Add one manually"));
   const t=el("input","field"); t.placeholder="Title"; t.maxLength=120; t.setAttribute("aria-label","Title");
@@ -11657,24 +11695,29 @@ function blManualForm(){
   const plat=el("input","field"); plat.placeholder="Platform"; plat.maxLength=40; plat.setAttribute("aria-label","Platform");
   const tot=el("input","field"); tot.type="number"; tot.min="1"; tot.placeholder="Episodes"; tot.setAttribute("aria-label","Total episodes");
   type.onchange=()=>{ tot.style.visibility=type.value==="anime"||type.value==="tv"?"visible":"hidden"; }; tot.style.visibility="hidden";
+  let posterFile=null;
+  const pRow=el("div","blposterpick"), pBtn=el("button","blbtn","🖼️ Add a poster (optional)"), pPrev=el("span","blposterprev");
+  pBtn.type="button";
+  pBtn.onclick=async()=>{ const f=await blPickImage(); if(!f) return; posterFile=f; pPrev.innerHTML=""; const im=document.createElement("img"); im.alt="Poster preview"; im.src=URL.createObjectURL(f); pPrev.append(im); pBtn.textContent="🖼️ Change poster"; };
+  pRow.append(pBtn,pPrev);
   const go=el("button","blbtn add","Add"); go.type="button";
-  go.onclick=async()=>{ go.disabled=true; try{ await blAdd({title:t.value,type:type.value,platform:plat.value,total:type.value==="anime"||type.value==="tv"?tot.value:null}); t.value=""; plat.value=""; tot.value=""; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
+  go.onclick=async()=>{ go.disabled=true; try{ if(!t.value.trim()) throw new Error("Give it a title first."); let image=null; if(posterFile){ say("blMsg","Uploading poster…"); image=await blUploadPoster(posterFile); }
+      await blAdd({title:t.value,type:type.value,platform:plat.value,total:type.value==="anime"||type.value==="tv"?tot.value:null,image}); t.value=""; plat.value=""; tot.value=""; posterFile=null; pPrev.innerHTML=""; pBtn.textContent="🖼️ Add a poster (optional)"; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
   const r=el("div","row2"); r.append(type,plat,tot);
-  d.append(t,r,go); return d;
+  d.append(t,r,pRow,go); return d;
 }
 
-/* ---------- search (RAWG for games, Kitsu for anime, TVmaze for TV, TMDB for movies) ---------- */
-const TMDB_KEY="418351e92058ca51c541ec97a1506aa1";   // paste your free TMDB "API Key" here (themoviedb.org → Settings → API) to turn on movie search
+/* ---------- search (RAWG for games, Kitsu for anime, TVmaze for TV). Movies are added by hand, with your own poster. ---------- */
 const BL_SEARCH_TEXT={
   game:{ph:"Search games…", help:"Find a game to add. Covers and platforms come from RAWG."},
   anime:{ph:"Search anime…", help:"Find an anime to add. Posters and episode counts come from Kitsu."},
   tv:{ph:"Search TV shows…", help:"Find a TV show to add. Posters and episode counts come from TVmaze."},
-  movie:{ph:"Search movies…", help:"Find a movie to add. Posters come from TMDB."}
+  movie:{ph:"", help:""}
 };
 function paintBlSearch(type){
   const box=$("blBody"); box.innerHTML="";
-  if(type==="movie"&&!TMDB_KEY){
-    box.append(el("p","note","Movie search is coming soon. For now, add a movie by hand:"));
+  if(type==="movie"){
+    box.append(el("p","note","Add a movie, and give it your own poster if you like. When you share it, your poster goes with it."));
     const f=blManualForm(); f.open=true; const sel=f.querySelector("select"); if(sel){ sel.value="movie"; sel.onchange?.(); } box.append(f);
     return;
   }
@@ -11701,9 +11744,6 @@ async function blRunSearch(type,query){
       blResults.tv=(await r.json()).slice(0,12).map(x=>{ const s=x.show||{}, net=s.network?.name||s.webChannel?.name||null; return {
         type:"tv", title:s.name||"Untitled", image:s.image?.medium||null, platform:net, total:null, source_id:"tvmaze:"+s.id,
         meta:[s.premiered?.slice(0,4), net, s.status==="Running"?"still airing":null].filter(Boolean).join(" · ") }; });
-    } else if(type==="movie"){
-      const r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&include_adult=false&query=${encodeURIComponent(query)}`); if(!r.ok) throw new Error(r.status);
-      blResults.movie=((await r.json()).results||[]).slice(0,12).map(m=>({type:"movie",title:m.title||"Untitled",image:m.poster_path?"https://image.tmdb.org/t/p/w185"+m.poster_path:null,platform:null,total:null,source_id:"tmdb:"+m.id,meta:[m.release_date?.slice(0,4)].filter(Boolean).join(" · ")}));
     } else {
       const r=await fetch(`https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=12`); if(!r.ok) throw new Error(r.status);
       blResults.anime=((await r.json()).data||[]).map(a=>{ const x=a.attributes||{}; return {type:"anime",title:x.titles?.en||x.canonicalTitle||"Untitled",image:x.posterImage?.small||null,platform:"Streaming",total:x.episodeCount||null,source_id:"kitsu:"+a.id,meta:[x.startDate?.slice(0,4),x.episodeCount?x.episodeCount+" eps":null,x.subtype?.toUpperCase()].filter(Boolean).join(" · ")}; });
