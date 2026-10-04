@@ -6539,16 +6539,25 @@ $("micBtn").onclick=async()=>{
   closeTray();
   if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){ $("status").textContent="Voice messages aren't supported in this browser."; return; }
   let stream;
-  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
-  catch(e){ $("status").textContent="Microphone permission was blocked. Allow it in your browser settings to record."; return; }
+  /* voice-message quality: one clean mono track at full rate. Echo cancellation is for calls, not voice notes,
+     and it's what makes voices cut in and out ("choppy"), so it's off. Noise suppression + auto volume stay on. */
+  const VOICE_MIC={channelCount:1,sampleRate:{ideal:48000},echoCancellation:false,noiseSuppression:true,autoGainControl:true};
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:VOICE_MIC}); }
+  catch(e){
+    if(e?.name==="NotAllowedError"||e?.name==="SecurityError"){ $("status").textContent="Microphone permission was blocked. Allow it in your browser settings to record."; return; }
+    try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }   // older phones that don't like the settings above
+    catch(e2){ $("status").textContent="Microphone permission was blocked. Allow it in your browser settings to record."; return; }
+  }
   const type=["audio/mp4","audio/webm;codecs=opus","audio/webm","audio/ogg"].find(t=>MediaRecorder.isTypeSupported(t))||"";
-  const mr=new MediaRecorder(stream,type?{mimeType:type}:undefined), chunks=[];
+  let mr; try{ mr=new MediaRecorder(stream,{...(type?{mimeType:type}:{}),audioBitsPerSecond:128000}); }   // higher quality than the default
+  catch(e){ mr=new MediaRecorder(stream,type?{mimeType:type}:undefined); }
+  const chunks=[];
   mr.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   rec={mr,stream,chunks,start:Date.now(),cancelled:false,timer:setInterval(()=>{
     const s=(Date.now()-rec.start)/1000; $("recTime").textContent=fmtDur(s);
     if(s>=MAX_VOICE_SECONDS) finishRecording(true);
   },250)};
-  mr.start(250);
+  mr.start();   // one continuous recording (saving it in little 1/4-second pieces made the file stutter on some phones)
   $("recTime").textContent="0:00"; show($("composeRow"),false); show($("recBar"));
 };
 function finishRecording(send){
@@ -11018,8 +11027,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04d";
+const APP_VERSION="2026.10.04e";
 const CHANGELOG=[
+  {v:"2026.10.04e", title:"Clearer voice messages 🎙️", items:[
+    "🎙️ Voice messages record as one smooth clip at higher quality, so they don't sound choppy anymore.",
+  ]},
   {v:"2026.10.04d", title:"Shared movies fix", items:[
     "🎬 A movie you share as Completed now says \"Watched\" in the chat (it wrongly said \"Not watched yet\").",
   ]},
