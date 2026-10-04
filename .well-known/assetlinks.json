@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "chat.nightlane.app",
+      "sha256_cert_fingerprints": [
+        "E9:27:FC:D0:F8:0E:CA:DF:35:93:BB:3F:F1:9B:16:84:9C:31:7F:3D:55:CF:D9:77:5C:88:27:C6:FA:53:DC:FE"
+      ]
+    }
+  }
+]
