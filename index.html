@@ -1550,7 +1550,7 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .msg.me .punct{right:-14px;left:auto;top:-22px;transform:rotate(12deg);color:var(--volt)}
 /* a message's ? / ! sits in the bubble; lift that message's column above the (framed) profile picture so the mark isn't hidden */
 .msg .col:has(> .bubble > .punct){z-index:3}
-.msg:has(> .col > .bubble > .punct) > .face{z-index:4}   /* keep the face + online light above a "!" message */
+.msg:not(.me):has(> .col > .bubble > .punct) > .face{z-index:4}   /* keep a friend's face + online light above their "!" message (your own ? pops out over your face, so leave yours) */
 .msg .col > .bubble:has(> .punct){z-index:2}   /* …and above the name tag (z 1), which sits right where a friend's ? pops out */   /* .col is its own layer (will-change for swipe-to-reply), so lift it, not just the bubble */
 .msg.me .punct.loud{top:-30px;right:-2px}
 .punct.loud{font-size:44px;top:-30px;color:var(--mag);-webkit-text-stroke:2px var(--night)}
@@ -3605,6 +3605,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub">Android (Chrome): 3 dots in the top right → Add to Home screen / Install app</p>
     <p class="sub">iPhone (Safari): Share button → Add to Home Screen</p>
     <p class="sub">Samsung Internet: it can't install NightLane properly at all. Switch to Chrome.</p>
+    <p class="sub">PC (Chrome or Edge): click the install icon at the right end of the address bar → Install.</p>
     <h3>🔔 Turn on notifications</h3>
     <p class="sub">Tap your profile icon and scroll down to Notifications and effects, turn on notifications.</p>
     <h3>🔕 Android: notifications not popping up?</h3>
@@ -3613,6 +3614,11 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>📱 iPhone: notifications not working?</h3>
     <p class="sub">Notifications only work if NightLane was added to your home screen and opened from that icon, not from the browser directly.</p>
     <p class="sub">Settings → Notifications → NightLane → Allow Notifications.</p>
+    <h3>💻 PC: notifications not working?</h3>
+    <p class="sub">Each device needs its own turn-on. Turning notifications on with your phone doesn't cover your PC, so turn them on in NightLane on the PC too, then click Allow.</p>
+    <p class="sub">Clicked Block by accident? Click the 🔒 next to the web address → Notifications → Allow, then reload the page.</p>
+    <p class="sub">Windows: make sure Do Not Disturb / Focus is off, and Settings → System → Notifications → Chrome (or Edge) is turned on.</p>
+    <p class="sub">Notifications only come in while your browser is running. In Chrome: Settings → System → turn on "Continue running background apps when Chrome is closed."</p>
     <h3>🔔 General notification troubleshooting</h3>
     <p class="sub">Make sure your device is not in "Do Not Disturb" mode and that NightLane has permission to send notifications.</p>
     <p class="sub">NightLane has its own settings for each chat: open the chat → Room → Notifications → pick All. If it's set to @ Mentions or Off, you won't get a pop-up for every message.</p>
@@ -11098,8 +11104,10 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04h";
+const APP_VERSION="2026.10.04j";
 const CHANGELOG=[
+  {v:"2026.10.04j", title:"PC tips 💻", items:["💻 Tips now explain how to install NightLane on a PC and get notifications working there."]},
+  {v:"2026.10.04i", title:"Question mark fix ❓", items:["❓ The ? on your own questions pops out on top of your picture frame again instead of hiding behind it."]},
   {v:"2026.10.04h", title:"Online light fix 🟢", items:["🟢 A friend's online light no longer hides behind their message when it ends in ! or ?."]},
   {v:"2026.10.04g", title:"See who reacted 👀", items:["👀 Hold down on a reaction under a message to see who sent it. You can also double-tap a message and pick \"See who reacted\"."]},
   {v:"2026.10.04f", title:"Reset your friend link 🔄", items:["🔄 New \"Reset my friend link\" button in Friends. Shared your link with the wrong person? Make a new one and the old link stops working."]},
