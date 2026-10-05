@@ -3092,6 +3092,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Notifications &amp; effects</h3>
     <button class="ghost" type="button" id="notifBtn">Turn on notifications</button>
     <button class="ghost hidden" type="button" id="notifTest">Send a test notification</button>
+    <button class="ghost" type="button" id="badgeTest">🔢 Test the number on my app icon</button>
     <label class="colorpick left"><span>🌐 Translate messages to</span><select class="field" id="langPick"></select></label>
     <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
     <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
@@ -7543,6 +7544,22 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&user){ i
 navigator.serviceWorker?.addEventListener("message",e=>{
   if(e.data?.type==="which-room"&&e.ports?.[0]) e.ports[0].postMessage({room: (!document.hidden&&!$("chat").classList.contains("hidden"))?room:null});
 });
+/* Shows a test number on the app icon so you can see whether this device displays it. */
+$("badgeTest").onclick=async()=>{
+  const android=/Android/i.test(navigator.userAgent), installed=typeof knownInstalled==="function"?isStandalone():true;
+  if(!installed){ say("profMsg","Open NightLane from its installed app icon first (not a browser tab), then tap this again. Browser tabs can't put a number on an icon.",true); return; }
+  if(android){
+    try{ const reg=swReg||await navigator.serviceWorker.getRegistration(); await reg.showNotification("NightLane badge test 🔢",{body:"Look at the NightLane icon on your home screen now.",icon:"icon-192.png",badge:"badge-96.png",tag:"badge-test"}); }catch(e){}
+    say("profMsg","Android apps from Chrome can't set their own number. Your phone shows a dot (or, on Samsung with 'Show with number', how many NightLane notifications are waiting) while a notification sits in your tray. I just sent one, so check your home screen icon now. If there's no dot, the icon on your home screen may be a Chrome shortcut instead of the installed app: remove it and install again from Chrome's ⋮ menu → Install app.");
+    return;
+  }
+  if(!("setAppBadge" in navigator)){ say("profMsg","This browser can't show a number on app icons. Chrome or Edge on PC, and the iPhone home screen app, can.",true); return; }
+  try{ await navigator.setAppBadge(3); }catch(e){ say("profMsg","Your device blocked the number: "+(e.message||e),true); return; }
+  say("profMsg",/Windows/i.test(navigator.userAgent)
+    ? "Look at NightLane's taskbar icon now: you should see a little 3 in its corner for 15 seconds. Windows only shows it while the NightLane window is open (minimized is fine). No 3? Turn on Settings → Personalization → Taskbar → Taskbar behaviors → Show badges on taskbar apps."
+    : "Look at the NightLane icon now: it should show 3 for 15 seconds. No number? Turn on Badges in your device's notification settings for NightLane.");
+  setTimeout(()=>setIconBadge(iconUnread),15000);   // put the real count back
+};
 $("notifTest").onclick=async()=>{
   $("notifTest").disabled=true; say("profMsg","Sending a real test push through your phone's notification system…");
   try{
@@ -11162,8 +11179,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.05a";
+const APP_VERSION="2026.10.05b";
 const CHANGELOG=[
+  {v:"2026.10.05b", title:"Icon number test 🔢", items:["🔢 New button in Profile → Notifications: \"Test the number on my app icon\". It shows a test number so you can see if your phone or PC displays it, and tells you what to fix if not."]},
   {v:"2026.10.05a", title:"Better on bad Wi-Fi 📶", items:["📶 On a weak connection, messages keep trying to send for a few seconds instead of failing right away, and they never send twice.","🔄 If the live connection drops, NightLane keeps pulling in new messages and reconnects by itself, so chats don't freeze."]},
   {v:"2026.10.04n", title:"Away status 💤", items:["💤 If someone hasn't touched NightLane for 2 minutes (or put it in the background), they show as offline with \"away · last seen 3m ago\". As soon as they're back, their green light comes back."]},
   {v:"2026.10.04m", title:"PC unread fix 💻", items:["💻 On PC, the unread number next to a chat now clears as soon as you read it, and its notifications go away too."]},
