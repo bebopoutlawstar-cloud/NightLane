@@ -4246,7 +4246,14 @@ function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.classN
 
 /* ================= BACKEND ================= */
 let sb=null;
-try{ if(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); }catch(e){}
+try{ if(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  realtime:{heartbeatIntervalMs:15000},   // notice a dead connection sooner (bad Wi-Fi, phone switching networks)
+  global:{fetch:(url,opts={})=>{   // on bad Wi-Fi a request can hang forever; give up after 20s so it can retry (uploads get as long as they need)
+    if(opts.signal||/\/storage\/v1\/|\/functions\/v1\//.test(String(url))||typeof AbortController==="undefined") return fetch(url,opts);
+    const c=new AbortController(), t=setTimeout(()=>c.abort(),20000);
+    return fetch(url,{...opts,signal:c.signal}).finally(()=>clearTimeout(t));
+  }}
+}); }catch(e){}
 const must = ({data,error}) => { if(error) throw error; return data; };
 
 const live = {
@@ -5559,7 +5566,7 @@ async function enterRoom(code,token){
     if(seq!==enterSeq) return;
     if(result==="created"&&!latest.length) feed.innerHTML='<p class="empty">You made a new private room. Tap Room to name it and invite friends.</p>';
     markReadSoon();
-    unsub=api.subscribe(room,{
+    unsub=api.subscribe(room,roomHandlers={
       msg:m=>{ stopTyping(m.user_id); addMessages([m]).then(()=>{ if(m.user_id!==user.id) markReadSoon(); }); },
       msgGone:removeMessage,
       msgEdited:applyEdit,
@@ -6516,11 +6523,30 @@ $("unpick").onclick=clearPending;
 async function sendFields(fields){
   sendTyping(false);
   const m = fields.kind==="poll" ? await api.createPoll(room,fields.question,fields.options,fields.multi)
-                                 : await api.send(room,{...fields,reply_to:fields.reply_to||replyTo?.id});
+                                 : await sendRobust(room,{...fields,reply_to:fields.reply_to||replyTo?.id});
   clearReply(); $("status").textContent=sb?"Live":"Demo mode";
   await addMessages([m]);
   afterMySend(m);
   return m;
+}
+/* Bad Wi-Fi: instead of giving up on the first hiccup, keep trying for ~20 seconds. Before each retry it checks
+   whether an earlier try actually made it (the message saved but the answer got lost), so nothing sends twice. */
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const sameMsg=(m,f)=>(m.kind||"text")===(f.kind||"text")&&(m.text||null)===(f.text||null)&&(m.image_url||null)===(f.image_url||null)&&(m.media_url||null)===(f.media_url||null)&&(m.sticker||null)===(f.sticker||null);
+async function sendRobust(code,payload){
+  const started=Date.now(), had=new Set(msgs.filter(m=>m.user_id===user.id).map(m=>m.id));
+  const waits=[0,1500,3000,5000,8000]; let lastErr;
+  for(const w of waits){
+    if(w){
+      if(room===code) $("status").textContent="Weak connection… still sending";
+      await pause(w);
+      try{ const hit=(await api.loadLatest(code)).find(m=>m.user_id===user.id&&!had.has(m.id)&&new Date(m.created_at).getTime()>started-15000&&sameMsg(m,payload)); if(hit) return hit; }
+      catch(e){ lastErr=e; if(!isNetworkError(e)) throw e; continue; }
+    }
+    try{ return await api.send(code,payload); }
+    catch(e){ lastErr=e; if(!isNetworkError(e)) throw e; }
+  }
+  throw lastErr;
 }
 let sendingNow=false;
 $("sendForm").addEventListener("submit",async e=>{
@@ -11136,8 +11162,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04n";
+const APP_VERSION="2026.10.05a";
 const CHANGELOG=[
+  {v:"2026.10.05a", title:"Better on bad Wi-Fi 📶", items:["📶 On a weak connection, messages keep trying to send for a few seconds instead of failing right away, and they never send twice.","🔄 If the live connection drops, NightLane keeps pulling in new messages and reconnects by itself, so chats don't freeze."]},
   {v:"2026.10.04n", title:"Away status 💤", items:["💤 If someone hasn't touched NightLane for 2 minutes (or put it in the background), they show as offline with \"away · last seen 3m ago\". As soon as they're back, their green light comes back."]},
   {v:"2026.10.04m", title:"PC unread fix 💻", items:["💻 On PC, the unread number next to a chat now clears as soon as you read it, and its notifications go away too."]},
   {v:"2026.10.04l", title:"Holiday look on PC 🎃", items:["🎃 On PC, holidays now get their own pixel-art look: little pixel sprites and a typed terminal line under the date. Halloween, Thanksgiving, winter, New Year's, Valentine's, St. Patrick's, Easter and the 4th of July."]},
@@ -12043,7 +12070,23 @@ $("personBacklog").onclick=()=>{ const uid=personUid; show($("personSheet"),fals
 $("blClose").onclick=()=>show($("backlogSheet"),false);
 
 /* ================= STAYING CONNECTED ================= */
-let liveStatus=null, catchingUp=false, lastCatchUp=0;
+let liveStatus=null, catchingUp=false, lastCatchUp=0, roomHandlers=null, roomBadSince=0;
+/* Bad Wi-Fi watchdog: the live connection can die without saying so (iPhones especially). While a chat is open,
+   check every 5s. Connection looks bad → ask the server for new messages directly every ~8s so chat keeps
+   flowing, and if it stays bad for 20s, reconnect the chat from scratch. Healthy → a quiet double-check every 45s. */
+setInterval(()=>{
+  if(!sb||!room||!user||document.hidden||navigator.onLine===false){ roomBadSince=0; return; }
+  let up=true; try{ up=sb.realtime.isConnected(); }catch(e){}
+  if(up&&liveStatus==="Live"){ roomBadSince=0; if(Date.now()-lastCatchUp>45000) catchUp("check"); return; }
+  if(!roomBadSince) roomBadSince=Date.now();
+  if(Date.now()-lastCatchUp>8000) catchUp("poll");
+  if(Date.now()-roomBadSince>20000&&roomHandlers){
+    roomBadSince=Date.now();
+    try{ if(unsub) unsub(); }catch(e){}
+    try{ if(!up) sb.realtime.connect(); }catch(e){}
+    unsub=api.subscribe(room,roomHandlers);
+  }
+},5000);
 async function catchUp(reason){
   if(!room||!user||catchingUp) return;
   const code=room; catchingUp=true; lastCatchUp=Date.now();
@@ -12220,7 +12263,7 @@ bootSequence();
 /* ================= OFFLINE ================= */
 let offlineMode=false;
 const isOffline=()=>navigator.onLine===false||offlineMode;
-function isNetworkError(err){ return navigator.onLine===false||/failed to fetch|networkerror|network request|load failed|fetch failed|internet/i.test(String(err?.message||err)); }
+function isNetworkError(err){ return navigator.onLine===false||err?.name==="AbortError"||/failed to fetch|networkerror|network request|load failed|fetch failed|internet|aborted|timed out|timeout/i.test(String(err?.message||err)); }
 function savedLoginUser(){
   if(!SUPABASE_URL) return null;
   try{ const k="sb-"+new URL(SUPABASE_URL).hostname.split(".")[0]+"-auth-token"; const s=JSON.parse(LS.get(k)||"null"); return s?.user||s?.currentSession?.user||null; }catch(e){ return null; }
