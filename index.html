@@ -6299,7 +6299,12 @@ function paintPins(){
 let readTimer=null;
 function markReadSoon(){
   if(!room||document.hidden||$("chat").classList.contains("hidden")) return;
-  clearTimeout(readTimer); readTimer=setTimeout(()=>api.markRead(room).catch(()=>{}),700);
+  const code=room;
+  clearTimeout(readTimer); readTimer=setTimeout(()=>api.markRead(code).then(()=>{
+    // You've read it: clear its pop-ups, and on PC (where the chat list stays on screen next to the chat) refresh the unread numbers too
+    if(typeof closeRoomNotifications==="function") closeRoomNotifications(code);
+    if((document.body.classList.contains("desktop")||!$("front").classList.contains("hidden"))&&typeof loadInboxSoon==="function") loadInboxSoon();
+  }).catch(()=>{}),700);
 }
 function setMember(r){
   if(!r?.user_id) return;
@@ -11123,8 +11128,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04l";
+const APP_VERSION="2026.10.04m";
 const CHANGELOG=[
+  {v:"2026.10.04m", title:"PC unread fix 💻", items:["💻 On PC, the unread number next to a chat now clears as soon as you read it, and its notifications go away too."]},
   {v:"2026.10.04l", title:"Holiday look on PC 🎃", items:["🎃 On PC, holidays now get their own pixel-art look: little pixel sprites and a typed terminal line under the date. Halloween, Thanksgiving, winter, New Year's, Valentine's, St. Patrick's, Easter and the 4th of July."]},
   {v:"2026.10.04k", title:"No more install nag 📲", items:["📲 Once NightLane is installed on your PC or phone, the \"Install NightLane as an app\" link goes away."]},
   {v:"2026.10.04j", title:"PC tips 💻", items:["💻 Tips now explain how to install NightLane on a PC and get notifications working there."]},
