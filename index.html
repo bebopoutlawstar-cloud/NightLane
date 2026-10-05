@@ -1543,6 +1543,20 @@ body.desktop #front.logged .stamp{display:none}
 body.desktop #front.logged .deskdate{display:flex;align-items:baseline;gap:10px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--term);font-size:13px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(124,255,107,.35);padding:4px 0 10px;margin-bottom:6px;text-shadow:0 0 8px rgba(124,255,107,.5)}
 body.desktop .deskdate b{font-family:var(--num);font-size:34px;color:#fff;letter-spacing:2px;text-shadow:-2px 0 var(--cyan),3px 3px var(--mag);font-weight:400}
 body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
+/* PC holiday look: pixel sprites + a typed terminal line under the date */
+.deskhol{display:none}
+body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center;gap:12px;margin:-2px 0 8px;padding:6px 8px;border:1px dashed color-mix(in srgb,var(--hol) 55%,transparent);background:color-mix(in srgb,var(--hol) 7%,transparent);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.5px;color:var(--hol);text-shadow:0 0 8px color-mix(in srgb,var(--hol) 60%,transparent);min-width:0}
+.deskhol .dhart{display:flex;align-items:flex-end;gap:6px;flex:none}
+.deskhol .dhspr{display:block;image-rendering:pixelated;filter:drop-shadow(-1px 0 0 var(--cyan)) drop-shadow(2px 2px 0 var(--mag)) drop-shadow(0 0 6px color-mix(in srgb,var(--hol) 55%,transparent));animation:dhbob 1.6s steps(2) infinite}
+.deskhol .dhspr:nth-child(2){animation-delay:.8s}
+.deskhol .dhspr.dhimg{background-repeat:no-repeat}
+.deskhol .dhspr.dhimg[style*="hwframes"]{animation:hwframes .5s steps(4) infinite}
+.deskhol .dhspr svg{display:block}
+@keyframes dhbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.deskhol .dhline{min-width:0;overflow:hidden}
+.deskhol .dhtype{display:inline-block;white-space:nowrap;overflow:hidden;max-width:100%;border-right:.6em solid var(--hol);width:calc(var(--n)*(1ch + .5px) + .6em);animation:dhtype 1.4s steps(var(--n)) both,dhcaret 1s steps(1) 1.4s infinite}
+@keyframes dhtype{from{width:0}}
+@keyframes dhcaret{50%{border-right-color:transparent}}
 
 /* ===== ?! pop-outs (Persona IM style) ===== */
 .bubble{overflow:visible}
@@ -2889,6 +2903,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <!-- logged in -->
   <form class="card hidden" id="roomCard">
     <div class="deskdate" id="deskDate"></div>
+    <div class="deskhol hidden" id="deskHol"></div>
     <div class="homebar">
       <button type="button" class="face" id="meFace" aria-label="Your profile"></button>
       <div class="who-text"><b id="meName"></b><span class="lvlpill" id="homeLevel"></span></div>
@@ -11108,8 +11123,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04k";
+const APP_VERSION="2026.10.04l";
 const CHANGELOG=[
+  {v:"2026.10.04l", title:"Holiday look on PC 🎃", items:["🎃 On PC, holidays now get their own pixel-art look: little pixel sprites and a typed terminal line under the date. Halloween, Thanksgiving, winter, New Year's, Valentine's, St. Patrick's, Easter and the 4th of July."]},
   {v:"2026.10.04k", title:"No more install nag 📲", items:["📲 Once NightLane is installed on your PC or phone, the \"Install NightLane as an app\" link goes away."]},
   {v:"2026.10.04j", title:"PC tips 💻", items:["💻 Tips now explain how to install NightLane on a PC and get notifications working there."]},
   {v:"2026.10.04i", title:"Question mark fix ❓", items:["❓ The ? on your own questions pops out on top of your picture frame again instead of hiding behind it."]},
@@ -12102,7 +12118,60 @@ function applyDesktop(){
     const bar=document.createElement("div"); bar.className="termbar"; bar.id="termbar"; document.body.append(bar); }
   if(d){ $("chat").dataset.idle="▮ NIGHTLANE TERMINAL\n\nno channel open.\nselect a room on the left, or press  Ctrl+K  to search.\n\n> _"; paintTermBar(); }
 }
-function paintDeskDate(){ const n=$("deskDate"); if(!n) return; const d=new Date(); const wd=d.toLocaleDateString([],{weekday:"short"}), md=`${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`; const ph=(typeof phaseOf==="function"?phaseOf(d.getHours()):""); n.innerHTML=`<b>${md}</b><span>${wd}</span><span>· ${ph||d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</span><span class="blink">_</span>`; }
+/* ===== PC holiday look: pixel sprites + a terminal line under the date =====
+   Phones get the big date stamp with holiday stickers; on PC the stamp is swapped for the green terminal date,
+   so this gives the PC its own holiday look. Halloween uses the real pixel art (HWART); the rest are tiny pixel
+   grids drawn as crisp SVG squares. Each letter in a grid is a color from that sprite's palette ("." = empty). */
+const PXART={
+  heart:{p:{R:"#ff3d7f",W:"#ffd1e0",D:"#c21757"},g:["..RR...RR..",".RWRR.RRRR.","RRWRRRRRRRR","RRRRRRRRRRR","RRRRRRRRRRD",".RRRRRRRRD.","..RRRRRRD..","...RRRRD...","....RRD....",".....D....."]},
+  clover:{p:{G:"#2ee66b",L:"#a6ffbe",D:"#178a3e",S:"#178a3e"},g:["..GGG.GGG..",".GGLGGGLGG.",".GGGGGGGGG.","..GGGGGGG..","GGGGG.GGGGG","GLGGGDGGGLG","GGGGG.GGGGG","..GGGGGGG..",".GGGG.GGGG.","....S......","...S......."]},
+  hat:{p:{G:"#2ee66b",K:"#0b3b1c",Y:"#f3ff3a"},g:["...GGGGG...","...GGGGG...","...GGGGG...","...GGGGG...","...KKKKK...","...KYYYK...","GGGGGGGGGGG",".GGGGGGGGG."]},
+  flake:{p:{W:"#e8fbff",C:"#7fe9ff"},g:[".....W.....","...W.W.W...","....WWW....",".W..W.W..W.","..W.WWW.W..","WWWWWCWWWWW","..W.WWW.W..",".W..W.W..W.","....WWW....","...W.W.W...",".....W....."]},
+  tree:{p:{Y:"#f3ff3a",G:"#2ee66b",D:"#178a3e",R:"#ff3d5a",C:"#00f0ff",B:"#8a5a2b"},g:[".....Y.....","....YYY....",".....G.....","....GGD....","...GGRGD...","....GGD....","...GCGGGD..","..GGGGGRGD.","...GGGGGD..","..GRGGGGCD.",".GGGGGYGGGD","GGGGGGGGGGD",".....B.....",".....B....."]},
+  burst:{p:{Y:"#f3ff3a",M:"#ff4fd8",W:"#ffffff"},g:[".....Y.....",".M...Y...M.","..M..Y..M..","...M...M...","....YYY....","YYYY.W.YYYY","....YYY....","...M...M...","..M..Y..M..",".M...Y...M.",".....Y....."]},
+  burst2:{p:{Y:"#00f0ff",M:"#ff3d5a",W:"#ffffff"},g:[".....Y.....",".M...Y...M.","..M..Y..M..","...M...M...","....YYY....","YYYY.W.YYYY","....YYY....","...M...M...","..M..Y..M..",".M...Y...M.",".....Y....."]},
+  egg:{p:{P:"#ffb3e6",Y:"#fff36b",C:"#7fe9ff",W:"#ffffff"},g:["...PPP...","..PWPPP..",".PWPPPPP.",".YYYYYYY.","PPPPPPPPP","PCPCPCPCP","PPPPPPPPP",".YYYYYYY.",".PPPPPPP.","..PPPPP..","...PPP..."]},
+  egg2:{p:{P:"#9be7ff",Y:"#ff9bd2",C:"#fff36b",W:"#ffffff"},g:["...PPP...","..PWPPP..",".PWPPPPP.",".CCCCCCC.","PPPPPPPPP","PYPYPYPYP","PPPPPPPPP",".CCCCCCC.",".PPPPPPP.","..PPPPP..","...PPP..."]},
+  leaf:{p:{O:"#ff8a1f",R:"#c2410c",Y:"#ffd23a",B:"#7a4a1f"},g:[".....O.....","....OYO....",".O..OOO..O.",".OOOOROOOO.","..OOOROOOO.","OOOOOROOOOO",".OOOOROOOO.","..OOORRYO..",".OOO.R.OOO.",".....R.....",".....B.....",".....B....."]},
+  acorn:{p:{B:"#8a5a2b",D:"#5a3716",O:"#e0a050",L:"#ffd28a"},g:["....D....","..BBBBB..",".BDBDBDB.","BBBBBBBBB",".OOOOOOO.",".OLOOOOO.",".OLOOOOO.","..OOOOO..","...OOO...","....O...."]},
+  flag:{p:{B:"#2f5bff",W:"#ffffff",R:"#ff3d5a"},g:["BBBBRRRRRRR","BWBWWWWWWWW","BBBBRRRRRRR","BWBWWWWWWWW","RRRRRRRRRRR","WWWWWWWWWWW","RRRRRRRRRRR"]},
+};
+function pxSprite(name,size=3){
+  const a=PXART[name], h=a.g.length, w=a.g[0].length; let rects="";
+  a.g.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c!=="."&&a.p[c]) rects+=`<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${a.p[c]}"/>`; }));
+  const s=document.createElement("span"); s.className="dhspr"; s.setAttribute("aria-hidden","true");
+  s.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="${w*size}" height="${h*size}" shape-rendering="crispEdges">${rects}</svg>`;
+  return s;
+}
+function hwSprite(name,{frames=1,scale=1}={}){   // one of the real Halloween pixel sprites
+  const a=typeof HWART!=="undefined"&&HWART[name]; if(!a) return null;
+  const w=a.w/frames, s=document.createElement("span"); s.className="dhspr dhimg"; s.setAttribute("aria-hidden","true");
+  s.style.width=w*scale+"px"; s.style.height=a.h*scale+"px"; s.style.backgroundImage=`url(${a.src})`; s.style.backgroundSize=`${a.w*scale}px ${a.h*scale}px`;
+  if(frames>1){ s.style.setProperty("--hwend",(-a.w*scale)+"px"); s.style.animation=`hwframes ${frames/8}s steps(${frames}) infinite`; }
+  return s;
+}
+const DESK_HOLIDAY={
+  halloween:   {line:"boo.exe is running",          color:"#ff8a1f", art:()=>[hwSprite("jackohead",{scale:.8}),hwSprite("ghost",{frames:4,scale:1.1})]},
+  thanksgiving:{line:"loading gratitude...",        color:"#ffb347", art:()=>[pxSprite("leaf"),pxSprite("acorn")]},
+  winter:      {line:"snow.sys online",             color:"#9fe8ff", art:()=>[pxSprite("tree"),pxSprite("flake")]},
+  newyear:     {line:"happy_new_year.exe",          color:"#f3ff3a", art:()=>[pxSprite("burst"),pxSprite("burst2")]},
+  valentine:   {line:"sending <3 to the crew",      color:"#ff6fae", art:()=>[pxSprite("heart"),pxSprite("heart",2)]},
+  stpat:       {line:"luck.dll loaded",             color:"#2ee66b", art:()=>[pxSprite("clover"),pxSprite("hat")]},
+  easter:      {line:"egg_hunt --start",            color:"#ffb3e6", art:()=>[pxSprite("egg"),pxSprite("egg2")]},
+  july4:       {line:"fireworks.bat",               color:"#ff5a6e", art:()=>[pxSprite("flag"),pxSprite("burst2")]},
+};
+function paintDeskHoliday(d){
+  const n=$("deskHol"); if(!n) return;
+  const key=typeof holidayFor==="function"?holidayFor(d):"", h=DESK_HOLIDAY[key];
+  if(n.dataset.hol===key) return;   // only rebuild when the holiday changes, so the typing doesn't replay every 30 seconds
+  n.dataset.hol=key; n.innerHTML=""; show(n,!!h); if(!h) return;
+  n.style.setProperty("--hol",h.color);
+  const art=document.createElement("span"); art.className="dhart"; h.art().filter(Boolean).forEach(s=>art.append(s));
+  const line=document.createElement("span"); line.className="dhline";
+  const txt=document.createElement("span"); txt.className="dhtype"; txt.textContent="> "+h.line; txt.style.setProperty("--n",h.line.length+2);
+  line.append(txt); n.append(art,line);
+}
+function paintDeskDate(){ const n=$("deskDate"); if(!n) return; const d=new Date(); paintDeskHoliday(d); const wd=d.toLocaleDateString([],{weekday:"short"}), md=`${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`; const ph=(typeof phaseOf==="function"?phaseOf(d.getHours()):""); n.innerHTML=`<b>${md}</b><span>${wd}</span><span>· ${ph||d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</span><span class="blink">_</span>`; }
 setInterval(()=>{ if(document.body.classList.contains("desktop")) paintDeskDate(); },30000);
 function paintTermBar(){ paintDeskDate();
   const bar=$("termbar"); if(!bar) return;
