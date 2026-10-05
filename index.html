@@ -8151,8 +8151,8 @@ $("bsDeal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api
 const SHARE_ICON='<span class="ico" aria-label="Share icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 15V3M7 8l5-5 5 5M5 12v8h14v-8"/></svg></span>';
 const DOTS_ICON='<span class="ico" aria-label="menu icon">⋮</span>';
 let deferredInstall=null;
-addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); deferredInstall=e; paintInstallEntry(); });
-addEventListener("appinstalled",()=>{ deferredInstall=null; paintInstallEntry(); say("installMsg","Installed! Open NightLane from your home screen."); });
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); deferredInstall=e; try{ LS.remove("nl-installed"); }catch(_){} paintInstallEntry(); });   // the browser only offers this when NightLane ISN'T installed (so an uninstall brings the link back)
+addEventListener("appinstalled",()=>{ deferredInstall=null; try{ LS.set("nl-installed","1"); }catch(_){} paintInstallEntry(); say("installMsg","Installed! Open NightLane from your home screen."); });
 
 function detectBrowser(ua=navigator.userAgent){
   const ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
@@ -8182,10 +8182,13 @@ function detectBrowser(ua=navigator.userAgent){
   return {ios,android,name,canInstall,iosNew};
 }
 const BROWSER=detectBrowser();
-const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isStandalone=()=>["standalone","window-controls-overlay","minimal-ui","fullscreen"].some(m=>matchMedia(`(display-mode: ${m})`).matches)||navigator.standalone===true;
+// Opened as the installed app? Remember it, so the browser tab on the same PC/phone stops asking you to install.
+if(isStandalone()){ try{ LS.set("nl-installed","1"); }catch(e){} }
+const knownInstalled=()=>{ if(isStandalone()) return true; try{ return LS.get("nl-installed")==="1"; }catch(e){ return false; } };
 
 function paintInstallEntry(){
-  const notInstalled=!isStandalone();
+  const notInstalled=!knownInstalled();
   [$("installLink1"),$("installLink2")].forEach(x=>show(x,notInstalled));
   let dismissed=false; try{ dismissed=LS.get("nl-install-bar")==="off"; }catch(e){}
   const stuck=notInstalled && !BROWSER.canInstall && (BROWSER.ios||BROWSER.android);
@@ -8262,6 +8265,7 @@ $("installSheet").addEventListener("click",e=>{ if(e.target.id==="installSheet")
 [$("installLink1"),$("installLink2"),$("installBarHow")].forEach(x=>x.onclick=openInstallSheet);
 $("installBarClose").onclick=()=>{ show($("installBar"),false); try{ LS.set("nl-install-bar","off"); }catch(e){} };
 paintInstallEntry();
+try{ matchMedia("(display-mode: standalone)").addEventListener("change",paintInstallEntry); }catch(e){}
 
 /* ================= BIRTHDAYS ================= */
 const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -11104,8 +11108,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04j";
+const APP_VERSION="2026.10.04k";
 const CHANGELOG=[
+  {v:"2026.10.04k", title:"No more install nag 📲", items:["📲 Once NightLane is installed on your PC or phone, the \"Install NightLane as an app\" link goes away."]},
   {v:"2026.10.04j", title:"PC tips 💻", items:["💻 Tips now explain how to install NightLane on a PC and get notifications working there."]},
   {v:"2026.10.04i", title:"Question mark fix ❓", items:["❓ The ? on your own questions pops out on top of your picture frame again instead of hiding behind it."]},
   {v:"2026.10.04h", title:"Online light fix 🟢", items:["🟢 A friend's online light no longer hides behind their message when it ends in ! or ?."]},
