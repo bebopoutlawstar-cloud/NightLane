@@ -9670,14 +9670,16 @@ async function jumpToMessage(code,id){
 /* ================= PRESENCE ================= */
 const online=new Map();   // user id -> {room, typing, at, dnd, idle}
 let presenceCh=null, presenceTimer=null, idleTimer=null;
-const IDLE_AFTER_MS=4*60000;   // 4 minutes with no touch/click/key = idle
+const IDLE_AFTER_MS=2*60000;   // 2 minutes with no touch/click/key (or the app in the background) = away: friends see you as offline
 let lastActivityAt=Date.now();
 const dndOn=()=>{ try{ return LS.get("nl-dnd")==="1"; }catch(e){ return false; } };
 function setDND(on){ try{ LS.set("nl-dnd",on?"1":"0"); }catch(e){} pushPresence(); }
 function markActive(){ lastActivityAt=Date.now(); if(document.hidden) return; if(online.get(user?.id)?.idle) pushPresence(); }
 ["pointerdown","keydown","touchstart","wheel"].forEach(ev=>addEventListener(ev,markActive,{passive:true}));
 const computeIdle=()=>document.hidden||(Date.now()-lastActivityAt>IDLE_AFTER_MS);
-const myPresence=()=>({at:Date.now(),room:room||null,typing:!!(room&&$("box").value.trim()),dnd:dndOn(),idle:computeIdle()});
+let hiddenAt=0; document.addEventListener("visibilitychange",()=>{ if(document.hidden) hiddenAt=Date.now(); });
+const awaySince=()=>Math.min(lastActivityAt, document.hidden&&hiddenAt?hiddenAt:Infinity);   // when you actually stopped using NightLane
+const myPresence=()=>{ const idle=computeIdle(); return {at:Date.now(),room:room||null,typing:!!(room&&$("box").value.trim()),dnd:dndOn(),idle,idleSince:idle?awaySince():null}; };
 function pushPresence(){ if(presenceCh) presenceCh.track(myPresence()).catch(()=>{}); }
 /* Online status. If the connection errors out or closes (network switch, screen lock, Android pausing the
    app, an expired login), it used to stay dead silently: you'd look offline to everyone while your own dot
@@ -9730,18 +9732,24 @@ const isOnline=uid=>online.has(uid)||(!sb&&!demoPresenceOverride&&["vee"].includ
 const whereIs=uid=>{ if(online.has(uid)) return online.get(uid); if(!sb&&!demoPresenceOverride) return uid==="vee"?{room:"5959",typing:false}:uid==="rook"?{room:null,typing:false}:null; return null; };
 // "online" | "idle" | "dnd" | null(offline) — this is what the little status symbol reflects everywhere
 function statusOf(uid){
-  if(uid&&user&&uid===user.id&&(sb?presenceCh:demoPresenceOverride?online.has(uid):true)){ if(dndOn()) return "dnd"; if(computeIdle()) return "idle"; return "online"; }   // you always know your own status instantly — never wait on the server to echo it back
+  if(uid&&user&&uid===user.id&&(sb?presenceCh:demoPresenceOverride?online.has(uid):true)){ if(dndOn()) return "dnd"; if(computeIdle()) return null; return "online"; }   // away 2+ minutes = you look offline (same as friends see you)   // you always know your own status instantly — never wait on the server to echo it back
   if(!isOnline(uid)) return null;
   const w=whereIs(uid)||{};
   if(w.dnd) return "dnd";
-  if(w.idle) return "idle";
+  if(w.idle) return null;   // away 2+ minutes: show them as offline
   return "online";
+}
+// still connected but away 2+ minutes: when they stopped (ms), else null
+function awayAt(uid){
+  if(uid&&user&&uid===user.id) return computeIdle()?awaySince():null;
+  if(!isOnline(uid)) return null; const w=whereIs(uid)||{}; if(!w.idle||w.dnd) return null;
+  return +w.idleSince||+w.at||Date.now();
 }
 const STATUS_WORD={online:"online",idle:"idle",dnd:"on Do Not Disturb"};
 // only name rooms the viewer is also in
 function presenceLine(uid){
   const st=statusOf(uid);
-  if(!st) return lastSeenText(uid);
+  if(!st){ const a=awayAt(uid); return a?`away · last seen ${agoText(a)}`:lastSeenText(uid); }
   const w=whereIs(uid); if(!w||!w.room) return st==="online"?"active now":STATUS_WORD[st];
   const mine=inboxRows.find(r=>r.code===w.room); if(!mine) return st==="online"?"active now":STATUS_WORD[st];
   const label=mine.is_dm?(mine.dm_user===user.id?"a private chat":(mine.dm_user===uid?"your chat":"a private chat")):(mine.name||"#"+w.room);
@@ -9758,7 +9766,7 @@ function paintOnlineStrip(){
 function paintRoomOnline(){
   if(!room) return;
   if(isDm&&dmUser){
-    const dp=$("dmPresence"), here=whereIs(dmUser)?.room===room;
+    const dp=$("dmPresence"), here=!!statusOf(dmUser)&&statusOf(dmUser)!=="dnd"&&whereIs(dmUser)?.room===room;
     dp.innerHTML=""; dp.append(el("span","dot"),el("span","",presenceLine(dmUser)));
     dp.classList.toggle("here",here); show(dp,true); show($("hereBar"),false);
     return;
@@ -9776,7 +9784,7 @@ function paintRoomOnline(){
   bar.append(faces,txt); show(bar,true);
 }
 function lastSeenText(uid){
-  if(isOnline(uid)) return "active now";
+  if(isOnline(uid)&&!awayAt(uid)) return "active now";
   const t=cache.get(uid)?.last_seen; if(!t) return "";
   const m=Math.round((Date.now()-new Date(t))/60000); if(m<1) return "active just now"; if(m<60) return `active ${m}m ago`; const h=Math.round(m/60); if(h<24) return `active ${h}h ago`; const d=Math.round(h/24); return d===1?"active yesterday":`active ${d}d ago`;
 }
@@ -11128,8 +11136,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04m";
+const APP_VERSION="2026.10.04n";
 const CHANGELOG=[
+  {v:"2026.10.04n", title:"Away status 💤", items:["💤 If someone hasn't touched NightLane for 2 minutes (or put it in the background), they show as offline with \"away · last seen 3m ago\". As soon as they're back, their green light comes back."]},
   {v:"2026.10.04m", title:"PC unread fix 💻", items:["💻 On PC, the unread number next to a chat now clears as soon as you read it, and its notifications go away too."]},
   {v:"2026.10.04l", title:"Holiday look on PC 🎃", items:["🎃 On PC, holidays now get their own pixel-art look: little pixel sprites and a typed terminal line under the date. Halloween, Thanksgiving, winter, New Year's, Valentine's, St. Patrick's, Easter and the 4th of July."]},
   {v:"2026.10.04k", title:"No more install nag 📲", items:["📲 Once NightLane is installed on your PC or phone, the \"Install NightLane as an app\" link goes away."]},
