@@ -433,6 +433,10 @@ html,body{overflow-x:hidden}
 .card label.agree input{flex:none;margin-top:1px}
 .card label.agree a,.legallinks a{color:var(--cyan)}
 .legallinks{font-size:14px;color:var(--muted);text-align:center;margin:0}
+.aboutlink{margin:0;text-align:center;font-size:15px}.aboutlink a{color:var(--cyan);font-weight:700}
+.site-footer{display:grid;gap:5px;justify-items:center;text-align:center;font-size:12.5px;line-height:1.35;color:var(--muted);border-top:1px solid rgba(0,240,255,.22);padding-top:10px;margin-top:2px;width:100%}
+.site-footer .footnav{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px}
+.site-footer a{color:var(--cyan)}
 .about{border:2px solid var(--cyan);padding:10px 14px;background:rgba(7,4,26,.6);text-align:left}
 .about summary{font-family:var(--body);font-size:14px;color:var(--white);cursor:pointer}
 .about[open] summary{margin-bottom:8px}
@@ -2886,18 +2890,18 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="go" type="submit" id="authBtn">Log in</button>
     <p class="note" id="modeNote"></p>
     <button type="button" class="linkbtn installlink hidden" id="installLink1">📲 Install NightLane as an app</button>
-    <details class="about" id="aboutBox">
-  <summary>What is NightLane?</summary>
-  <p>NightLane is a retro neon punk style messenger inspired by gamer culture</p>
-  <ul>
-    <li>Private DMs and Room chat functions</li>
-    <li>🎮 A backlog for the games and anime you've played or want to</li>
-    <li>A daily habit tracker that awards you in stats</li>
-    <li>Fun mini games built into the messenger for all your friends to play</li>
-  </ul>
-  <p>Join NightLane, where we can really be ourselves!</p>
-</details>
-    <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
+    <p class="aboutlink"><a href="about.html" target="_blank" rel="noopener">What is NightLane? →</a></p>
+    <footer class="site-footer">
+      <div>© 2026 NightLane · Operated by Cole Eggly, Las Vegas, NV</div>
+      <nav class="footnav" aria-label="NightLane info">
+        <a href="about.html" target="_blank" rel="noopener">About</a>
+        <a href="contact.html" target="_blank" rel="noopener">Contact &amp; Support</a>
+        <a href="terms.html" target="_blank" rel="noopener">Terms</a>
+        <a href="privacy.html" target="_blank" rel="noopener">Privacy</a>
+        <a href="mailto:support@nightlane.chat">support@nightlane.chat</a>
+      </nav>
+      <div>Private small-group messenger. No ads. No trackers.</div>
+    </footer>
   </form>
 
   <!-- logged in -->
@@ -5019,10 +5023,6 @@ function setMode(m){
   if(!new URLSearchParams(location.search).get("join")) say("authMsg","");
 }
 $("tabIn").onclick=()=>setMode("in"); $("tabUp").onclick=()=>setMode("up");
-if(!LS.get("nl-seen-about")){
-    $("aboutBox").open =true;
-  LS.set("nl-seen-about","1");
-}
 
 $("authCard").addEventListener("submit",async e=>{
   e.preventDefault();
@@ -11179,8 +11179,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.05b";
+const APP_VERSION="2026.10.05c";
 const CHANGELOG=[
+  {v:"2026.10.05c", title:"About & Contact pages 📄", items:["📄 New About and Contact & Support pages, plus a footer on the sign-in screen, Terms and Privacy with links to all of them and our support email."]},
   {v:"2026.10.05b", title:"Icon number test 🔢", items:["🔢 New button in Profile → Notifications: \"Test the number on my app icon\". It shows a test number so you can see if your phone or PC displays it, and tells you what to fix if not."]},
   {v:"2026.10.05a", title:"Better on bad Wi-Fi 📶", items:["📶 On a weak connection, messages keep trying to send for a few seconds instead of failing right away, and they never send twice.","🔄 If the live connection drops, NightLane keeps pulling in new messages and reconnects by itself, so chats don't freeze."]},
   {v:"2026.10.04n", title:"Away status 💤", items:["💤 If someone hasn't touched NightLane for 2 minutes (or put it in the background), they show as offline with \"away · last seen 3m ago\". As soon as they're back, their green light comes back."]},
