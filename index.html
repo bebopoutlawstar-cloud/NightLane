@@ -1550,6 +1550,7 @@ body.desktop .deskdate .blink{animation:sxblink 1s steps(1) infinite}
 .msg.me .punct{right:-14px;left:auto;top:-22px;transform:rotate(12deg);color:var(--volt)}
 /* a message's ? / ! sits in the bubble; lift that message's column above the (framed) profile picture so the mark isn't hidden */
 .msg .col:has(> .bubble > .punct){z-index:3}
+.msg:has(> .col > .bubble > .punct) > .face{z-index:4}   /* keep the face + online light above a "!" message */
 .msg .col > .bubble:has(> .punct){z-index:2}   /* …and above the name tag (z 1), which sits right where a friend's ? pops out */   /* .col is its own layer (will-change for swipe-to-reply), so lift it, not just the bubble */
 .msg.me .punct.loud{top:-30px;right:-2px}
 .punct.loud{font-size:44px;top:-30px;color:var(--mag);-webkit-text-stroke:2px var(--night)}
@@ -11097,8 +11098,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04g";
+const APP_VERSION="2026.10.04h";
 const CHANGELOG=[
+  {v:"2026.10.04h", title:"Online light fix 🟢", items:["🟢 A friend's online light no longer hides behind their message when it ends in ! or ?."]},
   {v:"2026.10.04g", title:"See who reacted 👀", items:["👀 Hold down on a reaction under a message to see who sent it. You can also double-tap a message and pick \"See who reacted\"."]},
   {v:"2026.10.04f", title:"Reset your friend link 🔄", items:["🔄 New \"Reset my friend link\" button in Friends. Shared your link with the wrong person? Make a new one and the old link stops working."]},
   {v:"2026.10.04e", title:"Clearer voice messages 🎙️", items:[
