@@ -250,6 +250,16 @@ body.july4 .stamp::before{content:"⭐"}
 .react{font:inherit;font-size:15px;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:1px 8px;transform:rotate(-2deg);animation:pop .2s cubic-bezier(.2,1.6,.4,1) both}
 .react.mine{border-color:var(--volt)}
 .react span{font-family:var(--tech);font-size:11px;margin-left:4px}
+.react{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.rxtabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start;width:100%}
+.rxtabs button{font:inherit;font-size:15px;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:3px 10px;cursor:pointer}
+.rxtabs button span{font-family:var(--tech);font-size:11px;margin-left:4px}
+.rxtabs button.on{border-color:var(--volt);background:#2a1f63}
+.rxlist{display:grid;gap:8px;width:100%;max-height:min(50vh,360px);overflow-y:auto;text-align:left}
+.rxrow{display:flex;align-items:center;gap:10px;padding:6px 8px;background:rgba(255,255,255,.04);border-left:3px solid var(--cyan)}
+.rxrow .face{width:34px;height:34px;font-size:15px}
+.rxrow .rxname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.rxrow .rxemo{font-size:20px}
 .flash .bubble{animation:flash .9s ease}
 @keyframes flash{30%{filter:drop-shadow(0 0 14px var(--volt))}}
 
@@ -2913,6 +2923,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
         <button class="ghost iconbtn" type="button" id="inviteFriendBtn" aria-label="Invite a friend to NightLane" title="Invite a friend">📲</button>
       </div>
       <p class="msgline" id="contactMsg" role="status"></p>
+      <button type="button" class="linkbtn" id="resetInviteBtn" style="margin:0 0 10px">🔄 Reset my friend link</button>
       <h3 class="hidden" id="requestsTitle">Added you</h3>
       <div class="inbox" id="requestList"></div>
       <h3 class="hidden" id="friendsTitle">Your friends</h3>
@@ -3161,6 +3172,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <div class="menu-preview" id="menuPreview"></div>
     <div class="emoji-row" id="emojiRow"></div>
+    <button class="ghost hidden" type="button" id="menuWho">👀 See who reacted</button>
     <button class="ghost hidden" type="button" id="menuEdit">✏️ Edit message</button>
     <button class="danger hidden" type="button" id="menuDelete">🗑 Delete message</button>
     <button class="go" type="button" id="menuReply">Reply</button>
@@ -3175,6 +3187,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost hidden" type="button" id="menuBlock"></button>
     <button class="ghost hidden" type="button" id="menuReport">Report🚩</button>
     <button class="ghost" type="button" id="menuClose">Close</button>
+  </div></div>
+</div>
+
+<div class="overlay hidden" id="rxSheet" role="dialog" aria-modal="true" aria-labelledby="rxTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="rxTitle">Reactions</h2>
+    <div class="rxtabs" id="rxTabs" role="group" aria-label="Filter by emoji"></div>
+    <div class="rxlist" id="rxList"></div>
+    <button class="ghost" type="button" id="rxClose">Close</button>
   </div></div>
 </div>
 
@@ -4264,6 +4285,7 @@ const live = {
   async contacts(){ const rows=must(await sb.from("contacts").select("contact,created_at").eq("owner",user.id)); return rows.map(r=>r.contact); },
   async addedMe(){ const rows=must(await sb.from("contacts").select("owner,created_at").eq("contact",user.id)); return rows.map(r=>r.owner); },
   async myInviteToken(){ return must(await sb.rpc("my_invite_token")); },
+  async resetInviteToken(){ return must(await sb.rpc("reset_my_invite_token")); },
   async findUser(username){ return must(await sb.from("profiles").select("id,username,avatar_url,bubble_color").ilike("username",username).maybeSingle()); },
   async addContact(uid){ must(await sb.from("contacts").upsert({contact:uid},{onConflict:"owner,contact",ignoreDuplicates:true})); },
   async removeContact(uid){ must(await sb.from("contacts").delete().eq("contact",uid)); },
@@ -4688,7 +4710,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async touchSeen(){}, async acceptFriendInvite(token){ if(token!=="demo-nix") throw new Error("invalid"); contacts.add("nix"); return {username:"Nix"}; },
     async linkPreview(url){ return {title:"Example Domain",description:"This domain is for use in illustrative examples in documents.",site:"example.com"}; },
     async addedMe(){ return ["rook","vee"]; },
-    async myInviteToken(){ return "demo-me-0000000000000000000000"; },
+    async myInviteToken(){ return this._inv||"demo-me-0000000000000000000000"; },
+    async resetInviteToken(){ this._inv="demo-me-"+Math.random().toString(36).slice(2,14); return this._inv; },
     async findUser(n){ return Object.values(people).find(p=>p.username.toLowerCase()===n.toLowerCase())||null; },
     async addContact(uid){ contacts.add(uid); },
     async removeContact(uid){ contacts.delete(uid); },
@@ -5558,6 +5581,7 @@ function setReaction(r,added){
   let set=map.get(r.emoji); if(!set) map.set(r.emoji,set=new Set());
   added?set.add(r.user_id):set.delete(r.user_id);
   if(!set.size) map.delete(r.emoji);
+  if(typeof whoFor!=="undefined"&&whoFor?.id===r.message_id&&!$("rxSheet").classList.contains("hidden")) queueMicrotask(paintWhoReacted);
 }
 
 async function addMessages(list){
@@ -5711,8 +5735,13 @@ function buildMsg(m,index,noAnim){
       const r=el("button","react"+(set.has(user.id)?" mine":"")); r.type="button";
       r.append(emoji, el("span","",String(set.size)));
       r.setAttribute("aria-label",`${emoji} ${set.size}, ${set.has(user.id)?"remove your reaction":"add reaction"}`);
-      r.title=[...set].map(nameOf).join(", ");
-      r.onclick=()=>toggleReaction(m,emoji);
+      r.title=[...set].map(nameOf).join(", ")+" · hold to see who reacted";
+      let held=false, t=null;
+      const stop=()=>{ clearTimeout(t); t=null; };
+      r.addEventListener("pointerdown",e=>{ if(e.button>0) return; held=false; stop(); t=setTimeout(()=>{ held=true; try{ navigator.vibrate?.(15); }catch(_){} openWhoReacted(m,emoji); },450); });
+      ["pointerup","pointerleave","pointercancel"].forEach(ev=>r.addEventListener(ev,stop));
+      r.addEventListener("contextmenu",e=>{ e.preventDefault(); stop(); held=true; openWhoReacted(m,emoji); });
+      r.onclick=()=>{ if(held){ held=false; return; } toggleReaction(m,emoji); };
       row.append(r);
     }
     col.append(row);
@@ -5810,6 +5839,7 @@ function openMenu(m){
   });
   const more=el("button","more","+"); more.type="button"; more.setAttribute("aria-label","More reactions");
   more.onclick=()=>{ show($("msgMenu"),false); openEmojiPicker(m); }; row.append(more);
+  show($("menuWho"),!!reactionsById.get(m.id)?.size);
   show($("menuCopy"),!!m.text&&m.kind!=="sticker"); show($("menuCal"),!!m.text&&m.kind==="text");
   show($("menuTranslate"),aiOn()&&!!m.text&&m.kind!=="sticker"&&m.kind!=="poll"&&m.kind!=="game"&&!mine);
   show($("menuFx"),!!(secretFor(m.text)||fxFor(m.text))&&m.kind!=="poll"&&m.kind!=="game");
@@ -5823,6 +5853,35 @@ function openMenu(m){
   show($("msgMenu"));
 }
 $("menuClose").onclick=()=>show($("msgMenu"),false);
+$("menuWho").onclick=()=>{ show($("msgMenu"),false); if(menuMsg) openWhoReacted(menuMsg,null); };
+
+/* ---------- who reacted with what ---------- */
+let whoFor=null, whoPick=null;
+function openWhoReacted(m,emoji){ whoFor=m; whoPick=emoji; paintWhoReacted(); show($("rxSheet"));
+  const unknown=[...(reactionsById.get(m.id)||new Map()).values()].flatMap(set=>[...set]).filter(uid=>!cache.get(uid)?.username);
+  if(unknown.length&&typeof refreshProfiles==="function") Promise.resolve(refreshProfiles(unknown)).then(()=>{ if(whoFor===m) paintWhoReacted(); }).catch(()=>{});
+}
+function paintWhoReacted(){
+  const map=whoFor&&reactionsById.get(whoFor.id);
+  if(!map||!map.size){ show($("rxSheet"),false); return; }
+  if(whoPick&&!map.has(whoPick)) whoPick=null;
+  const tabs=$("rxTabs"), list=$("rxList"); tabs.innerHTML=""; list.innerHTML="";
+  const total=[...map.values()].reduce((n,set)=>n+set.size,0);
+  const tab=(label,count,key)=>{ const b=el("button",whoPick===key?"on":""); b.type="button"; b.append(label,el("span","",String(count))); b.setAttribute("aria-pressed",String(whoPick===key)); b.onclick=()=>{ whoPick=key; paintWhoReacted(); }; tabs.append(b); };
+  tab("All",total,null);
+  for(const [e,set] of map) tab(e,set.size,e);
+  const rows=[];
+  for(const [e,set] of map){ if(whoPick&&e!==whoPick) continue; for(const uid of set) rows.push([uid,e]); }
+  rows.sort((a,b)=>(a[0]===user.id)-(b[0]===user.id)||nameOf(a[0]).localeCompare(nameOf(b[0])));
+  rows.forEach(([uid,e])=>{
+    const row=el("div","rxrow"), f=el("span","face"); paintFace(f,cache.get(uid)||{username:nameOf(uid)});
+    row.append(f, el("span","rxname",uid===user.id?"You":nameOf(uid)), el("span","rxemo",e));
+    list.append(row);
+  });
+  $("rxTitle").textContent=whoPick?`${whoPick} Reactions`:"Reactions";
+}
+$("rxClose").onclick=()=>show($("rxSheet"),false);
+$("rxSheet").addEventListener("click",e=>{ if(e.target.id==="rxSheet") show($("rxSheet"),false); });
 $("menuReport").onclick=()=>{ show($("msgMenu"),false); reportReason=null; $("reportDetails").value=""; say("reportMsg",""); document.querySelectorAll("#reportSheet [data-reason]").forEach(x=>x.classList.remove("on")); show($("reportSheet")); };
 $("reportClose").onclick=()=>show($("reportSheet"),false);
 $("reportSheet").addEventListener("click",e=>{ if(e.target.id==="reportSheet") show($("reportSheet"),false); });
@@ -9741,6 +9800,17 @@ $("inviteFriendBtn").onclick=async()=>{
   if(navigator.share){ try{ await navigator.share({title:"Join me on NightLane",text,url:u}); return; }catch(e){} }
   try{ await navigator.clipboard.writeText(u); say("contactMsg","Your invite link is copied. Anyone who opens it becomes your friend."); }catch(e){ say("contactMsg",u); }
 };
+$("resetInviteBtn").onclick=async()=>{
+  if(!confirm("Make a new friend link? Your old link stops working right away. Friends you already have stay your friends.")) return;
+  const btn=$("resetInviteBtn"); btn.disabled=true;
+  try{
+    const r=await api.resetInviteToken();
+    const tok=typeof r==="string"?r:(r?.token||r?.invite_token||(Array.isArray(r)?(typeof r[0]==="string"?r[0]:r[0]?.token||r[0]?.invite_token):null));
+    myInviteTok=tok||null; if(!myInviteTok){ try{ myInviteTok=await api.myInviteToken(); }catch(e){} }
+    say("contactMsg","Done ✅ Your old friend link is dead. Tap 📲 to share your new one.");
+  }catch(err){ say("contactMsg","Couldn't reset your link: "+err.message,true); }
+  finally{ btn.disabled=false; }
+};
 async function handleFriendInvite(token){
   try{ const r=await api.acceptFriendInvite(token); await loadContacts(); const name=r?.username||"your friend";
     say("contactMsg",`You and ${name} are friends now 🤝`); setFrontTab("contacts"); if(fxEnabled()&&typeof FX!=="undefined") FX.play("hearts"); }
@@ -11027,8 +11097,10 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.04e";
+const APP_VERSION="2026.10.04g";
 const CHANGELOG=[
+  {v:"2026.10.04g", title:"See who reacted 👀", items:["👀 Hold down on a reaction under a message to see who sent it. You can also double-tap a message and pick \"See who reacted\"."]},
+  {v:"2026.10.04f", title:"Reset your friend link 🔄", items:["🔄 New \"Reset my friend link\" button in Friends. Shared your link with the wrong person? Make a new one and the old link stops working."]},
   {v:"2026.10.04e", title:"Clearer voice messages 🎙️", items:[
     "🎙️ Voice messages record as one smooth clip at higher quality, so they don't sound choppy anymore.",
   ]},
