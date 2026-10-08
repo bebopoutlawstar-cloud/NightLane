@@ -969,6 +969,23 @@ html,body{overscroll-behavior:none}
 .bubble{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
 /* ===== ai / dates / tasks / disappearing ===== */
+.dailybar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:linear-gradient(90deg,rgba(243,255,58,.10),rgba(7,4,26,.9) 60%);border-bottom:2px solid var(--volt)}
+.dailybar .db-icon{font-size:20px;flex:none}
+.dailybar .db-body{flex:1;min-width:0;display:grid;line-height:1.2}
+.dailybar .db-body small{font-family:var(--tech);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--volt)}
+.dailybar .db-body span{font-size:14px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dailybar .db-go{flex:none;font-family:var(--tech);font-size:11px;font-weight:700;text-transform:uppercase;background:var(--volt);color:var(--night);border:none;padding:7px 10px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
+.dailybar .db-dice{flex:none;background:none;border:2px solid var(--cyan);font-size:17px;line-height:1;padding:4px 6px}
+.dailybar .db-x{flex:none;background:none;border:none;color:var(--muted);font-size:16px;padding:4px}
+.gamepick.flashpick{animation:flashpick 1.4s ease 2}
+@keyframes flashpick{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 3px var(--volt),0 0 18px var(--volt)}}
+.tour-icon{font-size:46px;line-height:1;text-align:center}
+#tourSheet .sub{text-align:center}
+.tour-try{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tour-try button{font:inherit;font-size:15px;font-weight:700;background:var(--night);color:var(--white);border:2px solid var(--cyan);padding:7px 12px;transform:skewX(-6deg)}
+.tour-dots{display:flex;gap:7px;justify-content:center;margin:4px 0}
+.tour-dots i{width:9px;height:9px;border:2px solid var(--cyan);transform:rotate(45deg)}
+.tour-dots i.on{background:var(--volt);border-color:var(--volt)}
 .catchup{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(7,4,26,.9);border-bottom:2px solid var(--cyan)}
 .catchbtn{flex:1;text-align:left;background:linear-gradient(90deg,rgba(0,240,255,.18),transparent);border:2px solid var(--cyan);color:var(--white);font-family:var(--tech);font-size:12px;padding:8px 10px;clip-path:polygon(0 0,98% 0,100% 40%,100% 100%,2% 100%,0 60%)}
 .sumbody{width:100%;display:grid;gap:10px}
@@ -2967,6 +2984,13 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div>
   <div class="herebar hidden" id="hereBar"></div>
   <div class="catchup hidden" id="catchUp"><button type="button" class="catchbtn" id="catchUpBtn"><span id="catchUpText"></span></button><button type="button" class="ib-x" id="catchUpX" aria-label="Dismiss">✕</button></div>
+  <div class="dailybar hidden" id="dailyBar">
+    <span class="db-icon" id="dailyIcon" aria-hidden="true">❓</span>
+    <span class="db-body"><small id="dailyLabel">Question of the day</small><span id="dailyText"></span></span>
+    <button type="button" class="db-go" id="dailyGo">Answer</button>
+    <button type="button" class="db-dice" id="dailyDice" aria-label="Surprise me" title="Surprise me">🎲</button>
+    <button type="button" class="ib-x db-x" id="dailyX" aria-label="Hide for today">✕</button>
+  </div>
   <div class="pinbar hidden" id="pinBar">
     <button type="button" class="pinmain" id="pinJump"><span class="pinicon" aria-hidden="true">📌</span><span class="pintext" id="pinText"></span><span class="pincount" id="pinCount"></span></button>
   </div>
@@ -3657,10 +3681,30 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>🛡️ Staying safe (blocking/removing friends)</h3>
     <p class="sub">If you feel unsafe or uncomfortable, you can unfriend users by going to their profile and selecting "Remove friend".</p>
     <p class="sub">You can also block someone: tap one of their messages → Block. You can unblock them later from your Profile.</p>
+    <button class="ghost" type="button" id="tipTour">✨ Replay the tour</button>
     <button class="go" type="button" id="tipClose">Got it</button>
   </div></div>
 </div>
 
+
+<!-- ============ Tour Sheet ============ -->
+<div class="overlay hidden" id="tourSheet" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+  <div class="sheet"><div class="sheetbody">
+    <div class="tour-icon" id="tourIcon" aria-hidden="true">✨</div>
+    <h2 id="tourTitle">Secret words</h2>
+    <p class="sub" id="tourText"></p>
+    <div class="tour-try" id="tourTry">
+      <button type="button" data-fx="boom">💥 boom</button>
+      <button type="button" data-fx="confetti">🎉 congrats</button>
+      <button type="button" data-fx="night">🌠 good night</button>
+      <button type="button" data-fx="hype" data-text="LET'S GO">🏆 let's go</button>
+    </div>
+    <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+    <button class="go" type="button" id="tourNext">Next</button>
+    <button class="ghost hidden" type="button" id="tourBack">Back</button>
+    <button class="ghost" type="button" id="tourSkip">Skip tour</button>
+  </div></div>
+</div>
 
 <!-- ============ Welcome Sheet ============ -->
 <div class="overlay hidden" id="welcomeSheet" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
@@ -3674,6 +3718,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub">Tap a friend's profile to see your bond and its meaning</p>
     <h3>🎨 Themes & colors</h3>
     <p class="sub">Change your theme, colors, and profile frame in Profile → Theme & colors 🎨</p>
+    <button class="go" type="button" id="welcomeTour">✨ Show me the fun stuff</button>
     <button class="go" type="button" id="welcomeFriends">Find my friends</button>
     <button class="ghost" type="button" id="welcomeTip">Need help? See tips</button>
     <button class="ghost" type="button" id="welcomeClose">Skip intro</button>
@@ -5284,7 +5329,120 @@ $("welcomeTip").onclick=()=>{ show($("welcomeSheet"),false); show($("tipSheet"))
 $("tipClose").onclick=()=>show($("tipSheet"),false);
 $("tipSheet").addEventListener("click",e=>{ if(e.target.id==="tipSheet") show($("tipSheet"),false); });
 
+
+/* ================= FUN STARTERS: guided tour · question of the day · game night · 🎲 surprise me ================= */
+/* --- question of the day: the same question for everyone today, a new one at midnight --- */
+const QOTD=[
+  "What game could you replay forever?","Best anime opening of all time?","What's a hill you'll die on?","Dream vacation, no budget?",
+  "What's your comfort show or movie?","Which game world would you actually want to live in?","Most underrated snack?","What song is stuck in your head right now?",
+  "If you could master any skill overnight, what would it be?","Pineapple on pizza: yes or no?","What's the best thing that happened to you this week?","Which fictional character is basically you?",
+  "What's a game you rage quit and never went back to?","Coffee, tea, or energy drink?","What's your go-to karaoke song?","If you had a theme song, what would it be?",
+  "What's one thing you're looking forward to?","Best boss fight you've ever played?","What would your superpower be?","What's the last thing that made you laugh out loud?",
+  "Sunrise or sunset?","Which anime deserves a sequel the most?","What's your most used emoji?","What's a weird talent you have?",
+  "Favorite fast food order?","What's a game everyone should play at least once?","Night owl or early bird?","What was your first console?",
+  "Best movie you watched this year?","What fictional food do you want to try?","If you could swap lives with a character for a day, who?","What's your current obsession?",
+  "Cats or dogs?","Which video game soundtrack goes the hardest?","What's a hobby you want to pick up?","Describe your week with a GIF (send one!)",
+  "What's your ideal Friday night?","Which villain was actually right?","What's something small that makes your day better?","Best co-op game to play with friends?",
+  "What's your most controversial food opinion?","If NightLane had a mascot, what would it be?","What did you want to be when you were a kid?","Which season is the best?",
+  "What's a show you'd recommend to everyone here?","What's the hardest achievement you've ever unlocked?","If you started a band, what's the name?","What's a little win you had today?",
+  "Who in this chat would survive a zombie apocalypse?","What's your favorite way to waste time?","Spicy or sweet?","Which game character would you date?",
+  "What's on your backlog that you keep putting off?","What's your all-time favorite holiday?","What's a movie quote you use way too much?","What's the best gift you've ever gotten?",
+];
+const dayNumber=()=>{ const d=new Date(); return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); };
+const qotdToday=()=>QOTD[dayNumber()%QOTD.length];
+const isGameNight=()=>new Date().getDay()===5;   // Friday
+function dailyDismissed(code){ try{ const s=JSON.parse(LS.get("nl-daily-x")||"{}"); return s.day===dayNumber()&&(s.rooms||[]).includes(code); }catch(e){ return false; } }
+function dismissDaily(code){ try{ const s=JSON.parse(LS.get("nl-daily-x")||"{}"); const rooms=s.day===dayNumber()?(s.rooms||[]):[]; rooms.push(code); LS.set("nl-daily-x",JSON.stringify({day:dayNumber(),rooms:rooms.slice(-60)})); }catch(e){} }
+function paintDailyBar(){
+  const bar=$("dailyBar"); if(!bar) return;
+  if(!room||dailyDismissed(room)){ show(bar,false); return; }
+  const gn=isGameNight();
+  $("dailyIcon").textContent=gn?"🎮":"❓";
+  $("dailyLabel").textContent=gn?"Friday game night":"Question of the day";
+  $("dailyText").textContent=gn?"Start a game with the crew tonight":qotdToday();
+  $("dailyGo").textContent=gn?"Play":"Answer";
+  show(bar,true);
+}
+$("dailyGo").onclick=()=>{
+  if(isGameNight()){ openGamesTray(); return; }
+  const box=$("box"); box.value="❓ "+qotdToday()+"\n"; box.dispatchEvent(new Event("input")); box.focus();
+  try{ box.setSelectionRange(box.value.length,box.value.length); }catch(e){}
+};
+$("dailyX").onclick=()=>{ if(room) dismissDaily(room); show($("dailyBar"),false); };
+function openGamesTray(pick){
+  if(!room) return;
+  if($("tray").classList.contains("hidden")){ paintStickers(); show($("tray")); $("plusBtn").setAttribute("aria-expanded","true"); }
+  $("trayGames").click();
+  if(pick){ const b=document.querySelector(`#gameList .gamepick[data-game="${pick}"]`); if(b){ b.classList.remove("flashpick"); void b.offsetWidth; b.classList.add("flashpick"); b.scrollIntoView({block:"nearest"}); } }
+}
+
+/* --- 🎲 surprise me: something fun to try right now --- */
+const SURPRISE_WORDS=[["let's go","🏆"],["boom","💥"],["congrats","🎉"],["good night","🌠"],["lol","😂"],["lit","🔥"],["mwah","💋"],["love you","💖"]];
+const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS"};
+let lastSurprise=-1;
+function surpriseMe(){
+  if(!room) return;
+  const opts=["word","game","secret"]; if(isDm&&dmUser) opts.push("bond");
+  let k; do{ k=Math.floor(Math.random()*opts.length); }while(k===lastSurprise&&opts.length>1); lastSurprise=k;
+  const kind=opts[k];
+  if(kind==="word"){
+    const [w,e]=SURPRISE_WORDS[Math.floor(Math.random()*SURPRISE_WORDS.length)];
+    const box=$("box"); box.value=w; box.dispatchEvent(new Event("input")); box.focus();
+    toast("🎲 Try this",`Send "${w}" ${e} and watch the screen.`);
+  } else if(kind==="game"){
+    const ids=Object.keys(GAME_NAMES), g=ids[Math.floor(Math.random()*ids.length)];
+    openGamesTray(g); toast("🎲 Game time",`How about ${GAME_NAMES[g]}? Tap it to challenge ${isDm&&dmUser?nameOf(dmUser):"the room"}.`);
+  } else if(kind==="secret"){
+    const total=SECRET_LIST.length, found=countFound(foundSecrets());
+    toast("🤫 Secret hunt",`NightLane has ${total} hidden secret words and you've found ${found}. Try quoting a famous line from an anime, game or movie.`);
+  } else {
+    const r=socialLinks.get(dmUser), info=rankFromXp(r?.xp||0);
+    toast("✨ Social Bond",info.rank>=10?`You and ${nameOf(dmUser)} are maxed out at rank 10!`:`You and ${nameOf(dmUser)} are rank ${info.rank}. Keep chatting to reach rank ${info.rank+1}.`);
+  }
+}
+$("dailyDice").onclick=surpriseMe;
+
+/* --- guided tour: a quick look at the fun stuff (once for everyone, replay from Tips) --- */
+let tourStep=0;
+function tourSteps(){
+  const found=countFound(foundSecrets()), total=SECRET_LIST.length;
+  const bonds=[...socialLinks.entries()].map(([uid,r])=>({uid,rank:rankFromXp(r?.xp||0).rank})).filter(b=>cache.get(b.uid)).sort((a,b)=>b.rank-a.rank);
+  const best=bonds[0];
+  return [
+    {icon:"✨",title:"Secret words",text:`Some words set off effects on everyone's screen. Tap one to see it. There are also ${total} hidden secrets nobody tells you about. You've found ${found}.`,try:true},
+    {icon:"🎮",title:"Games in every chat",text:"Tic-tac-toe, King's Court, Crazy Eights, Liar's Dice, Mancala and BS live right inside your chats. In any room or DM, tap ＋ then Games."},
+    {icon:"🤝",title:"Social Bonds",text:"Every chat with a friend grows your bond, from rank 1 to 10. Higher ranks unlock DM backgrounds at rank 3 and bubble styles at rank 4. Tap a friend's picture to see yours."+(best?` Your strongest bond right now: ${nameOf(best.uid)}, rank ${best.rank}.`:"")},
+    {icon:"❓",title:"Something new every day",text:"Each chat gets a question of the day, Fridays are game night, and the 🎲 button gives you something fun to try whenever things get quiet."},
+  ];
+}
+function paintTour(){
+  const steps=tourSteps(), s=steps[tourStep];
+  $("tourIcon").textContent=s.icon; $("tourTitle").textContent=s.title; $("tourText").textContent=s.text;
+  show($("tourTry"),!!s.try);
+  $("tourDots").innerHTML=""; steps.forEach((_,i)=>$("tourDots").append(el("i",i===tourStep?"on":"")));
+  show($("tourBack"),tourStep>0);
+  $("tourNext").textContent=tourStep===steps.length-1?"Let's go!":"Next";
+}
+function openTour(){ tourStep=0; paintTour(); show($("tourSheet")); }
+function closeTour(){ show($("tourSheet"),false); try{ LS.set("nl-tour-done","1"); }catch(e){} }
+$("tourNext").onclick=()=>{ if(tourStep>=tourSteps().length-1){ closeTour(); if(fxEnabled()) FX.play("confetti"); return; } tourStep++; paintTour(); };
+$("tourBack").onclick=()=>{ if(tourStep>0){ tourStep--; paintTour(); } };
+$("tourSkip").onclick=closeTour;
+$("tourTry").querySelectorAll("[data-fx]").forEach(b=>b.onclick=()=>{
+  if(!fxEnabled()){ toast("Effects are off","Turn on Screen effects in Profile → Notifications & effects to see them."); return; }
+  if(reducedMotion()){ toast("Effects are paused","Your device asks for reduced motion, so effects stay still."); return; }
+  FX.play(b.dataset.fx,{text:b.dataset.text||undefined});
+});
+$("welcomeTour").onclick=()=>{ show($("welcomeSheet"),false); openTour(); };
+$("tipTour").onclick=()=>{ show($("tipSheet"),false); openTour(); };
+function maybeTour(){   // everyone gets the tour once, after the Welcome intro has been seen
+  let done=false, welcomed=false; try{ done=LS.get("nl-tour-done")==="1"; welcomed=!!LS.get("nl-welcome-shown"); }catch(e){}
+  if(done||!welcomed) return;
+  setTimeout(()=>{ if(!user||document.querySelector(".overlay:not(.hidden)")) return; openTour(); },3500);
+}
+
 function maybeWelcome(){
+  maybeTour();
   if(LS.get("nl-welcome-shown")) return;
   show($("welcomeSheet"));
   LS.set("nl-welcome-shown","1");
@@ -5583,6 +5741,7 @@ async function enterRoom(code,token){
     if(seq!==enterSeq) return;
     if(result==="created"&&!latest.length) feed.innerHTML='<p class="empty">You made a new private room. Tap Room to name it and invite friends.</p>';
     markReadSoon();
+    paintDailyBar();
     unsub=api.subscribe(room,roomHandlers={
       msg:m=>{ stopTyping(m.user_id); addMessages([m]).then(()=>{ if(m.user_id!==user.id) markReadSoon(); }); },
       msgGone:removeMessage,
@@ -11207,8 +11366,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08a";
+const APP_VERSION="2026.10.08b";
 const CHANGELOG=[
+  {v:"2026.10.08b", title:"More fun, every day 🎲", items:["✨ A quick tour of the fun stuff: secret words you can try right away, the games in every chat, and Social Bonds. Replay it anytime from Tips.","❓ Every chat gets a question of the day. Tap Answer to reply to it.","🎮 Fridays are game night: one tap opens the games.","🎲 The new 🎲 button gives you something fun to try: an effect word, a game, a secret hunt hint, or your bond rank."]},
   {v:"2026.10.08a", title:"Status timers ⏱️", items:["⏱️ Pick when your status clears itself: 30 minutes, 2 hours, 4 hours, 24 hours, or never. Your own status shows how long it has left."]},
   {v:"2026.10.05c", title:"About & Contact pages 📄", items:["📄 New About and Contact & Support pages, plus a footer on the sign-in screen, Terms and Privacy with links to all of them and our support email."]},
   {v:"2026.10.05b", title:"Icon number test 🔢", items:["🔢 New button in Profile → Notifications: \"Test the number on my app icon\". It shows a test number so you can see if your phone or PC displays it, and tells you what to fix if not."]},
