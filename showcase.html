@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NightLane · Showcase</title>
+<meta name="description" content="NightLane: a private, retro neon punk messenger for small crews. Features, the phone and PC looks, and how to help test on Android.">
+<meta property="og:title" content="NightLane">
+<meta property="og:description" content="A private, retro neon punk messenger for small crews. No ads, no trackers.">
+<meta property="og:image" content="https://nightlane.chat/showcase.png">
+<meta name="theme-color" content="#07041A">
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+html{background:#07041A}
+/* Layout: one neon column, a tilted date-stamp hero like the app's own front screen, then feature "panels" and a build log */
+:root{
+  --night:#07041A; --deep:#140A3A; --panel:#0E0830;
+  --cyan:#00F0FF; --mag:#C65AAE; --volt:#F3FF3A; --white:#F4F7FF; --muted:#B9B3E0; --line:rgba(0,240,255,.28);
+  --display:"Anton",Impact,"Arial Narrow",sans-serif;
+  --tech:"Orbitron","Arial Black",sans-serif;
+  --body:"Rajdhani","Arial Narrow",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:radial-gradient(circle at 88% 0%,rgba(198,90,174,.2),transparent 42%),radial-gradient(circle at 0% 60%,rgba(0,240,255,.12),transparent 45%),linear-gradient(180deg,var(--night),var(--deep));background-color:var(--night);color:var(--white);font:500 18px/1.55 var(--body);margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-inline:18px;padding-block:36px 64px;display:grid;gap:44px}
+a{color:var(--cyan)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--volt);outline-offset:3px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+.kicker{font:700 13px/1 var(--tech);letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin:0 0 10px}
+h1{font:400 clamp(58px,13vw,112px)/.88 var(--display);letter-spacing:1px;margin:0;color:#fff;text-shadow:-3px 0 var(--cyan),5px 5px 0 var(--mag)}
+h1 b{color:var(--volt);font-weight:400}
+.tag{font-size:clamp(19px,3.4vw,23px);color:#E9E7FF;margin:16px 0 0;max-width:34ch;text-wrap:balance}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.btn{font:700 15px/1 var(--tech);letter-spacing:1px;text-transform:uppercase;text-decoration:none;padding:14px 20px;clip-path:polygon(0 0,100% 0,94% 100%,0 100%);display:inline-block}
+.btn.go{background:var(--cyan);color:var(--night)}
+.btn.ghost{background:transparent;color:var(--volt);border:2px solid var(--volt);clip-path:none;transform:skewX(-6deg)}
+.stamp{position:relative;width:190px;aspect-ratio:1/1.05;transform:rotate(-8deg);flex:none}
+.stamp .plate{position:absolute;inset:10% 0 22% 4%;background:var(--night);border:3px solid var(--cyan);box-shadow:7px 7px 0 var(--mag)}
+.stamp .mo{position:absolute;left:10%;top:16%;font:400 64px/.8 var(--display);color:var(--night);-webkit-text-stroke:2px var(--cyan);text-shadow:3px 3px 0 var(--mag)}
+.stamp .dy{position:absolute;left:44%;top:6%;font:400 112px/.8 var(--display);color:#fff;text-shadow:-3px 0 var(--cyan),4px 4px 0 var(--mag)}
+.stamp .wd{position:absolute;right:0;bottom:22%;font:900 15px/1 var(--tech);background:var(--mag);color:var(--night);padding:5px 10px 3px;border:3px solid var(--night);transform:rotate(-12deg)}
+.stamp .ph{position:absolute;left:0;bottom:2%;font:900 22px/1 var(--tech);color:var(--cyan);background:var(--night);border:3px solid var(--cyan);padding:4px 10px}
+
+/* facts strip */
+.facts{display:flex;flex-wrap:wrap;gap:10px 26px;border-block:1px solid var(--line);padding-block:14px;font:700 14px/1.3 var(--tech);letter-spacing:.5px;color:var(--muted);text-transform:uppercase}
+.facts span b{color:var(--volt);font-size:18px;margin-right:6px;font-variant-numeric:tabular-nums}
+
+h2{font:900 clamp(22px,4.6vw,30px)/1.1 var(--tech);margin:0 0 6px;letter-spacing:.5px;text-wrap:balance}
+h2 .hi{color:var(--volt)}
+.lead{color:var(--muted);margin:0 0 18px;max-width:62ch}
+
+/* feature panels */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:16px}
+.panel{background:rgba(14,8,48,.82);border:2px solid #3b2d80;padding:16px 18px;display:grid;gap:6px;align-content:start;min-width:0}
+.panel h3{font:700 15px/1.2 var(--tech);letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin:0}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.panel li{color:#E9E7FF}
+.panel.feature{border-color:var(--mag);box-shadow:6px 6px 0 rgba(198,90,174,.35)}
+.panel.feature h3{color:var(--volt)}
+
+/* two looks */
+.looks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.look{padding:16px 18px;min-width:0}
+.look.phone{background:linear-gradient(160deg,#1b0f4a,#0b0628);border:2px solid var(--cyan)}
+.look.pc{background:#03110a;border:1px solid rgba(124,255,107,.45);font-family:ui-monospace,Menlo,Consolas,monospace;color:#7CFF6B;font-size:15px}
+.look.pc h3{font-family:ui-monospace,Menlo,Consolas,monospace;color:#7CFF6B;letter-spacing:0;text-transform:none}
+.look.pc .cmd{color:#ff8a1f;margin:6px 0 0}
+.look h3{font:700 15px/1.2 var(--tech);letter-spacing:1px;text-transform:uppercase;color:var(--volt);margin:0 0 6px}
+.look p{margin:0;color:inherit}
+
+/* build log */
+.log{display:grid;gap:0;border-left:3px solid var(--mag);margin-left:6px}
+.log div{display:grid;grid-template-columns:minmax(92px,auto) minmax(0,1fr);gap:14px;padding:8px 0 8px 16px;position:relative}
+.log div::before{content:"";position:absolute;left:-8px;top:15px;width:13px;height:13px;background:var(--night);border:3px solid var(--cyan);transform:rotate(45deg)}
+.log time{font:700 14px/1.6 var(--tech);color:var(--volt);font-variant-numeric:tabular-nums}
+.log p{margin:0;color:#E9E7FF}
+
+.stack{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 13px/1 var(--tech);letter-spacing:.5px;border:1px solid var(--line);padding:8px 11px;color:var(--white);background:rgba(0,240,255,.06)}
+
+.join{background:var(--panel);border:3px solid var(--cyan);padding:20px 22px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));display:grid;gap:10px}
+.join h2{color:var(--volt)}
+.mailrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.mail{font:700 18px/1 var(--tech);color:#fff;background:rgba(0,0,0,.35);border:1px solid var(--line);padding:11px 13px;user-select:all;overflow-wrap:anywhere}
+.copy{font:700 13px/1 var(--tech);letter-spacing:1px;text-transform:uppercase;background:var(--volt);color:var(--night);border:none;padding:12px 14px;cursor:pointer}
+.note{font-size:15px;color:var(--muted);margin:0}
+footer{color:var(--muted);font-size:15px;border-top:1px solid var(--line);padding-top:14px;display:grid;gap:4px}
+
+@media (max-width:560px){ .hero{grid-template-columns:minmax(0,1fr)} .stamp{width:150px;justify-self:end;margin-top:-6px} .stamp .mo{font-size:50px} .stamp .dy{font-size:88px} }
+@media (prefers-reduced-motion:no-preference){ .stamp{animation:drop .7s cubic-bezier(.2,1.5,.4,1) both} @keyframes drop{from{transform:rotate(-20deg) scale(.85)}} }
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <header class="hero">
+    <div>
+      <p class="kicker">Private messenger · phone + PC</p>
+      <h1>NIGHT<b>LANE</b></h1>
+      <p class="tag">A retro neon punk messenger inspired by gamer culture, built for small crews who want a place to really be themselves.</p>
+      <div class="ctas">
+        <a class="btn go" href="./">Open NightLane</a>
+        <a class="btn ghost" href="#join">Help test on Android</a>
+      </div>
+    </div>
+    <div class="stamp" aria-hidden="true">
+      <div class="plate"></div><div class="mo">10</div><div class="dy">5</div><div class="wd">MONDAY</div><div class="ph">Night</div>
+    </div>
+  </header>
+
+  <div class="facts" aria-label="Quick facts">
+    <span><b>113</b>updates shipped</span>
+    <span><b>2</b>weeks from first version</span>
+    <span><b>13+</b>age limit</span>
+    <span><b>0</b>ads or trackers</span>
+  </div>
+
+  <section>
+    <h2>Everything a crew <span class="hi">needs</span></h2>
+    <p class="lead">Rooms for the group, DMs for the two of you, and a pile of extras that make it feel like your own hangout instead of a utility.</p>
+    <div class="grid">
+      <div class="panel">
+        <h3>Chat</h3>
+        <ul>
+          <li>Group rooms and private DMs</li>
+          <li>Replies, pins, edits, polls</li>
+          <li>Reactions, with who reacted</li>
+          <li>Disappearing messages</li>
+          <li>Built-in translation and search</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Share</h3>
+        <ul>
+          <li>Voice messages</li>
+          <li>Photos, videos, GIFs, stickers</li>
+          <li>Spoiler-blurred photos</li>
+          <li>E-cards for birthdays and more</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Presence</h3>
+        <ul>
+          <li>Read receipts and typing dots</li>
+          <li>Online, away and Do Not Disturb</li>
+          <li>A custom status line</li>
+          <li>Birthday cake on your picture</li>
+        </ul>
+      </div>
+      <div class="panel feature">
+        <h3>Social Bonds</h3>
+        <ul>
+          <li>Friendship ranks that grow as you talk</li>
+          <li>Unlock DM backgrounds and bubble styles</li>
+          <li>Checked by the server, so nobody skips ahead</li>
+        </ul>
+      </div>
+      <div class="panel feature">
+        <h3>Play</h3>
+        <ul>
+          <li>Crazy Eights, BS, tic-tac-toe</li>
+          <li>Roll a d20 right in chat</li>
+          <li>Dozens of secret words that set off screen effects</li>
+        </ul>
+      </div>
+      <div class="panel feature">
+        <h3>Track</h3>
+        <ul>
+          <li>Game, anime, movie and TV backlog</li>
+          <li>Your own posters, shared with your crew</li>
+          <li>Daily habit tracker that earns stats</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two sides, <span class="hi">two looks</span></h2>
+    <p class="lead">NightLane doesn't just stretch the phone app onto a big screen. Each side has its own personality.</p>
+    <div class="looks">
+      <div class="look phone">
+        <h3>On your phone</h3>
+        <p>A big tilted date stamp on the front screen, angled Persona-style bubbles, "!" and "?" pop-outs, and holiday stickers that change through the year.</p>
+      </div>
+      <div class="look pc">
+        <h3>&gt; on your PC_</h3>
+        <p>A green terminal layout with keyboard shortcuts and pixel-art holiday sprites under the date.</p>
+        <p class="cmd">&gt; boo.exe is running</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Made to be <span class="hi">yours</span></h2>
+    <div class="grid">
+      <div class="panel"><h3>Style</h3><ul><li>17 profile frames</li><li>Themes and bubble colors</li><li>Status dot shapes</li></ul></div>
+      <div class="panel"><h3>Safety</h3><ul><li>Block and report</li><li>Reset your friend link anytime</li><li>Chats hidden from anyone outside them</li></ul></div>
+      <div class="panel"><h3>Reliable</h3><ul><li>Installs like an app on phone and PC</li><li>Push notifications and icon badges</li><li>Keeps working on weak Wi-Fi</li><li>Colorblind mode and reduced motion</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Build <span class="hi">log</span></h2>
+    <p class="lead">Built and shipped in small, tested updates, each with its own version number and changelog note.</p>
+    <div class="log">
+      <div><time>Sept 22</time><p>First tracked version: rooms, DMs and the neon look.</p></div>
+      <div><time>Late Sept</time><p>Renamed to NightLane and moved to nightlane.chat. Games, backlog, Social Bonds and secret effects arrive.</p></div>
+      <div><time>Oct 4</time><p>Google Play closed test approved and published. Statuses, e-cards and see-who-reacted ship.</p></div>
+      <div><time>Oct 5</time><p>Away status, PC holiday pixel art, weak Wi-Fi fixes, and the About and Contact pages. Version 113.</p></div>
+      <div><time>Next</time><p>Voice and video calls in DMs, then the public Google Play launch.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Under the <span class="hi">hood</span></h2>
+    <p class="lead">An installable web app (PWA) backed by Supabase, wrapped for Android as a Trusted Web Activity.</p>
+    <div class="stack" aria-label="Tech stack">
+      <span class="chip">HTML · CSS · JavaScript</span>
+      <span class="chip">PWA + service worker</span>
+      <span class="chip">Supabase Postgres</span>
+      <span class="chip">Row-level security</span>
+      <span class="chip">Realtime + presence</span>
+      <span class="chip">Edge Functions</span>
+      <span class="chip">Web Push</span>
+      <span class="chip">GitHub Pages</span>
+      <span class="chip">Google Play (TWA)</span>
+    </div>
+  </section>
+
+  <section class="join" id="join">
+    <h2>Help test on Android</h2>
+    <p style="margin:0">NightLane is in Google Play closed testing. Email the Gmail address you use on the Play Store and you'll get an invite link to install it.</p>
+    <div class="mailrow">
+      <span class="mail" id="mailAddr">support@nightlane.chat</span>
+      <button class="copy" type="button" id="copyMail">Copy email</button>
+    </div>
+    <p class="note" id="copyMsg" role="status">Testers need to stay opted in for 14 days. iPhone and PC users can just open nightlane.chat.</p>
+  </section>
+
+  <footer>
+    <div>Made by Cole Eggly · Las Vegas, NV</div>
+    <div><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></div>
+  </footer>
+</main>
+
+<script>
+document.getElementById("copyMail").addEventListener("click",()=>{
+  const t="support@nightlane.chat", msg=document.getElementById("copyMsg");
+  const pick=()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById("mailAddr")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent="Selected. Copy it with your keyboard or long-press."; };
+  try{ navigator.clipboard.writeText(t).then(()=>{ msg.textContent="Copied: support@nightlane.chat"; },pick); }catch(e){ pick(); }
+});
+</script>
+
+</body>
+</html>
