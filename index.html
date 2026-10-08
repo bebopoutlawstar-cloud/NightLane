@@ -3289,6 +3289,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <input class="field" id="stText" maxlength="60" placeholder="What's up?" autocomplete="off">
     </div>
     <div class="stemojis hidden" id="stEmojis" role="group" aria-label="Pick an emoji"></div>
+    <label class="colorpick left" for="stUntil"><span>⏱️ Clear after</span>
+      <select class="field" id="stUntil">
+        <option value="0">Don't clear</option>
+        <option value="30">30 minutes</option>
+        <option value="120">2 hours</option>
+        <option value="240">4 hours</option>
+        <option value="1440">24 hours</option>
+      </select>
+    </label>
     <p class="msgline" id="stMsg" role="status"></p>
     <button class="go" type="submit" id="stSave">Save status</button>
     <button class="ghost" type="button" id="stClear">Clear status</button>
@@ -4285,13 +4294,20 @@ const live = {
   async updatePassword(pw){ must(await sb.auth.updateUser({password:pw})); },
   async deleteAccount(){ must(await sb.rpc("delete_my_account")); await sb.auth.signOut(); },
   async profiles(ids){   // (falls back without status / tz until the new SQL has been run)
+    const su=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at,status_until").in("id",ids);
+    if(!su.error) return su.data||[];
     const st=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at").in("id",ids);
     if(!st.error) return st.data||[];
     const r=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz").in("id",ids);
     if(r.error&&/tz/.test(r.error.message||"")) return must(await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana").in("id",ids));
     return must(r); },
   async saveTz(uid,tz){ await sb.from("profiles").update({tz}).eq("id",uid); },
-  async setStatus(uid,emoji,text){ must(await sb.from("profiles").update({status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null}).eq("id",uid)); },
+  async setStatus(uid,emoji,text,until){
+    const row={status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null};
+    const r=await sb.from("profiles").update({...row,status_until:(emoji||text)&&until?until:null}).eq("id",uid);
+    if(r.error&&/status_until/.test(r.error.message||"")){ must(await sb.from("profiles").update(row).eq("id",uid)); return {noTimer:true}; }   // auto-clear SQL not run yet
+    must(r); return {};
+  },
   async setRoomIcon(room,url){ must(await sb.rpc("set_room_icon",{p_room:room,p_url:url})); },
   async addFriendsToRoom(room,ids){ return must(await sb.rpc("add_friends_to_room",{p_room:room,p_users:ids})); },
   async reportMessage(id,reason,details){ must(await sb.rpc("report_message",{p_message:id,p_reason:reason,p_details:details||null})); },
@@ -4650,7 +4666,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async upload(_b,_u,blob){ await new Promise(r=>setTimeout(r,300)); return URL.createObjectURL(blob); },
     async setAvatar(uid,url){ people[uid].avatar_url=url; },
     async saveStyle(uid,style){ Object.assign(people[uid],style); setTimeout(()=>fire("profile",{...people[uid]}),30); },
-    async setStatus(uid,emoji,text){ Object.assign(people[uid],{status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null}); setTimeout(()=>fire("profile",{...people[uid]}),30); },
+    async setStatus(uid,emoji,text,until){ Object.assign(people[uid],{status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null,status_until:(emoji||text)&&until?until:null}); setTimeout(()=>fire("profile",{...people[uid]}),30); },
     async setBackground(room,bg){ const old=rooms[room].background||null; rooms[room].background=bg; setTimeout(()=>fire("roomUpdated",{code:room,name:rooms[room].name||null,background:bg,owner:rooms[room].owner}),30); if(old!==(bg||null)) demoNotice(room,"bg:"+(bg||"stars")); },
     async setRoomIcon(room,url){ rooms[room].icon_url=url; setTimeout(()=>fire("roomUpdated",{code:room,icon_url:url}),30); demoNotice(room,url?"icon:set":"icon:removed"); },
     async addFriendsToRoom(room,ids){ const r=rooms[room]; const who=ids.filter(u=>contacts.has(u)&&!r.members[u]); who.forEach(u=>r.members[u]={read:iso()}); if(who.length){ const m={id:nextId++,room,user_id:"me",kind:"notice",text:"add:"+who.map(u=>u+"|"+(people[u]?.username||u)).join(","),mentions:[],created_at:iso()}; r.msgs.push(m); setTimeout(()=>fire("msg",m),40); } return who.length; },
@@ -7386,31 +7402,41 @@ function statusAgo(at){
   const t=Date.parse(at); if(!t) return ""; const m=Math.max(0,Math.round((Date.now()-t)/60000));
   return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":Math.round(m/1440)+"d ago";
 }
+const statusExpired=p=>!!(p?.status_until&&Date.parse(p.status_until)<=Date.now());   // "clear after" time has passed
+function statusLeft(p){   // "clears in 1h 20m"
+  const t=Date.parse(p?.status_until||""); if(!t) return ""; const m=Math.max(1,Math.ceil((t-Date.now())/60000));
+  return "clears in "+(m<60?m+"m":Math.floor(m/60)+"h"+(m%60?" "+(m%60)+"m":""));
+}
 function statusLine(p,short){   // "🎮 grinding ranked · 2h ago"
-  if(!p||!(p.status_emoji||p.status_text)) return "";
+  if(!p||!(p.status_emoji||p.status_text)||statusExpired(p)) return "";
   const txt=[p.status_emoji,p.status_text].filter(Boolean).join(" ");
   return short?txt:txt+(p.status_at?" · "+statusAgo(p.status_at):"");
 }
 function paintMyStatus(){
   const b=$("myStatus"); if(!b) return;
   const sl=statusLine(meProfile);
-  b.textContent=sl||"💭 Set a status"; b.classList.toggle("empty",!sl);
+  b.textContent=sl?sl+(meProfile?.status_until?" · "+statusLeft(meProfile):""):"💭 Set a status"; b.classList.toggle("empty",!sl);
+  if(!sl&&statusExpired(meProfile)&&!paintMyStatus.clearing){   // my timer ran out: tidy it up on the server too
+    paintMyStatus.clearing=true; saveMyStatus(null,"").catch(()=>{}).finally(()=>{ paintMyStatus.clearing=false; });
+  }
 }
 let stEmoji="💭";
 function openStatusSheet(){
   stEmoji=meProfile?.status_emoji||"💭"; $("stText").value=meProfile?.status_text||""; say("stMsg","");
-  $("stEmoji").textContent=stEmoji; show($("stEmojis"),false); show($("stClear"),!!(meProfile?.status_emoji||meProfile?.status_text));
+  $("stEmoji").textContent=stEmoji; show($("stEmojis"),false);
+  { let last="0"; try{ last=LS.get("nl-status-until")||"0"; }catch(e){} $("stUntil").value=["0","30","120","240","1440"].includes(last)?last:"0"; } show($("stClear"),!!(meProfile?.status_emoji||meProfile?.status_text));
   const pr=$("stPresets"); pr.innerHTML="";
   STATUS_PRESETS.forEach(([e,t])=>{ const b=el("button","stpreset",e+" "+t); b.type="button"; b.onclick=()=>{ stEmoji=e; $("stEmoji").textContent=e; $("stText").value=t; $("stText").focus(); }; pr.append(b); });
   const em=$("stEmojis"); em.innerHTML="";
   STATUS_EMOJIS.forEach(e=>{ const b=el("button","",e); b.type="button"; b.setAttribute("aria-label","Use "+e); b.onclick=()=>{ stEmoji=e; $("stEmoji").textContent=e; show(em,false); }; em.append(b); });
   show($("statusSheet"));
 }
-async function saveMyStatus(emoji,text){
+async function saveMyStatus(emoji,text,mins=0){
   text=String(text||"").trim().slice(0,60);
   if(text&&!emoji) emoji="💭";
-  await api.setStatus(user.id,text?emoji:null,text||null);
-  meProfile={...meProfile,status_emoji:text?emoji:null,status_text:text||null,status_at:text?new Date().toISOString():null};
+  const until=text&&mins>0?new Date(Date.now()+mins*60000).toISOString():null;
+  const r=await api.setStatus(user.id,text?emoji:null,text||null,until)||{};
+  meProfile={...meProfile,status_emoji:text?emoji:null,status_text:text||null,status_at:text?new Date().toISOString():null,status_until:r.noTimer?null:until};
   cache.set(user.id,meProfile); paintMyStatus();
 }
 $("myStatus").onclick=openStatusSheet;
@@ -7420,7 +7446,9 @@ $("statusForm").onsubmit=async e=>{
   e.preventDefault(); const text=$("stText").value.trim();
   if(!text) return say("stMsg","Type a status, or tap Clear status.",true);
   $("stSave").disabled=true;
-  try{ await saveMyStatus(stEmoji,text); show($("statusSheet"),false); say("profMsg","💭 Status updated."); }
+  const mins=+$("stUntil").value||0; try{ LS.set("nl-status-until",String(mins)); }catch(e){}
+  try{ await saveMyStatus(stEmoji,text,mins); show($("statusSheet"),false);
+    say("profMsg",mins&&!meProfile.status_until?"💭 Status updated, but auto-clear isn't switched on yet. Ask Cole to run the status SQL.":mins?"💭 Status updated. It "+statusLeft(meProfile)+".":"💭 Status updated."); }
   catch(err){ say("stMsg",/status_/.test(err.message)?"Statuses aren't switched on yet. Ask Cole to run the status SQL.":"Couldn't save: "+err.message,true); }
   finally{ $("stSave").disabled=false; }
 };
@@ -11179,8 +11207,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.05c";
+const APP_VERSION="2026.10.08a";
 const CHANGELOG=[
+  {v:"2026.10.08a", title:"Status timers ⏱️", items:["⏱️ Pick when your status clears itself: 30 minutes, 2 hours, 4 hours, 24 hours, or never. Your own status shows how long it has left."]},
   {v:"2026.10.05c", title:"About & Contact pages 📄", items:["📄 New About and Contact & Support pages, plus a footer on the sign-in screen, Terms and Privacy with links to all of them and our support email."]},
   {v:"2026.10.05b", title:"Icon number test 🔢", items:["🔢 New button in Profile → Notifications: \"Test the number on my app icon\". It shows a test number so you can see if your phone or PC displays it, and tells you what to fix if not."]},
   {v:"2026.10.05a", title:"Better on bad Wi-Fi 📶", items:["📶 On a weak connection, messages keep trying to send for a few seconds instead of failing right away, and they never send twice.","🔄 If the live connection drops, NightLane keeps pulling in new messages and reconnects by itself, so chats don't freeze."]},
