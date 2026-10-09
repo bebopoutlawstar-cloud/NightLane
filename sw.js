@@ -1,5 +1,5 @@
-// NightLane service worker (v17): push notifications + fast repeat loads.
-const CACHE="nightlane-v17";
+// NightLane service worker (v18): push notifications + fast repeat loads.
+const CACHE="nightlane-v18";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
@@ -13,6 +13,7 @@ self.addEventListener("activate", e => e.waitUntil(caches.keys().then(ks => Prom
 let AUTH = null;
 self.addEventListener("message", e => {
   if (e.data && e.data.type === "nl-unread") { e.waitUntil(unreadStore(e.data.n).then(() => setBadge(e.data.n))); return; }
+  if (e.data && e.data.type === "nl-prefs") { e.waitUntil(caches.open(CACHE).then(c => c.put("__nl_prefs", new Response(JSON.stringify({ bothWhileOpen: !!e.data.bothWhileOpen }))))); return; }
   if (e.data && e.data.type === "nl-auth") {
     AUTH = e.data.auth || null;
     caches.open(CACHE).then(c => AUTH ? c.put("__nl_auth", new Response(JSON.stringify(AUTH))) : c.delete("__nl_auth"));
@@ -120,6 +121,12 @@ self.addEventListener("push", event => {
     const visible = wins.filter(w => w.visibilityState === "visible");
     const rooms = await Promise.all(visible.map(askWhichRoom));
     if (room && rooms.includes(room)) return;
+    // NightLane is the app you're using (any page): its own in-app pop-up already shows this, so skip the phone one
+    // unless you turned on "Phone notifications while NightLane is open".
+    if (visible.some(w => w.focused)) {   // focused = it's the app you're using right now (not just a window behind others)
+      let both = false; try { const r = await caches.match("__nl_prefs"); if (r) both = !!(await r.json()).bothWhileOpen; } catch (e) {}
+      if (!both) return;
+    }
 
     // Stack messages from the same chat into one notification with a running count.
     const existing = await self.registration.getNotifications({ tag });

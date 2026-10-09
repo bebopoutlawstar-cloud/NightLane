@@ -133,6 +133,7 @@ body.july4 .stamp::before{content:"⭐"}
 #personSheet.has-card #personFace{margin-top:-62px;z-index:2}
 .cardprev{width:100%;display:grid;justify-items:center}
 .kbdhint{display:none}
+.markall{justify-self:end;align-self:flex-end;margin:-4px 2px 6px auto;font-size:13px;display:block}
 .bubble .ednote{display:block;margin-top:4px;font-size:11.5px;font-family:var(--tech);letter-spacing:.3px;opacity:.7;font-style:italic}
 @media (pointer:fine){ .kbdhint{display:block;font-size:13px;opacity:.75;margin-top:4px} }
 .pronouns{font-family:var(--tech);font-size:12px;letter-spacing:.5px;color:var(--night);background:var(--cyan);padding:3px 9px 2px;transform:skewX(-8deg);margin-top:-6px}
@@ -2980,6 +2981,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <button type="button" class="tab" role="tab" id="tabDms" aria-selected="false">DMs<span class="tabbadge hidden" id="badgeDms"></span></button>
       <button type="button" class="tab" role="tab" id="tabContacts" aria-selected="false">Friends<span class="tabbadge hidden" id="badgeFriends"></span></button>
     </div>
+    <button type="button" class="linkbtn markall hidden" id="markAllRead">✓ Mark all as read</button>
     <div id="chatsPane">
       <div class="inbox hidden" id="inboxWrap"><div class="inbox" id="inbox"></div></div>
       <p class="note hidden" id="inboxEmpty">No rooms yet. Make a new room above or open an invite link.</p>
@@ -3161,6 +3163,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <label class="colorpick left"><span>🌐 Translate messages to</span><select class="field" id="langPick"></select></label>
     <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
     <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
+    <button class="ghost" type="button" id="dupBtn">📲 Phone notifications while NightLane is open: Off</button>
     <button class="ghost" type="button" id="owlBtn">🦉 Night Owl reminders: On</button>
     <button class="ghost" type="button" id="fxBtn">Screen effects: On</button>
     <details class="fx-list"><summary>Words and emoji that trigger effects</summary><ul id="fxList"></ul></details>
@@ -5622,6 +5625,7 @@ async function loadInbox(){
     paintOffline();
   }
   inboxRows=list;
+  show($("markAllRead"),list.some(r=>+r.unread>0));
   if(!isOffline()&&list.some(r=>r.dm_user)) await ensureProfiles(list.map(r=>r.dm_user).filter(Boolean));   // offline: use the names/pictures saved with the list
   const roomsBox=$("inbox"), dmBox=$("dmList"); roomsBox.innerHTML=""; dmBox.innerHTML="";
   const roomRows=list.filter(r=>!r.is_dm), dmRows=list.filter(r=>r.is_dm);
@@ -5793,6 +5797,25 @@ $("cbBtn").onclick=()=>{ try{ LS.set("nl-cb",cbMode()?"off":"on"); }catch(e){} a
   say("profMsg",cbMode()?"Color-blind friendly is on: online is a solid blue dot, away is a hollow orange ring, and do not disturb is an orange-red dot with a white bar.":"Color-blind friendly is off."); };
 $("fxBtn").onclick=()=>{ try{ LS.set("nl-fx",fxEnabled()?"off":"on"); }catch(e){} paintFxSettings(); if(fxEnabled()) FX.play("confetti"); };
 $("uiSoundBtn").onclick=()=>{ try{ LS.set("nl-uisound",uiSoundOn()?"off":"on"); }catch(e){} paintFxSettings(); };
+/* While NightLane is open on screen you already get its in-app pop-ups, so the phone's own notification is a duplicate.
+   Off by default; this setting is handed to the background notification worker. */
+const dupOn=()=>{ try{ return LS.get("nl-dup-notif")==="on"; }catch(e){ return false; } };
+function tellSwPrefs(){ const msg={type:"nl-prefs",bothWhileOpen:dupOn()}; try{ navigator.serviceWorker?.controller?.postMessage(msg); }catch(e){} navigator.serviceWorker?.ready.then(r=>{ try{ r.active?.postMessage(msg); }catch(e){} }).catch(()=>{}); }
+function paintDup(){ $("dupBtn").textContent=`📲 Phone notifications while NightLane is open: ${dupOn()?"On":"Off"}`; }
+/* Mark every chat as read in one tap: clears the unread numbers, the app icon number and any phone notifications */
+$("markAllRead").onclick=async()=>{
+  const btn=$("markAllRead"), rows=inboxRows.filter(r=>+r.unread>0); if(!rows.length){ show(btn,false); return; }
+  btn.disabled=true; btn.textContent="Marking…";
+  const res=await Promise.allSettled(rows.map(r=>api.markRead(r.code)));
+  rows.forEach((r,i)=>{ if(res[i].status==="fulfilled") r.unread=0; });
+  try{ const reg=swReg||await navigator.serviceWorker?.getRegistration(); (await reg?.getNotifications()||[]).forEach(n=>n.close()); }catch(e){}
+  setIconBadge(0); btn.disabled=false; btn.textContent="✓ Mark all as read";
+  const failed=res.filter(x=>x.status==="rejected").length;
+  toast(failed?"Some chats didn't update":"✓ All caught up",failed?"Check your connection and try again.":"Every chat is marked as read.");
+  loadInbox();
+};
+$("dupBtn").onclick=()=>{ try{ LS.set("nl-dup-notif",dupOn()?"off":"on"); }catch(e){} paintDup(); tellSwPrefs(); };
+paintDup(); tellSwPrefs();
 $("buzzBtn").onclick=()=>{ try{ LS.set("nl-buzz",buzzOn()?"off":"on"); }catch(e){} paintFxSettings(); if(buzzOn()) buzz("message"); };
 $("owlBtn").onclick=()=>{ try{ LS.set("nl-owl",owlOn()?"off":"on"); }catch(e){} if(!owlOn()) owlBack(); paintFxSettings();
   say("profMsg",owlOn()?"🦉 If you close the app with habits left, the Night Owl will DM you (evenings only, once a day).":"Night Owl reminders are off on this device."); };
@@ -11520,8 +11543,10 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09f";
+const APP_VERSION="2026.10.09h";
 const CHANGELOG=[
+  {v:"2026.10.09h", title:"Mark all as read ✓", items:["✓ New \"Mark all as read\" button above your chats: clears every unread number, the app icon number and your phone notifications without opening each chat."]},
+  {v:"2026.10.09g", title:"No double notifications 🔕", items:["🔕 While NightLane is open on your screen, you just get its own pop-ups instead of a phone notification too. Want both? Profile → Notifications & effects → Phone notifications while NightLane is open."]},
   {v:"2026.10.09f", title:"Smarter notifications 🔔", items:["🔔 Read a chat on your PC? Your phone's notification now only shows what's actually still unread, and doesn't buzz at all for messages you already saw."]},
   {v:"2026.10.09e", title:"Edit notes ✏️", items:["✏️ Edited messages now show a small \"✏️ edited this\" note right on the message, so everyone can tell it was changed."]},
   {v:"2026.10.09d", title:"Enter to save edits ⌨️", items:["⌨️ On a computer, press Enter to save an edited message (Shift+Enter for a new line, Esc to cancel), just like sending."]},
