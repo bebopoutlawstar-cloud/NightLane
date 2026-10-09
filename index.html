@@ -7526,7 +7526,7 @@ function playFx(m,force){
   if(!force) maybeHifive(m);
   const s=secretFor(m.text), t=s?null:fxFor(m.text); if(!s&&!t) return;
   if(!force){ if(!fxEnabled()||document.hidden||fxPlayed.has(m.id)) return; if(Date.now()-new Date(m.created_at)>15000) return; }
-  fxPlayed.add(m.id);
+  fxPlayed.add(m.id); if(typeof markSecretAsked==="function") markSecretAsked(m.id);   // remember it was seen, even after the app closes
   if(s) playSecretFromMessage(m,s,force);
   else if(t.fx==="kiss") playKiss(m);
   else FX.play(t.fx,{text:hypeText(m.text)});
@@ -10036,8 +10036,9 @@ let lastActivityAt=Date.now();
 const dndOn=()=>{ try{ return LS.get("nl-dnd")==="1"; }catch(e){ return false; } };
 function setDND(on){ try{ LS.set("nl-dnd",on?"1":"0"); }catch(e){} pushPresence(); }
 function markActive(){ lastActivityAt=Date.now(); if(document.hidden) return; if(online.get(user?.id)?.idle) pushPresence(); }
-["pointerdown","keydown","touchstart","wheel"].forEach(ev=>addEventListener(ev,markActive,{passive:true}));
-const computeIdle=()=>document.hidden||(Date.now()-lastActivityAt>IDLE_AFTER_MS);
+["pointerdown","keydown","touchstart","wheel","input","compositionupdate"].forEach(ev=>addEventListener(ev,markActive,{passive:true}));   // "input": phone keyboards don't always send key presses
+const typingNow=()=>!!(room&&document.activeElement===$("box")&&$("box").value.trim());
+const computeIdle=()=>document.hidden||(!typingNow()&&Date.now()-lastActivityAt>IDLE_AFTER_MS);
 let hiddenAt=0; document.addEventListener("visibilitychange",()=>{ if(document.hidden) hiddenAt=Date.now(); });
 const awaySince=()=>Math.min(lastActivityAt, document.hidden&&hiddenAt?hiddenAt:Infinity);   // when you actually stopped using NightLane
 const myPresence=()=>{ const idle=computeIdle(); return {at:Date.now(),room:room||null,typing:!!(room&&$("box").value.trim()),dnd:dndOn(),idle,idleSince:idle?awaySince():null}; };
@@ -10097,6 +10098,7 @@ function statusOf(uid){
   if(!isOnline(uid)) return null;
   const w=whereIs(uid)||{};
   if(w.dnd) return "dnd";
+  if(w.typing) return "online";   // typing = definitely here, even mid long message
   if(w.idle) return null;   // away 2+ minutes: show them as offline
   return "online";
 }
@@ -10964,7 +10966,8 @@ function checkMissedSecret(){   // (name kept: also covers regular effects now)
   const today=dayKey(Date.now());   // only effects from TODAY (your local day), not old ones
   const found=new Set(foundSecrets());
   // everything friends set off today that you haven't seen play and haven't been offered yet (newest 5, played oldest first)
-  const hits=msgs.filter(m=>m.kind==="text"&&m.user_id!==user.id&&dayKey(m.created_at)===today&&!fxPlayed.has(m.id)&&!asked.has(m.id)&&(secretFor(m.text)||fxFor(m.text))).slice(-5);
+  const myRead=members.get(user.id)?.read||0;   // when you last had this chat open: anything before that, you were here for
+  const hits=msgs.filter(m=>m.kind==="text"&&m.user_id!==user.id&&dayKey(m.created_at)===today&&new Date(m.created_at).getTime()>myRead&&!fxPlayed.has(m.id)&&!asked.has(m.id)&&(secretFor(m.text)||fxFor(m.text))).slice(-5);
   if(!hits.length) return;
   hits.forEach(m=>markSecretAsked(m.id));   // each message is only ever offered once
   const newSecret=hits.some(m=>{ const sec=secretFor(m.text); return sec&&!found.has(sec.id); });
@@ -11497,8 +11500,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08f";
+const APP_VERSION="2026.10.09a";
 const CHANGELOG=[
+  {v:"2026.10.09a", title:"Two fixes 🔧", items:["⌨️ Typing a long message no longer makes you look offline for a moment. If you're typing, you show as online.","✨ Effects and secrets you already saw no longer pop up as \"missed\" when you come back to a chat from a notification."]},
   {v:"2026.10.08f", title:"Sideways scroll fix 🔧", items:["🔧 Fixed chats scrolling sideways when someone replied to a long message or link. Sorry about that!"]},
   {v:"2026.10.08e", title:"Profile cards 🪪", items:["🪪 Dress up your profile: pick a banner (or upload your own picture), an animated effect like sparkles or snow, and up to 3 stickers. Friends see it when they tap your picture. Profile → Profile card."]},
   {v:"2026.10.08d", title:"! fix ❗", items:["❗ The ! burst on your own long messages and replies no longer gets pushed off the edge of the screen."]},
