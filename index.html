@@ -4381,7 +4381,11 @@ const live = {
   async addedMe(){ const rows=must(await sb.from("contacts").select("owner,created_at").eq("contact",user.id)); return rows.map(r=>r.owner); },
   async myInviteToken(){ return must(await sb.rpc("my_invite_token")); },
   async resetInviteToken(){ return must(await sb.rpc("reset_my_invite_token")); },
-  async findUser(username){ return must(await sb.from("profiles").select("id,username,avatar_url,bubble_color").ilike("username",username).maybeSingle()); },
+  async findUser(username){   // exact-username lookup (profiles are private now, so strangers can't be browsed)
+    const r=await sb.rpc("find_profile",{p_username:username});
+    if(r.error&&/find_profile|function|schema cache/i.test(r.error.message||"")) return must(await sb.from("profiles").select("id,username,avatar_url,bubble_color").ilike("username",username).maybeSingle());   // lockdown SQL not run yet
+    const u=must(r); if(u&&u.id){ cache.set(u.id,{...(cache.get(u.id)||{}),...u}); } return u||null;
+  },
   async addContact(uid){ must(await sb.from("contacts").upsert({contact:uid},{onConflict:"owner,contact",ignoreDuplicates:true})); },
   async removeContact(uid){ must(await sb.from("contacts").delete().eq("contact",uid)); },
   async startDm(uid){
@@ -11366,8 +11370,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08b";
+const APP_VERSION="2026.10.08c";
 const CHANGELOG=[
+  {v:"2026.10.08c", title:"Private profiles 🔒", items:["🔒 Your profile, status and birthday are now only visible to your friends and people you share a chat with. Strangers can only find you by typing your exact username, and they only see your name and picture."]},
   {v:"2026.10.08b", title:"More fun, every day 🎲", items:["✨ A quick tour of the fun stuff: secret words you can try right away, the games in every chat, and Social Bonds. Replay it anytime from Tips.","❓ Every chat gets a question of the day. Tap Answer to reply to it.","🎮 Fridays are game night: one tap opens the games.","🎲 The new 🎲 button gives you something fun to try: an effect word, a game, a secret hunt hint, or your bond rank."]},
   {v:"2026.10.08a", title:"Status timers ⏱️", items:["⏱️ Pick when your status clears itself: 30 minutes, 2 hours, 4 hours, 24 hours, or never. Your own status shows how long it has left."]},
   {v:"2026.10.05c", title:"About & Contact pages 📄", items:["📄 New About and Contact & Support pages, plus a footer on the sign-in screen, Terms and Privacy with links to all of them and our support email."]},
