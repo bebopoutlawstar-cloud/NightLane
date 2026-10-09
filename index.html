@@ -7376,7 +7376,8 @@ async function paintNotif(){
   if(!sb||!VAPID_PUBLIC_KEY){ btn.disabled=true; btn.textContent="Notifications: not set up yet"; return; }
   if(isIOS&&!installed){ btn.disabled=false; btn.textContent="📲 Install the app to get notifications"; btn.dataset.install="1"; return; }
   delete btn.dataset.install;
-  if(!swReg||!("PushManager" in window)){ btn.disabled=true; btn.textContent="Notifications not supported here"; return; }
+  if(!swReg||!("PushManager" in window)||BROWSER.name==="opera"){ btn.disabled=true;
+    btn.textContent=BROWSER.ios?"Open NightLane from your home screen icon for notifications":BROWSER.android?"No notifications in this browser: open NightLane in Chrome or get the Play Store app":"Notifications don't work in this browser: try Chrome or Edge"; return; }
   if(Notification.permission==="denied"){ btn.disabled=true; btn.textContent="Notifications blocked in settings"; return; }
   const subbed=!!(await currentSub());
   btn.disabled=false; btn.textContent=subbed?"Turn off notifications":"Turn on notifications"; show($("notifTest"),subbed);
@@ -8551,7 +8552,8 @@ function detectBrowser(ua=navigator.userAgent){
     else { name="ios-other"; }            // Lion and other app browsers
   } else if(android){
     if(inApp||/; wv\)/.test(ua)) name="inapp";
-    else if(/SamsungBrowser/.test(ua)){ name="samsung"; canInstall=false; }   // its installs trip Android's "built for an older version of Android" block (Samsung bug); Chrome installs cleanly
+    else if(/SamsungBrowser/.test(ua)){ name="samsung"; canInstall=false; }
+    else if(/OPR\/|OPX\/|Opera|OPT\/|OPRGX|OPGX/i.test(ua)){ name="opera"; canInstall=false; }   // Opera / Opera GX: no web push, no real install   // its installs trip Android's "built for an older version of Android" block (Samsung bug); Chrome installs cleanly
     else if(/EdgA/.test(ua)){ name="edge-android"; canInstall=true; }
     else if(/Firefox/.test(ua)){ name="firefox-android"; canInstall=true; }
     else if(/Chrome\//.test(ua)){ name="chrome-android"; canInstall=true; }
@@ -8576,7 +8578,8 @@ function paintInstallEntry(){
   if(stuck&&!dismissed){
     $("installBarText").textContent = BROWSER.ios
       ? "This browser can't add NightLane to your home screen, so notifications won't work here."
-      : BROWSER.name==="samsung" ? "Samsung Internet can't install NightLane safely. Open it in Chrome to get the app." : "This browser can't install NightLane. Open it in Chrome to get the app.";
+      : BROWSER.name==="samsung" ? "Samsung Internet can't install NightLane safely. Open it in Chrome to get the app."
+      : BROWSER.name==="opera" ? "Opera can't install NightLane or send its notifications. Open nightlane.chat in Chrome, or get NightLane from the Play Store." : "This browser can't install NightLane. Open it in Chrome to get the app.";
     show($("installBar"));
   } else show($("installBar"),false);
 }
@@ -11500,8 +11503,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09a";
+const APP_VERSION="2026.10.09b";
 const CHANGELOG=[
+  {v:"2026.10.09b", title:"Browser help 🧭", items:["🧭 Using a browser that can't do notifications (like Opera GX)? NightLane now tells you exactly what to do instead of just \"not supported\": open it in Chrome or get the Play Store app."]},
   {v:"2026.10.09a", title:"Two fixes 🔧", items:["⌨️ Typing a long message no longer makes you look offline for a moment. If you're typing, you show as online.","✨ Effects and secrets you already saw no longer pop up as \"missed\" when you come back to a chat from a notification."]},
   {v:"2026.10.08f", title:"Sideways scroll fix 🔧", items:["🔧 Fixed chats scrolling sideways when someone replied to a long message or link. Sorry about that!"]},
   {v:"2026.10.08e", title:"Profile cards 🪪", items:["🪪 Dress up your profile: pick a banner (or upload your own picture), an animated effect like sparkles or snow, and up to 3 stickers. Friends see it when they tap your picture. Profile → Profile card."]},
