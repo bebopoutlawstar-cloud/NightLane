@@ -245,6 +245,7 @@ body.july4 .stamp::before{content:"⭐"}
 .quote{display:block;border-left:3px solid var(--cyan);padding:2px 0 2px 8px;margin-bottom:6px;font-size:15px;font-weight:600;color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border-top:none;border-right:none;border-bottom:none;text-align:left}
 .quote b{color:var(--cyan);font-family:var(--tech);font-size:11px;margin-right:6px}
 .me .quote{border-left-color:var(--volt)}
+.bubble .quote{max-width:min(260px,100%)}   /* shrink with the bubble instead of spilling out of it */
 .reacts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 8px 0}
 .me .reacts{justify-content:flex-end}
 .react{font:inherit;font-size:15px;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:1px 8px;transform:rotate(-2deg);animation:pop .2s cubic-bezier(.2,1.6,.4,1) both}
@@ -1788,6 +1789,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 /* own "!" mirrors the received one exactly — floats out past the LEFT edge instead of the right, well clear of your own avatar */
 .msg.me .punct.bang{left:auto;right:100%;margin-right:4px;top:5px;transform:rotate(-12deg)}
 .msg.me .punct.bang.loud{top:-3px}
+.msg.me .col > .bubble:has(> .punct.bang){margin-left:40px;max-width:calc(100% - 40px);min-width:0}   /* long messages/replies stretch to the screen edge: keep room so your "!" burst never gets pushed off */
 .punct.bang::before{content:"";position:absolute;left:50%;top:56%;width:.95em;height:.95em;transform:translate(-50%,-50%) rotate(-8deg);z-index:-1;
   background:#1a0a24;box-shadow:0 0 0 3px var(--night);clip-path:polygon(50% 0%,63% 30%,93% 15%,75% 42%,100% 50%,75% 58%,93% 85%,63% 70%,50% 100%,37% 70%,7% 85%,25% 58%,0% 50%,25% 42%,7% 15%,37% 30%)}
 .msg.me .punct.bang::before{transform:translate(-50%,-50%) rotate(8deg)}
@@ -11370,8 +11372,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08c";
+const APP_VERSION="2026.10.08d";
 const CHANGELOG=[
+  {v:"2026.10.08d", title:"! fix ❗", items:["❗ The ! burst on your own long messages and replies no longer gets pushed off the edge of the screen."]},
   {v:"2026.10.08c", title:"Private profiles 🔒", items:["🔒 Your profile, status and birthday are now only visible to your friends and people you share a chat with. Strangers can only find you by typing your exact username, and they only see your name and picture."]},
   {v:"2026.10.08b", title:"More fun, every day 🎲", items:["✨ A quick tour of the fun stuff: secret words you can try right away, the games in every chat, and Social Bonds. Replay it anytime from Tips.","❓ Every chat gets a question of the day. Tap Answer to reply to it.","🎮 Fridays are game night: one tap opens the games.","🎲 The new 🎲 button gives you something fun to try: an effect word, a game, a secret hunt hint, or your bond rank."]},
   {v:"2026.10.08a", title:"Status timers ⏱️", items:["⏱️ Pick when your status clears itself: 30 minutes, 2 hours, 4 hours, 24 hours, or never. Your own status shows how long it has left."]},
