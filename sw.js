@@ -1,5 +1,5 @@
-// NightLane service worker (v16): push notifications + fast repeat loads.
-const CACHE="nightlane-v16";
+// NightLane service worker (v17): push notifications + fast repeat loads.
+const CACHE="nightlane-v17";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
@@ -82,6 +82,32 @@ async function updateBadge() {
   try { const n = (await unreadStore()) + 1; await unreadStore(n); await setBadge(n); } catch (e) {}
 }
 
+// How many messages in this chat are really unread? (You may have read them on another device, like your PC.)
+// Uses your login (the app hands it over) to ask the server. Returns null if it can't tell, so we fall back to counting.
+function jwtInfo(t) {
+  try { const p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return { uid: p.sub, base: String(p.iss || "").replace(/\/auth\/v1\/?$/, ""), exp: p.exp }; }
+  catch (e) { return null; }
+}
+async function unreadIn(room) {
+  const a = await getAuth(); if (!a || !a.token || !room) return null;
+  const j = jwtInfo(a.token);
+  if (!j || !j.uid || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(j.base) || (j.exp && j.exp * 1000 < Date.now())) return null;
+  const h = { Authorization: "Bearer " + a.token, apikey: a.key || "" };
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 4000);
+  try {
+    const mr = await fetch(`${j.base}/rest/v1/room_members?select=last_read_at&room=eq.${encodeURIComponent(room)}&user_id=eq.${j.uid}`, { headers: h, signal: ctl.signal });
+    if (!mr.ok) return null;
+    const rows = await mr.json(); if (!rows.length) return null;
+    const since = rows[0].last_read_at || "1970-01-01T00:00:00Z";
+    const cr = await fetch(`${j.base}/rest/v1/messages?select=id&room=eq.${encodeURIComponent(room)}&user_id=neq.${j.uid}&created_at=gt.${encodeURIComponent(since)}`,
+      { headers: { ...h, Prefer: "count=exact", Range: "0-0" }, signal: ctl.signal });
+    if (!cr.ok && cr.status !== 206) return null;
+    const total = +String(cr.headers.get("content-range") || "").split("/")[1];
+    return Number.isFinite(total) ? total : null;
+  } catch (e) { return null; }
+  finally { clearTimeout(tm); }
+}
+
 self.addEventListener("push", event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = { body: event.data && event.data.text() }; }
@@ -98,8 +124,11 @@ self.addEventListener("push", event => {
     // Stack messages from the same chat into one notification with a running count.
     const existing = await self.registration.getNotifications({ tag });
     const prev = existing[0];
-    const count = (prev?.data?.count || 0) + 1;
-    const lines = [...(prev?.data?.lines || []), data.body || "New message"].slice(-4);
+    // Ask the server what's actually unread, so messages you already read on another device drop off
+    const unread = await unreadIn(room);
+    if (unread === 0) { existing.forEach(n => n.close()); return; }   // you've already read everything here (e.g. on your PC)
+    const count = unread != null ? unread : (prev?.data?.count || 0) + 1;
+    const lines = [...(prev?.data?.lines || []), data.body || "New message"].slice(-Math.max(1, Math.min(4, count)));
     const mention = !!data.mention || !!prev?.data?.mention;
     const title = count > 1
       ? `${mention ? "📣 " : ""}${count} new messages · ${data.roomLabel || data.title || "NightLane"}`
