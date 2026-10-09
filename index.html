@@ -132,6 +132,10 @@ body.july4 .stamp::before{content:"⭐"}
 .pcard-banner{position:relative;width:100%;height:120px;overflow:hidden;border:2px solid var(--cyan);box-shadow:5px 5px 0 var(--mag);clip-path:polygon(0 0,100% 0,100% 88%,96% 100%,0 100%)}
 #personSheet.has-card #personFace{margin-top:-62px;z-index:2}
 .cardprev{width:100%;display:grid;justify-items:center}
+.kbdhint{display:none}
+.bubble .ednote{display:block;margin-top:4px;font-size:11.5px;font-family:var(--tech);letter-spacing:.3px;opacity:.7;font-style:italic}
+@media (pointer:fine){ .kbdhint{display:block;font-size:13px;opacity:.75;margin-top:4px} }
+.pronouns{font-family:var(--tech);font-size:12px;letter-spacing:.5px;color:var(--night);background:var(--cyan);padding:3px 9px 2px;transform:skewX(-8deg);margin-top:-6px}
 .cardprev .face{margin-top:-62px;z-index:2}
 .pcard-banner .pc-stk{position:absolute;width:64px;height:64px;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.55))}
 .pcard-banner .pc-stk svg{width:100%;height:100%}
@@ -3118,7 +3122,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 
     <h3>Appearance</h3>
     <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
-    <button class="ghost" type="button" id="openCard">🪪 Profile card (banner, effect, stickers)</button>
+    <button class="ghost" type="button" id="openCard">🪪 Profile card (pronouns, banner, effect, stickers)</button>
     <div class="dndrow" id="dndRow"><div class="dndlabel"><b>🔕 Do Not Disturb</b><small>Shows red to friends. Hides you from "who's online."</small></div><button type="button" class="dndswitch" id="dndSwitch" role="switch" aria-checked="false" aria-label="Do Not Disturb"></button></div>
 
     <h3>Growth</h3>
@@ -3465,6 +3469,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="pcard-banner hidden" id="personBanner" aria-hidden="true"></div>
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
+    <span class="pronouns hidden" id="personPronouns"></span>
     <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
     <p class="friendtag hidden" id="personTag"></p>
@@ -3484,6 +3489,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h2 id="cardTitle">🪪 Profile card</h2>
     <p class="sub">Dress up the top of your profile. Friends see it when they tap your picture.</p>
     <div class="cardprev"><div class="pcard-banner" id="cardPreview" aria-hidden="true"></div><div class="face lg" id="cardFace"></div></div>
+    <h3 class="cb-h">Pronouns <small>(optional)</small></h3>
+    <div class="cb-row" id="cardPronounChips"></div>
+    <label for="cardPronouns" class="sr">Pronouns</label>
+    <input class="field" id="cardPronouns" maxlength="20" placeholder="e.g. she/her" autocomplete="off">
     <h3 class="cb-h">Banner</h3>
     <div class="cb-row" id="cardBanners"></div>
     <input type="file" id="cardFile" accept="image/*" class="hidden">
@@ -3674,7 +3683,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 <div class="overlay hidden" id="editSheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <form class="sheet" id="editForm"><div class="sheetbody">
     <h2 id="editTitle">Edit message</h2>
-    <p class="sub">Everyone in the chat will see your new version, marked "edited".</p>
+    <p class="sub">Everyone in the chat will see your new version, marked "edited".<span class="kbdhint"> Enter to save · Shift+Enter for a new line · Esc to cancel</span></p>
     <label for="editBox" class="sr">Your message</label>
     <textarea class="field" id="editBox" rows="4" maxlength="4000"></textarea>
     <p class="msgline" id="editMsg" role="status"></p>
@@ -5396,11 +5405,13 @@ function cleanCard(c){   // only trust known values (it comes from other people'
   const out={banner:CARD_BANNERS[c.banner]?c.banner:(c.banner==="img"&&safeImg(c.img)?"img":null), fx:CARD_FX[c.fx]&&c.fx!=="none"?c.fx:null,
     stk:Array.isArray(c.stk)?c.stk.filter(id=>STICKERS[id]&&!STICKERS[id].bond).slice(0,3):[]};
   if(out.banner==="img") out.img=safeImg(c.img);
-  return out.banner||out.fx||out.stk.length?out:null;
+  const pr=typeof c.pronouns==="string"?c.pronouns.replace(/[\u0000-\u001f<>]/g,"").replace(/\s+/g," ").trim().slice(0,20):"";
+  if(pr) out.pronouns=pr;
+  return out.banner||out.fx||out.stk.length||out.pronouns?out:null;
 }
 const cardOf=p=>cleanCard(p?.theme?.card);
 function paintCardBanner(box,card){
-  box.innerHTML=""; box.className="pcard-banner"; show(box,!!card); if(!card) return;
+  box.innerHTML=""; box.className="pcard-banner"; const hasLook=!!(card&&(card.banner||card.fx||card.stk.length)); show(box,hasLook); if(!hasLook) return;
   if(card.banner==="img"&&card.img){ box.style.background=`#07041A url("${card.img.replace(/"/g,"%22")}") center/cover no-repeat`; }
   else box.style.background=(CARD_BANNERS[card.banner]||CARD_BANNERS.neon).bg;
   if(card.fx){ box.classList.add("fx-"+card.fx); const ch=CARD_FX_CHARS[card.fx];
@@ -5415,6 +5426,9 @@ function paintCardSheet(){
   paintCardBanner($("cardPreview"),cleanCard(c)||{banner:null,fx:null,stk:[]}); show($("cardPreview"),true);
   if(!cleanCard(c)){ $("cardPreview").style.background="repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 10px,transparent 10px 20px)"; }
   paintFace($("cardFace"),meProfile);
+  if(document.activeElement!==$("cardPronouns")) $("cardPronouns").value=c.pronouns||"";
+  const pc=$("cardPronounChips"); pc.innerHTML="";
+  ["he/him","she/her","they/them","he/they","she/they","any/all"].forEach(t=>{ const b=el("button","cb-chip"+(c.pronouns===t?" on":""),t); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,pronouns:draftCard.pronouns===t?"":t}; $("cardPronouns").value=draftCard.pronouns; paintCardSheet(); }; pc.append(b); });
   const bg=$("cardBanners"); bg.innerHTML="";
   const none=el("button","cb-sw"+(!c.banner?" on":""),"None"); none.type="button"; none.onclick=()=>{ draftCard={...draftCard,banner:null,img:null}; paintCardSheet(); }; bg.append(none);
   Object.entries(CARD_BANNERS).forEach(([id,b])=>{ const s=el("button","cb-sw"+(c.banner===id?" on":"")); s.type="button"; s.style.background=b.bg; s.title=b.label; s.setAttribute("aria-label","Banner: "+b.label); s.onclick=()=>{ draftCard={...draftCard,banner:id,img:null}; paintCardSheet(); }; bg.append(s); });
@@ -5428,6 +5442,7 @@ function paintCardSheet(){
 }
 function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); show($("profile"),false); paintCardSheet(); show($("cardSheet")); }
 $("openCard").onclick=openCardSheet;
+$("cardPronouns").addEventListener("input",()=>{ draftCard={...draftCard,pronouns:$("cardPronouns").value}; document.querySelectorAll("#cardPronounChips .cb-chip").forEach(b=>b.classList.toggle("on",b.textContent===draftCard.pronouns.trim())); });
 $("cardClose").onclick=()=>show($("cardSheet"),false);
 $("cardFile").onchange=async e=>{
   const f=e.target.files?.[0]; e.target.value=""; if(!f) return;
@@ -6062,6 +6077,7 @@ function buildMsg(m,index,noAnim){
   bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
   bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
+  if(m.edited_at&&m.kind!=="sticker"){ const en=el("span","ednote",`✏️ ${m.user_id===user?.id?"You":nameOf(m.user_id)} edited this`); en.title="Edited "+new Date(m.edited_at).toLocaleString(); bub.append(en); }
   col.append(tag,bub);
   const map=reactionsById.get(m.id);
   if(map&&map.size){
@@ -6366,7 +6382,7 @@ $("menuEdit").onclick=()=>{
 };
 $("editClose").onclick=()=>show($("editSheet"),false);
 $("editSheet").addEventListener("click",e=>{ if(e.target.id==="editSheet") show($("editSheet"),false); });
-$("editBox").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); show($("editSheet"),false); } else if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $("editForm").requestSubmit(); } });
+$("editBox").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); show($("editSheet"),false); } else if(e.key==="Enter"&&!e.isComposing&&((e.ctrlKey||e.metaKey)||(!e.shiftKey&&!matchMedia("(pointer: coarse)").matches))){ e.preventDefault(); $("editForm").requestSubmit(); } });   // on a computer Enter saves (Shift+Enter = new line), same as sending
 $("editForm").addEventListener("submit",async e=>{
   e.preventDefault(); const m=editing; if(!m) return;
   const text=$("editBox").value.trim();
@@ -7755,7 +7771,8 @@ function openPerson(uid){
 function paintPerson(){
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
   paintFace($("personFace"),p);
-  { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!card); }
+  { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!(card&&(card.banner||card.fx||card.stk.length)));
+    $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns); }
   $("personName").textContent=nick||p.username;
   { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
   $("personSub").textContent=(nick&&nick!==p.username?`@${p.username} · `:"@"+p.username+" · ")+(isBirthdayToday(p.birthday)?"🎂 birthday today! · "+(presenceLine(uid)||""):(presenceLine(uid)||(roomName&&!isDm?`in ${roomName}`:"NightLane")));
@@ -11503,8 +11520,11 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09b";
+const APP_VERSION="2026.10.09e";
 const CHANGELOG=[
+  {v:"2026.10.09e", title:"Edit notes ✏️", items:["✏️ Edited messages now show a small \"✏️ edited this\" note right on the message, so everyone can tell it was changed."]},
+  {v:"2026.10.09d", title:"Enter to save edits ⌨️", items:["⌨️ On a computer, press Enter to save an edited message (Shift+Enter for a new line, Esc to cancel), just like sending."]},
+  {v:"2026.10.09c", title:"Pronouns 🏷️", items:["🏷️ Add your pronouns to your profile: Profile → Profile card. Pick one or type your own, and friends see it under your name."]},
   {v:"2026.10.09b", title:"Browser help 🧭", items:["🧭 Using a browser that can't do notifications (like Opera GX)? NightLane now tells you exactly what to do instead of just \"not supported\": open it in Chrome or get the Play Store app."]},
   {v:"2026.10.09a", title:"Two fixes 🔧", items:["⌨️ Typing a long message no longer makes you look offline for a moment. If you're typing, you show as online.","✨ Effects and secrets you already saw no longer pop up as \"missed\" when you come back to a chat from a notification."]},
   {v:"2026.10.08f", title:"Sideways scroll fix 🔧", items:["🔧 Fixed chats scrolling sideways when someone replied to a long message or link. Sorry about that!"]},
