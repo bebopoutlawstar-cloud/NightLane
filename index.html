@@ -129,6 +129,34 @@ body.july4 .stamp::before{content:"⭐"}
 .face img{width:100%;height:100%;object-fit:cover;display:block}
 .face.sm{width:40px;height:40px;font-size:18px}
 .face.lg{width:132px;height:132px;font-size:60px}
+.pcard-banner{position:relative;width:100%;height:120px;overflow:hidden;border:2px solid var(--cyan);box-shadow:5px 5px 0 var(--mag);clip-path:polygon(0 0,100% 0,100% 88%,96% 100%,0 100%)}
+#personSheet.has-card #personFace{margin-top:-62px;z-index:2}
+.cardprev{width:100%;display:grid;justify-items:center}
+.cardprev .face{margin-top:-62px;z-index:2}
+.pcard-banner .pc-stk{position:absolute;width:64px;height:64px;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.55))}
+.pcard-banner .pc-stk svg{width:100%;height:100%}
+.pcard-banner .pc-p{position:absolute;top:-14px;font-style:normal;color:#fff;opacity:.85;pointer-events:none;animation:pcfall 3s linear infinite;text-shadow:0 0 6px currentColor}
+.pcard-banner.fx-sparkle .pc-p{color:#f3ff3a;animation-name:pctwinkle;top:auto;bottom:10%}
+.pcard-banner.fx-hearts .pc-p{color:#ff6fae;animation-name:pcrise;top:auto;bottom:-14px}
+.pcard-banner.fx-embers .pc-p{color:#ff8a1f;animation-name:pcrise;top:auto;bottom:-14px}
+.pcard-banner.fx-stars .pc-p{color:#9fe8ff;animation-name:pcshoot}
+.pcard-banner.fx-snow .pc-p{color:#e8fbff}
+@keyframes pcfall{from{transform:translateY(0)}to{transform:translateY(150px)}}
+@keyframes pcrise{from{transform:translateY(0);opacity:.9}to{transform:translateY(-150px);opacity:0}}
+@keyframes pctwinkle{0%,100%{transform:translateY(0) scale(.6);opacity:.2}50%{transform:translateY(-40px) scale(1.2);opacity:1}}
+@keyframes pcshoot{from{transform:translate(0,0);opacity:1}to{transform:translate(-90px,140px);opacity:0}}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .pcard-banner .pc-p{animation:none;top:40%}}
+.cb-h{width:100%;text-align:left;font-family:var(--tech);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin:6px 0 0}
+.cb-h small{color:var(--muted);text-transform:none;letter-spacing:0}
+.cb-row{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.cb-sw{width:46px;height:34px;border:2px solid #3b2d80;font:inherit;font-size:12px;font-weight:700;color:var(--white);background:var(--night);padding:0}
+.cb-sw.up{width:auto;padding:0 10px}
+.cb-sw.on,.cb-chip.on,.cb-stk.on{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
+.cb-chip{font:inherit;font-size:14px;font-weight:700;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:6px 10px}
+.cb-row{flex:none}
+.cardprev,.cardprev .pcard-banner{flex:none}
+.cb-stk{width:58px;height:58px;padding:4px;background:var(--night);border:2px solid #3b2d80}
+.cb-stk .stk,.cb-stk svg{width:100%;height:100%;display:block}
 
 /* ===== chat ===== */
 .top{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;border-bottom:2px solid var(--mag);background:rgba(7,4,26,.78);backdrop-filter:blur(6px)}
@@ -3088,6 +3116,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 
     <h3>Appearance</h3>
     <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
+    <button class="ghost" type="button" id="openCard">🪪 Profile card (banner, effect, stickers)</button>
     <div class="dndrow" id="dndRow"><div class="dndlabel"><b>🔕 Do Not Disturb</b><small>Shows red to friends. Hides you from "who's online."</small></div><button type="button" class="dndswitch" id="dndSwitch" role="switch" aria-checked="false" aria-label="Do Not Disturb"></button></div>
 
     <h3>Growth</h3>
@@ -3431,6 +3460,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 <!-- ============ PERSON CARD ============ -->
 <div class="overlay hidden" id="personSheet" role="dialog" aria-modal="true" aria-labelledby="personName">
   <div class="sheet"><div class="sheetbody">
+    <div class="pcard-banner hidden" id="personBanner" aria-hidden="true"></div>
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
     <p class="statusline hidden" id="personStatus"></p>
@@ -3443,6 +3473,25 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="personDm">Message privately</button>
     <p class="msgline" id="personMsg" role="status"></p>
     <button class="ghost" type="button" id="personClose">Close</button>
+  </div></div>
+</div>
+
+<!-- ============ PROFILE CARD SHEET ============ -->
+<div class="overlay hidden" id="cardSheet" role="dialog" aria-modal="true" aria-labelledby="cardTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="cardTitle">🪪 Profile card</h2>
+    <p class="sub">Dress up the top of your profile. Friends see it when they tap your picture.</p>
+    <div class="cardprev"><div class="pcard-banner" id="cardPreview" aria-hidden="true"></div><div class="face lg" id="cardFace"></div></div>
+    <h3 class="cb-h">Banner</h3>
+    <div class="cb-row" id="cardBanners"></div>
+    <input type="file" id="cardFile" accept="image/*" class="hidden">
+    <h3 class="cb-h">Effect</h3>
+    <div class="cb-row" id="cardFx"></div>
+    <h3 class="cb-h">Stickers <small>(up to 3)</small></h3>
+    <div class="cb-row cb-stks" id="cardStk"></div>
+    <p class="msgline" id="cardMsg" role="status"></p>
+    <button class="go" type="button" id="cardSave">Save card</button>
+    <button class="ghost" type="button" id="cardClose">Cancel</button>
   </div></div>
 </div>
 
@@ -5327,6 +5376,79 @@ $("rcClose").onclick=()=>show($("rcSheet"),false);
 $("rcSheet").addEventListener("click",e=>{ if(e.target.id==="rcSheet") show($("rcSheet"),false); });
 $("creditsClose").onclick=()=>show($("creditsSheet"),false);
 $("creditsSheet").addEventListener("click",e=>{ if(e.target.id==="creditsSheet") show($("creditsSheet"),false); });
+
+/* ================= PROFILE CARD: banner + effect + stickers others see on your profile ================= */
+const CARD_BANNERS={
+  neon:  {label:"Neon Night", bg:"linear-gradient(135deg,#140A3A 0%,#3b1a6e 45%,#00b8d4 100%)"},
+  sunset:{label:"Sunset",     bg:"linear-gradient(135deg,#2b1055 0%,#c2417a 55%,#ff9a3d 100%)"},
+  toxic: {label:"Toxic",      bg:"linear-gradient(135deg,#061a0b 0%,#1f7a3a 55%,#c8ff3a 100%)"},
+  ocean: {label:"Ocean",      bg:"linear-gradient(135deg,#041a3a 0%,#0b5fa5 55%,#5ee7ff 100%)"},
+  sakura:{label:"Sakura",     bg:"linear-gradient(135deg,#3a0f2e 0%,#c65aae 55%,#ffd1e8 100%)"},
+  ember: {label:"Ember",      bg:"linear-gradient(135deg,#1a0505 0%,#8a1c1c 55%,#ff8a1f 100%)"},
+  void:  {label:"Void",       bg:"radial-gradient(circle at 70% 30%,#3b2d80 0%,#07041A 70%)"},
+};
+const CARD_FX={none:"None",sparkle:"✨ Sparkles",snow:"❄️ Snow",hearts:"💖 Hearts",embers:"🔥 Embers",stars:"🌠 Stars"};
+const CARD_FX_CHARS={sparkle:"✦",snow:"❄",hearts:"♥",embers:"•",stars:"✧"};
+function cleanCard(c){   // only trust known values (it comes from other people's profiles)
+  if(!c||typeof c!=="object") return null;
+  const out={banner:CARD_BANNERS[c.banner]?c.banner:(c.banner==="img"&&safeImg(c.img)?"img":null), fx:CARD_FX[c.fx]&&c.fx!=="none"?c.fx:null,
+    stk:Array.isArray(c.stk)?c.stk.filter(id=>STICKERS[id]&&!STICKERS[id].bond).slice(0,3):[]};
+  if(out.banner==="img") out.img=safeImg(c.img);
+  return out.banner||out.fx||out.stk.length?out:null;
+}
+const cardOf=p=>cleanCard(p?.theme?.card);
+function paintCardBanner(box,card){
+  box.innerHTML=""; box.className="pcard-banner"; show(box,!!card); if(!card) return;
+  if(card.banner==="img"&&card.img){ box.style.background=`#07041A url("${card.img.replace(/"/g,"%22")}") center/cover no-repeat`; }
+  else box.style.background=(CARD_BANNERS[card.banner]||CARD_BANNERS.neon).bg;
+  if(card.fx){ box.classList.add("fx-"+card.fx); const ch=CARD_FX_CHARS[card.fx];
+    for(let i=0;i<14;i++){ const s=el("i","pc-p",ch); s.style.left=(4+i*6.8+(i%3)*2)%96+"%"; s.style.animationDelay=(-(i*0.37)%3.2).toFixed(2)+"s"; s.style.animationDuration=(2.6+(i%4)*0.5)+"s"; s.style.fontSize=(10+(i%3)*4)+"px"; box.append(s); } }
+  const slots=[["8%","14%",-12],["40%","8%",6],["72%","16%",-4]];
+  card.stk.forEach((id,i)=>{ const s=stickerEl(id); s.classList.add("pc-stk"); s.style.left=slots[i][0]; s.style.top=slots[i][1]; s.style.transform=`rotate(${slots[i][2]}deg)`; box.append(s); });
+}
+let draftCard=null;
+function availableCardStickers(){ return Object.keys(STICKERS).filter(id=>!STICKERS[id].bond&&(!STICKERS[id].secret||hasSecret(STICKERS[id].secret))); }
+function paintCardSheet(){
+  const c=draftCard;
+  paintCardBanner($("cardPreview"),cleanCard(c)||{banner:null,fx:null,stk:[]}); show($("cardPreview"),true);
+  if(!cleanCard(c)){ $("cardPreview").style.background="repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 10px,transparent 10px 20px)"; }
+  paintFace($("cardFace"),meProfile);
+  const bg=$("cardBanners"); bg.innerHTML="";
+  const none=el("button","cb-sw"+(!c.banner?" on":""),"None"); none.type="button"; none.onclick=()=>{ draftCard={...draftCard,banner:null,img:null}; paintCardSheet(); }; bg.append(none);
+  Object.entries(CARD_BANNERS).forEach(([id,b])=>{ const s=el("button","cb-sw"+(c.banner===id?" on":"")); s.type="button"; s.style.background=b.bg; s.title=b.label; s.setAttribute("aria-label","Banner: "+b.label); s.onclick=()=>{ draftCard={...draftCard,banner:id,img:null}; paintCardSheet(); }; bg.append(s); });
+  const up=el("button","cb-sw up"+(c.banner==="img"?" on":""),c.banner==="img"?"🖼️ ✓":"🖼️ Upload"); up.type="button"; up.onclick=()=>$("cardFile").click(); bg.append(up);
+  const fx=$("cardFx"); fx.innerHTML="";
+  Object.entries(CARD_FX).forEach(([id,label])=>{ const b=el("button","cb-chip"+((c.fx||"none")===id?" on":""),label); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,fx:id==="none"?null:id}; paintCardSheet(); }; fx.append(b); });
+  const st=$("cardStk"); st.innerHTML="";
+  availableCardStickers().forEach(id=>{ const on=(c.stk||[]).includes(id); const b=el("button","cb-stk"+(on?" on":"")); b.type="button"; b.setAttribute("aria-pressed",String(on)); b.setAttribute("aria-label",STICKERS[id].label); b.append(stickerEl(id));
+    b.onclick=()=>{ let list=[...(draftCard.stk||[])]; if(list.includes(id)) list=list.filter(x=>x!==id); else { if(list.length>=3){ say("cardMsg","Up to 3 stickers. Tap one to remove it first.",true); return; } list.push(id); } say("cardMsg",""); draftCard={...draftCard,stk:list}; paintCardSheet(); };
+    st.append(b); });
+}
+function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); show($("profile"),false); paintCardSheet(); show($("cardSheet")); }
+$("openCard").onclick=openCardSheet;
+$("cardClose").onclick=()=>show($("cardSheet"),false);
+$("cardFile").onchange=async e=>{
+  const f=e.target.files?.[0]; e.target.value=""; if(!f) return;
+  try{
+    if(!/^image\//.test(f.type||"")) throw new Error("Pick a picture file.");
+    if(f.size>15e6) throw new Error("That picture is over 15 MB. Pick a smaller one.");
+    say("cardMsg","Uploading banner…");
+    const url=await api.upload("avatars",user.id,await shrink(f,900,false));
+    draftCard={...draftCard,banner:"img",img:url}; say("cardMsg",""); paintCardSheet();
+  }catch(err){ say("cardMsg","Couldn't upload: "+err.message,true); }
+};
+$("cardSave").onclick=async()=>{
+  $("cardSave").disabled=true;
+  try{
+    const card=cleanCard(draftCard);
+    const theme={...(meProfile?.theme||{})}; if(card) theme.card=card; else delete theme.card;
+    await api.saveStyle(user.id,{theme});
+    meProfile={...meProfile,theme}; cache.set(user.id,meProfile);
+    say("cardMsg","Saved! Your friends see it on your profile."); setTimeout(()=>show($("cardSheet"),false),700);
+  }catch(err){ say("cardMsg","Couldn't save: "+err.message,true); }
+  finally{ $("cardSave").disabled=false; }
+};
+
 $("welcomeClose").onclick=()=>show($("welcomeSheet"),false);
 $("welcomeFriends").onclick=()=>{ show($("welcomeSheet"),false); setFrontTab("contacts"); $("contactName").focus(); };
 $("welcomeSheet").addEventListener("click",e=>{ if(e.target.id==="welcomeSheet") show($("welcomeSheet"),false); });
@@ -7088,7 +7210,7 @@ $("themeClose").onclick=()=>{ applyTheme(themeAtOpen||meProfile?.theme||savedThe
 $("themeSave").onclick=async()=>{
   $("themeSave").disabled=true;
   try{
-    const style={theme:draftTheme,bubble_color:draftBubble};
+    const style={theme:{...draftTheme,...(meProfile?.theme?.card?{card:meProfile.theme.card}:{})},bubble_color:draftBubble};   // keep the profile card
     await api.saveStyle(user.id,style);
     meProfile={...meProfile,...style}; cache.set(user.id,meProfile); applyTheme(draftTheme); gainXP("theme"); paintMe(); if(room) repaintFaces(user.id);
     if(room) renderAll(false);
@@ -7630,6 +7752,7 @@ function openPerson(uid){
 function paintPerson(){
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
   paintFace($("personFace"),p);
+  { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!card); }
   $("personName").textContent=nick||p.username;
   { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
   $("personSub").textContent=(nick&&nick!==p.username?`@${p.username} · `:"@"+p.username+" · ")+(isBirthdayToday(p.birthday)?"🎂 birthday today! · "+(presenceLine(uid)||""):(presenceLine(uid)||(roomName&&!isDm?`in ${roomName}`:"NightLane")));
@@ -11372,8 +11495,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08d";
+const APP_VERSION="2026.10.08e";
 const CHANGELOG=[
+  {v:"2026.10.08e", title:"Profile cards 🪪", items:["🪪 Dress up your profile: pick a banner (or upload your own picture), an animated effect like sparkles or snow, and up to 3 stickers. Friends see it when they tap your picture. Profile → Profile card."]},
   {v:"2026.10.08d", title:"! fix ❗", items:["❗ The ! burst on your own long messages and replies no longer gets pushed off the edge of the screen."]},
   {v:"2026.10.08c", title:"Private profiles 🔒", items:["🔒 Your profile, status and birthday are now only visible to your friends and people you share a chat with. Strangers can only find you by typing your exact username, and they only see your name and picture."]},
   {v:"2026.10.08b", title:"More fun, every day 🎲", items:["✨ A quick tour of the fun stuff: secret words you can try right away, the games in every chat, and Social Bonds. Replay it anytime from Tips.","❓ Every chat gets a question of the day. Tap Answer to reply to it.","🎮 Fridays are game night: one tap opens the games.","🎲 The new 🎲 button gives you something fun to try: an effect word, a game, a secret hunt hint, or your bond rank."]},
