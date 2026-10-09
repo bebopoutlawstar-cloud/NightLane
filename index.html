@@ -273,7 +273,9 @@ body.july4 .stamp::before{content:"⭐"}
 .quote{display:block;border-left:3px solid var(--cyan);padding:2px 0 2px 8px;margin-bottom:6px;font-size:15px;font-weight:600;color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border-top:none;border-right:none;border-bottom:none;text-align:left}
 .quote b{color:var(--cyan);font-family:var(--tech);font-size:11px;margin-right:6px}
 .me .quote{border-left-color:var(--volt)}
-.bubble .quote{max-width:min(260px,100%)}   /* shrink with the bubble instead of spilling out of it */
+#feed{overflow-x:hidden}   /* safety net: the chat never scrolls sideways */
+.bubble .quote{max-width:min(260px,calc(100vw - 150px))}   /* small phones: keep long quotes inside the screen */
+.msg.me .col > .bubble:has(> .punct.bang) .quote{max-width:min(260px,100%)}   /* only in the width-capped "!" bubbles: shrink with the bubble (elsewhere a % max-width lets long quotes stretch the bubble off-screen) */
 .reacts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 8px 0}
 .me .reacts{justify-content:flex-end}
 .react{font:inherit;font-size:15px;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:1px 8px;transform:rotate(-2deg);animation:pop .2s cubic-bezier(.2,1.6,.4,1) both}
@@ -11495,8 +11497,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.08e";
+const APP_VERSION="2026.10.08f";
 const CHANGELOG=[
+  {v:"2026.10.08f", title:"Sideways scroll fix 🔧", items:["🔧 Fixed chats scrolling sideways when someone replied to a long message or link. Sorry about that!"]},
   {v:"2026.10.08e", title:"Profile cards 🪪", items:["🪪 Dress up your profile: pick a banner (or upload your own picture), an animated effect like sparkles or snow, and up to 3 stickers. Friends see it when they tap your picture. Profile → Profile card."]},
   {v:"2026.10.08d", title:"! fix ❗", items:["❗ The ! burst on your own long messages and replies no longer gets pushed off the edge of the screen."]},
   {v:"2026.10.08c", title:"Private profiles 🔒", items:["🔒 Your profile, status and birthday are now only visible to your friends and people you share a chat with. Strangers can only find you by typing your exact username, and they only see your name and picture."]},
