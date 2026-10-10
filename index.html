@@ -421,6 +421,15 @@ html,body{overflow-x:hidden}
 .pincount{flex:none;font-family:var(--tech);font-size:10px;color:var(--muted)}
 
 /* media */
+.pdfcard{display:flex;align-items:center;gap:10px;max-width:min(62vw,260px);margin:2px 0 6px;padding:10px 12px;background:var(--night);border:3px solid var(--cyan);color:var(--white);text-decoration:none;text-align:left}
+.pdfcard:hover,.pdfcard:focus-visible{border-color:var(--volt)}
+.bubble a.pdfcard,.bubble a.pdfcard *{text-decoration:none}
+.bubble a.pdfcard .pdf-name{color:var(--white)}
+.bubble a.pdfcard .pdf-sub{color:var(--cyan)}
+.pdfcard .pdf-ico{flex:none;font-family:var(--tech);font-size:11px;font-weight:900;color:var(--night);background:#ff5a5a;padding:10px 6px;transform:skewX(-8deg)}
+.pdfcard .pdf-txt{min-width:0;display:flex;flex-direction:column;gap:2px}
+.pdfcard .pdf-name{font-weight:800;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdfcard .pdf-sub{font-family:var(--tech);font-size:11px;color:var(--cyan)}
 .vid{display:block;max-width:min(62vw,260px);max-height:340px;border:3px solid var(--cyan);background:#000;margin:2px 0 6px}
 .voice{display:flex;align-items:center;gap:10px;min-width:190px;max-width:240px;padding:2px 0}
 .voice .play{flex:none;width:38px;height:38px;border:none;background:var(--cyan);color:var(--night);display:grid;place-items:center;clip-path:polygon(8% 0,100% 10%,92% 100%,0 90%)}
@@ -647,6 +656,19 @@ html,body{overscroll-behavior:none}
 .contactrow .cname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
 .contactrow .cname small{display:block;font-size:13px;color:var(--muted)}
 .contactrow .send{padding:8px 12px;font-size:12px}
+.friendfind{width:100%;margin:0 0 8px}
+.friendfind .field{width:100%;margin:0}
+.fsec{font-family:var(--tech);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin:10px 0 2px;text-align:left;list-style:none;cursor:default}
+.fsec:first-child{margin-top:0}
+details.fgroup{display:contents}
+details.fgroup > summary.fsec{cursor:pointer}
+details.fgroup > summary.fsec::-webkit-details-marker{display:none}
+details.fgroup > summary.fsec::after{content:" ▸"}
+details.fgroup[open] > summary.fsec::after{content:" ▾"}
+.contactrow .fav{background:none;border:none;color:var(--muted);font-size:20px;line-height:1;padding:4px 2px;cursor:pointer;flex:none}
+.contactrow .fav.on{color:var(--volt);text-shadow:0 0 6px var(--volt)}
+.contactrow.offline .cname{opacity:.75}
+.fnone{color:var(--muted);font-size:14px;padding:6px 2px;text-align:left}
 .contactrow .rm{background:none;border:2px solid var(--muted);color:var(--muted);padding:6px 8px;font-size:12px}
 .roomrow .muted{font-size:12px;margin-left:4px;opacity:.8}
 .segmented{display:flex;width:100%;border:2px solid var(--cyan)}
@@ -3046,6 +3068,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <h3 class="hidden" id="requestsTitle">Added you</h3>
       <div class="inbox" id="requestList"></div>
       <h3 class="hidden" id="friendsTitle">Your friends</h3>
+      <div class="friendfind hidden" id="friendFindWrap"><label for="friendFind" class="sr">Find a friend</label><input class="field" id="friendFind" type="search" placeholder="🔍 Find a friend" autocomplete="off" maxlength="20"></div>
       <div class="inbox" id="contactList"></div>
       <p class="note hidden" id="contactEmpty">No friends yet. Tap someone's picture in a room and hit Add friend, or add them by username.</p>
     </div>
@@ -3093,6 +3116,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
         <button type="button" class="ghost" id="trayBacklog" aria-pressed="false">Backlog</button>
         <button type="button" class="ghost" id="trayPoll">Poll</button>
         <button type="button" class="ghost" id="trayCard">Card</button>
+        <button type="button" class="ghost" id="trayPdf">📄 PDF</button>
+        <input type="file" id="pdfPicker" accept="application/pdf,.pdf" class="sr" tabindex="-1" aria-hidden="true">
       </div>
       <div class="stickers" id="stickerGrid"></div>
       <div class="hidden" id="gifPane"><div class="gifbar"><label for="gifSearch" class="sr">Search GIFs</label><input class="field" id="gifSearch" placeholder="Search GIPHY…" autocomplete="off"></div><div class="gifgrid" id="gifGrid"></div></div>
@@ -4509,10 +4534,10 @@ const live = {
   async acceptFriendInvite(token){ return must(await sb.rpc("accept_friend_invite",{p_token:token})); },
   async linkPreview(url){ const {data,error}=await sb.functions.invoke("linkpreview",{body:{url}}); if(error||!data||data.error) return null; return data; },
   async saveStyle(uid,style){ must(await sb.from("profiles").update(style).eq("id",uid)); },
-  async upload(bucket,uid,blob){
+  async upload(bucket,uid,blob,name){
     const t=(blob.type||"image/jpeg").split(";")[0];
-    const ext={"image/gif":"gif","image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov","audio/mp4":"m4a","audio/webm":"webm","audio/ogg":"ogg","audio/mpeg":"mp3","audio/aac":"aac"}[t]||"bin";
-    const path=`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const ext={"image/gif":"gif","image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov","audio/mp4":"m4a","audio/webm":"webm","audio/ogg":"ogg","audio/mpeg":"mp3","audio/aac":"aac","application/pdf":"pdf"}[t]||"bin";
+    const path=name?`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}/${name}`:`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
     must(await sb.storage.from(bucket).upload(path,blob,{contentType:t}));
     return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   },
@@ -6226,6 +6251,7 @@ function buildMsg(m,index,noAnim){
   const media=safeImg(m.media_url);
   if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.playsInline=true; v.preload="metadata"; bub.append(v); }
   if(media&&m.media_type==="audio") bub.append(voicePlayer(media,m.media_duration));
+  if(media&&(m.media_type==="pdf"||m.kind==="file")) bub.append(pdfCard(media));
   if(m.kind==="sticker"&&STICKERS[m.sticker]) bub.append(stickerEl(m.sticker));
   if(isBlCard(m)){ bub.append(backlogMsgCard(m)); if(typeof m.card.note==="string"&&m.card.note.trim()){ const n=el("div","blnote"); renderTextWithDates(n,m.card.note.slice(0,300),m.mentions,m); bub.append(n); } }
   else if(isEcard(m)) bub.append(ecardMsgCard(m));
@@ -7251,6 +7277,32 @@ $("gameList").querySelectorAll(".gamepick").forEach(bt=>bt.onclick=async()=>{
   catch(err){ $("status").textContent="Couldn't start a game: "+err.message; }
 });
 $("trayPoll").onclick=()=>{ closeTray(); openPollSheet(); };
+/* ===== PDFs: pick one, it uploads and sends right away. The file name rides along in the link. ===== */
+const PDF_MAX=20e6;
+function pdfName(url){ try{ const last=decodeURIComponent(new URL(url,location.href).pathname.split("/").pop()||""); return /\.pdf$/i.test(last)?last:"PDF"; }catch(e){ return "PDF"; } }
+function safePdfName(n){ let b=String(n||"file").replace(/\.pdf$/i,"").normalize("NFKD").replace(/[^\w.\- ]+/g,"").replace(/\s+/g,"_").replace(/^[._-]+/,"").slice(0,60); return (b||"file")+".pdf"; }
+function pdfCard(url){
+  const a=el("a","pdfcard"); a.href=url; a.target="_blank"; a.rel="noopener noreferrer";
+  const name=pdfName(url).replace(/_/g," ");
+  const t=el("span","pdf-txt"); t.append(el("span","pdf-name",name), el("span","pdf-sub","PDF · tap to open"));
+  a.append(el("span","pdf-ico","PDF"),t); a.setAttribute("aria-label","Open PDF: "+name);
+  a.addEventListener("click",e=>e.stopPropagation());
+  return a;
+}
+$("trayPdf").onclick=()=>{ closeTray(); $("pdfPicker").click(); };
+$("pdfPicker").onchange=async e=>{
+  const f=e.target.files?.[0]; e.target.value=""; if(!f) return;
+  const isPdf=f.type==="application/pdf"||(/\.pdf$/i.test(f.name)&&!f.type);
+  if(!isPdf){ $("status").textContent="That isn't a PDF. Pick a .pdf file."; return; }
+  if(f.size>PDF_MAX){ $("status").textContent="That PDF is over 20 MB. Try a smaller one."; return; }
+  try{
+    $("status").textContent="Sending PDF…";
+    const blob=f.type==="application/pdf"?f:new Blob([f],{type:"application/pdf"});
+    const url=await api.upload("chat-media",user.id,blob,safePdfName(f.name));
+    await sendFields({kind:"file",media_url:url,media_type:"pdf"});
+    $("status").textContent="";
+  }catch(err){ $("status").textContent="PDF didn't send: "+err.message; }
+};
 /* ---- + → Backlog: share something from your backlog into this chat ---- */
 $("trayBacklog").onclick=async()=>{
   trayTab("backlog"); $("trayBlSearch").value="";
@@ -7460,6 +7512,7 @@ function previewOf(m){
   if(m.kind==="game") return "🎮 "+(m.text||"Game");
   if(m.kind==="sticker"||m.sticker) return "Sticker "+(STICKERS[m.sticker]?.label?`(${STICKERS[m.sticker].label})`:"");
   if(m.media_type==="audio"||m.kind==="audio") return "🎤 Voice message";
+  if(m.media_type==="pdf"||m.kind==="file") return "📄 "+(m.media_url?pdfName(m.media_url).replace(/_/g," "):"PDF");
   if(m.media_type==="video"||m.kind==="video") return "🎬 Video"+(m.text?": "+m.text:"");
   if(m.image_urls?.length>1&&!m.text) return `📷 ${m.image_urls.length} photos`;
   if(m.image_url&&!m.text) return "📷 Photo";
@@ -7815,10 +7868,41 @@ async function loadContacts(){
     x.onclick=()=>{ const d=dismissedRequests(); d.push(uid); try{ LS.set("nl-dismissed-req",JSON.stringify(d)); }catch(e){} loadContacts(); };
     row.append(f,n,add,x); reqBox.append(row);
   });
+  paintContactList();
+}
+/* ===== friends list: ⭐ favorites, then 🟢 online, then offline (folds up), with a search box ===== */
+const favKey=()=>"nl-fav-friends-"+(user?.id||"");
+function favSet(){ try{ return new Set(JSON.parse(LS.get(favKey())||"[]")); }catch(e){ return new Set(); } }
+function toggleFav(uid){ const f=favSet(); f.has(uid)?f.delete(uid):f.add(uid); try{ LS.set(favKey(),JSON.stringify([...f])); }catch(e){} paintContactList(); }
+let offlineOpen=null;   // null = decide by size
+function paintContactList(){
   const box=$("contactList"); box.innerHTML="";
   const ids=contactIds.filter(id=>cache.has(id)&&!blocked.has(id)).sort((a,b)=>cache.get(a).username.localeCompare(cache.get(b).username));
   show($("contactEmpty"),!ids.length); show($("friendsTitle"),ids.length>0);
-  ids.forEach(uid=>{
+  show($("friendFindWrap"),ids.length>=8);
+  const q=ids.length>=8?$("friendFind").value.trim().toLowerCase().replace(/^@/,""):"";
+  const shown=q?ids.filter(uid=>cache.get(uid).username.toLowerCase().includes(q)):ids;
+  if(q&&!shown.length){ box.append(el("p","fnone",`No friends match "${q}".`)); return; }
+  const favs=favSet(), isOn=uid=>!!statusOf(uid);
+  const fav=shown.filter(uid=>favs.has(uid)), rest=shown.filter(uid=>!favs.has(uid));
+  const on=rest.filter(isOn), off=rest.filter(uid=>!isOn(uid));
+  const many=ids.length>=8;   // small lists stay one simple list
+  if(!many&&!fav.length){ shown.sort((a,b)=>isOn(b)-isOn(a)).forEach(uid=>box.append(contactRow(uid,favs))); return; }
+  if(fav.length){ box.append(el("h4","fsec",`⭐ Favorites`)); fav.forEach(uid=>box.append(contactRow(uid,favs))); }
+  if(on.length){ box.append(el("h4","fsec",`🟢 Online now · ${on.length}`)); on.forEach(uid=>box.append(contactRow(uid,favs))); }
+  if(off.length){
+    const d=document.createElement("details"); d.className="fgroup";
+    d.open=!!q||(offlineOpen!=null?offlineOpen:off.length<=8);
+    const sm=el("summary","fsec",`Offline · ${off.length}`); d.append(sm);
+    d.addEventListener("toggle",()=>{ if(!q) offlineOpen=d.open; });
+    off.forEach(uid=>d.append(contactRow(uid,favs))); box.append(d);
+  }
+}
+$("friendFind").addEventListener("input",paintContactList);
+let contactPaintTimer=null;
+function contactsPresenceSoon(){ if($("contactsPane").classList.contains("hidden")) return; clearTimeout(contactPaintTimer); contactPaintTimer=setTimeout(()=>{ if(document.activeElement?.closest?.("#contactList")) return; paintContactList(); },1500); }
+function contactRow(uid,favs){
+  {
     const p=cache.get(uid), row=el("div","contactrow");
     const f=el("span","face"); paintFace(f,p); f.style.cursor="pointer"; f.onclick=()=>openPerson(uid);
     const n=el("span","cname",p.username);
@@ -7829,8 +7913,12 @@ async function loadContacts(){
     const go=el("button","send","Message"); go.type="button"; go.onclick=()=>openDm(uid);
     const rm=el("button","rm","✕"); rm.type="button"; rm.setAttribute("aria-label",`Remove ${p.username} from friends`);
     rm.onclick=async()=>{ if(!confirm(`Remove ${p.username} from your friends?`)) return; try{ await removeFriend(uid); }catch(err){ say("contactMsg",err.message,true); } };
-    row.append(f,n,go,rm); box.append(row);
-  });
+    const st=el("button","fav"+(favs.has(uid)?" on":""),favs.has(uid)?"★":"☆"); st.type="button";
+    st.setAttribute("aria-pressed",String(favs.has(uid))); st.setAttribute("aria-label",(favs.has(uid)?"Unfavorite ":"Favorite ")+p.username);
+    st.onclick=()=>toggleFav(uid);
+    if(!statusOf(uid)) row.classList.add("offline");
+    row.append(st,f,n,go,rm); return row;
+  }
 }
 $("contactAdd").onclick=async()=>{
   const name=$("contactName").value.trim().replace(/^@/,"");
@@ -10353,7 +10441,7 @@ function applyStatusDot(node,uid,p){
 function paintPresence(){
   document.querySelectorAll(".face[data-uid]").forEach(f=>applyStatusDot(f,f.dataset.uid,cache.get(f.dataset.uid)));
   document.querySelectorAll("[data-presence]").forEach(n=>{ n.textContent=presenceLine(n.dataset.presence); });
-  paintOnlineStrip(); paintRoomOnline();
+  paintOnlineStrip(); paintRoomOnline(); contactsPresenceSoon();
 }
 const _paintFace2=paintFace;
 paintFace=function(node,p){ _paintFace2(node,p); if(p?.id){ node.dataset.uid=p.id; applyStatusDot(node,p.id,p); } };
@@ -11718,8 +11806,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09l";
+const APP_VERSION="2026.10.10b";
 const CHANGELOG=[
+  {v:"2026.10.10b", title:"Tidier friends list ⭐", items:["⭐ Star friends to pin them at the top of your list.","🟢 Friends who are online now show first. Offline friends fold into their own section.","🔍 Got lots of friends? A search box finds anyone fast."]},
+  {v:"2026.10.10a", title:"Share PDFs 📄", items:["📄 Send PDFs in any chat: tap ＋ then 📄 PDF. Friends tap it to open (up to 20 MB)."]},
   {v:"2026.10.09l", title:"A tidier Profile 🗂️", items:["🗂️ Profile is now split into 4 tabs: 🧑 Me, 🎨 Look, 🔔 Alerts and ⚙️ Account. It remembers the one you used last.","🔘 On/off settings are real switches now.","📷 Tap your picture to change it."]},
   {v:"2026.10.09k", title:"My Social Bonds 💫", items:["💫 See every Social Bond you have in one place, strongest first, with each one's arcana, rank and progress. Profile → My Social Bonds. Tap one to see what it means."]},
   {v:"2026.10.09j", title:"Social links 🔗", items:["🔗 Add your Discord, Instagram, TikTok, YouTube, Twitch, X, Steam, GitHub or website to your profile card (Profile → Profile card → Social links). Friends tap them on your profile (thanks beef!)."]},
