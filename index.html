@@ -1487,7 +1487,9 @@ body.theme-gold .go,body.theme-gold .send{background:linear-gradient(135deg,#FFD
 .sheet .go{background:var(--white);color:var(--night);box-shadow:5px 5px 0 var(--mag)}
 .sheet .ghost{background:transparent;border:none;color:var(--white);text-shadow:3px 3px 0 var(--night),4px 4px 0 var(--mag)}
 .sheet .ghost:hover,.sheet .ghost:focus-visible{background:var(--cyan);color:var(--night);text-shadow:none;transform:skewX(-8deg) translateX(8px)}
-.sheet .danger{background:transparent;border:none;color:var(--red);text-shadow:3px 3px 0 var(--night)}
+.sheet .danger{background:transparent;border:none;color:var(--volt);text-shadow:3px 3px 0 var(--night),4px 4px 0 var(--red)}
+.sheet .danger:hover,.sheet .danger:focus-visible{background:var(--red);color:var(--volt);text-shadow:2px 2px 0 var(--night)}   /* follows your Highlight color, red shadow still says "careful" */
+#deleteAccount{color:var(--volt);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
 .sheet .go:active,.sheet .ghost:active,.sheet .danger:active{transform:skewX(-8deg) scale(.97)}
 .sheet .go:nth-of-type(odd),.sheet .ghost:nth-of-type(even){margin-left:14px}
 .sheet .linkbtn{font-family:var(--tech);text-transform:uppercase;font-size:12px}
@@ -3180,7 +3182,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="members" id="blockedList"></div>
     <button class="danger" type="button" id="logout">Log out</button>
     <button class="ghost" type="button" id="closeProfile">Close</button>
-    <button class="linkbtn" type="button" id="deleteAccount" style="justify-self:center;color:var(--red)">Delete my account</button>
+    <button class="linkbtn" type="button" id="deleteAccount" style="justify-self:center">Delete my account</button>
     <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@nightlane.chat">support@nightlane.chat</a></p>
   </div></div>
 </div>
@@ -11543,8 +11545,9 @@ $("slClose").onclick=()=>show($("slSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09h";
+const APP_VERSION="2026.10.09i";
 const CHANGELOG=[
+  {v:"2026.10.09i", title:"Your colors, everywhere 🎨", items:["🎨 Log out and Delete my account now follow your Highlight color too (thanks beef!)."]},
   {v:"2026.10.09h", title:"Mark all as read ✓", items:["✓ New \"Mark all as read\" button above your chats: clears every unread number, the app icon number and your phone notifications without opening each chat."]},
   {v:"2026.10.09g", title:"No double notifications 🔕", items:["🔕 While NightLane is open on your screen, you just get its own pop-ups instead of a phone notification too. Want both? Profile → Notifications & effects → Phone notifications while NightLane is open."]},
   {v:"2026.10.09f", title:"Smarter notifications 🔔", items:["🔔 Read a chat on your PC? Your phone's notification now only shows what's actually still unread, and doesn't buzz at all for messages you already saw."]},
