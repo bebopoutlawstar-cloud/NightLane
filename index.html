@@ -159,6 +159,26 @@ body.july4 .stamp::before{content:"⭐"}
 .cb-sw.on,.cb-chip.on,.cb-stk.on{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
 .cb-chip{font:inherit;font-size:14px;font-weight:700;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:6px 10px}
 .cb-row{flex:none}
+.cb-links{width:100%}
+.bondrows{display:flex;flex-direction:column;gap:8px;width:100%}
+.bondrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--white);background:rgba(255,255,255,.04);border:2px solid #3b2d80;padding:8px 10px;cursor:pointer}
+.bondrow:hover,.bondrow:focus-visible{border-color:var(--cyan)}
+.bondrow .face{width:40px;height:40px;font-size:18px}
+.bondrow .br-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.bondrow .br-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bondrow .br-arc{font-family:var(--tech);font-size:12px;color:var(--cyan)}
+.bondrow .br-bar{height:6px;background:rgba(255,255,255,.12);overflow:hidden}
+.bondrow .br-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mag),var(--volt))}
+.bondrow .br-rank{font-family:var(--num);font-size:30px;line-height:1;color:var(--volt);text-shadow:2px 2px 0 var(--mag);min-width:34px;text-align:center}
+.bondrow .br-rank small{display:block;font-family:var(--tech);font-size:9px;letter-spacing:1px;color:var(--muted);text-shadow:none}
+.cb-links summary{cursor:pointer;font-family:var(--tech);font-size:13px;color:var(--cyan);padding:4px 0}
+.cb-linkgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin-top:8px}
+.cb-linkgrid label{font-size:13px;font-weight:700;white-space:nowrap}
+.cb-linkgrid .field{margin:0;padding:6px 10px;font-size:14px;min-width:0}
+.plinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:100%}
+.plinks:empty{display:none}
+.plink{display:inline-flex;align-items:center;gap:5px;font-family:var(--tech);font-size:12px;color:var(--white);background:var(--night);border:2px solid var(--mag);padding:4px 9px 3px;text-decoration:none;transform:skewX(-8deg);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.plink:hover,.plink:focus-visible{background:var(--cyan);color:var(--night);border-color:var(--cyan)}
 .cardprev,.cardprev .pcard-banner{flex:none}
 .cb-stk{width:58px;height:58px;padding:4px;background:var(--night);border:2px solid #3b2d80}
 .cb-stk .stk,.cb-stk svg{width:100%;height:100%;display:block}
@@ -3126,6 +3146,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 
     <h3>Appearance</h3>
     <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
+    <button class="ghost" type="button" id="openBonds">💫 My Social Bonds</button>
     <button class="ghost" type="button" id="openCard">🪪 Profile card (pronouns, banner, effect, stickers)</button>
     <div class="dndrow" id="dndRow"><div class="dndlabel"><b>🔕 Do Not Disturb</b><small>Shows red to friends. Hides you from "who's online."</small></div><button type="button" class="dndswitch" id="dndSwitch" role="switch" aria-checked="false" aria-label="Do Not Disturb"></button></div>
 
@@ -3475,6 +3496,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
     <span class="pronouns hidden" id="personPronouns"></span>
+    <div class="plinks" id="personLinks"></div>
     <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
     <p class="friendtag hidden" id="personTag"></p>
@@ -3488,6 +3510,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 
+<!-- ============ MY SOCIAL BONDS ============ -->
+<div class="overlay hidden" id="bondsSheet" role="dialog" aria-modal="true" aria-labelledby="bondsTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="bondsTitle">💫 My Social Bonds</h2>
+    <p class="sub" id="bondsSub"></p>
+    <div class="bondrows" id="bondRows"></div>
+    <button class="ghost" type="button" id="bondsClose">Close</button>
+  </div></div>
+</div>
+
 <!-- ============ PROFILE CARD SHEET ============ -->
 <div class="overlay hidden" id="cardSheet" role="dialog" aria-modal="true" aria-labelledby="cardTitle">
   <div class="sheet"><div class="sheetbody">
@@ -3498,6 +3530,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="cb-row" id="cardPronounChips"></div>
     <label for="cardPronouns" class="sr">Pronouns</label>
     <input class="field" id="cardPronouns" maxlength="20" placeholder="e.g. she/her" autocomplete="off">
+    <details class="cb-links" id="cardLinksBox"><summary>🔗 Social links <small>(optional)</small></summary>
+      <p class="sub" style="margin:4px 0 0">Just your username. Pasting a full link works too.</p>
+      <div class="cb-linkgrid" id="cardLinks"></div>
+    </details>
     <h3 class="cb-h">Banner</h3>
     <div class="cb-row" id="cardBanners"></div>
     <input type="file" id="cardFile" accept="image/*" class="hidden">
@@ -5405,6 +5441,27 @@ const CARD_BANNERS={
 };
 const CARD_FX={none:"None",sparkle:"✨ Sparkles",snow:"❄️ Snow",hearts:"💖 Hearts",embers:"🔥 Embers",stars:"🌠 Stars"};
 const CARD_FX_CHARS={sparkle:"✦",snow:"❄",hearts:"♥",embers:"•",stars:"✧"};
+/* social links: we only store usernames and build the address ourselves, so nobody can sneak in a sketchy link */
+const CARD_LINKS={
+  discord:  {label:"Discord",   icon:"💬", url:null, re:/^[a-z0-9._]{2,32}$/i},
+  instagram:{label:"Instagram", icon:"📸", url:h=>"https://instagram.com/"+h, re:/^[a-z0-9._]{1,30}$/i},
+  tiktok:   {label:"TikTok",    icon:"🎵", url:h=>"https://www.tiktok.com/@"+h, re:/^[a-z0-9._]{2,24}$/i},
+  youtube:  {label:"YouTube",   icon:"▶️", url:h=>"https://www.youtube.com/@"+h, re:/^[a-z0-9._-]{3,30}$/i},
+  twitch:   {label:"Twitch",    icon:"🎮", url:h=>"https://www.twitch.tv/"+h, re:/^[a-z0-9_]{3,25}$/i},
+  x:        {label:"X / Twitter",icon:"✖️", url:h=>"https://x.com/"+h, re:/^[a-z0-9_]{1,15}$/i},
+  steam:    {label:"Steam",     icon:"🕹️", url:h=>"https://steamcommunity.com/id/"+h, re:/^[a-z0-9_-]{2,32}$/i},
+  github:   {label:"GitHub",    icon:"🐙", url:h=>"https://github.com/"+h, re:/^[a-z0-9-]{1,39}$/i},
+  web:      {label:"Website",   icon:"🌐", url:h=>h, re:null},
+};
+function cleanLink(k,v){
+  if(typeof v!=="string"||!CARD_LINKS[k]) return "";
+  v=v.trim(); if(!v) return "";
+  if(k==="web"){ try{ if(!/^[a-z]+:/i.test(v)) v="https://"+v; const u=new URL(v); return u.protocol==="https:"&&u.hostname.includes(".")&&!u.username&&!u.password&&u.href.length<=120?u.href:""; }catch(e){ return ""; } }
+  if(/\//.test(v)) v=v.split(/[?#]/)[0].split("/").filter(Boolean).pop()||"";   // pasted a whole link → keep the name at the end
+  v=v.replace(/^@/,"");
+  return CARD_LINKS[k].re.test(v)?v:"";
+}
+function cleanLinks(o){ const out={}; if(o&&typeof o==="object") Object.keys(CARD_LINKS).forEach(k=>{ const v=cleanLink(k,o[k]); if(v) out[k]=v; }); return Object.keys(out).length?out:null; }
 function cleanCard(c){   // only trust known values (it comes from other people's profiles)
   if(!c||typeof c!=="object") return null;
   const out={banner:CARD_BANNERS[c.banner]?c.banner:(c.banner==="img"&&safeImg(c.img)?"img":null), fx:CARD_FX[c.fx]&&c.fx!=="none"?c.fx:null,
@@ -5412,7 +5469,8 @@ function cleanCard(c){   // only trust known values (it comes from other people'
   if(out.banner==="img") out.img=safeImg(c.img);
   const pr=typeof c.pronouns==="string"?c.pronouns.replace(/[\u0000-\u001f<>]/g,"").replace(/\s+/g," ").trim().slice(0,20):"";
   if(pr) out.pronouns=pr;
-  return out.banner||out.fx||out.stk.length||out.pronouns?out:null;
+  const ln=cleanLinks(c.links); if(ln) out.links=ln;
+  return out.banner||out.fx||out.stk.length||out.pronouns||out.links?out:null;
 }
 const cardOf=p=>cleanCard(p?.theme?.card);
 function paintCardBanner(box,card){
@@ -5434,6 +5492,15 @@ function paintCardSheet(){
   if(document.activeElement!==$("cardPronouns")) $("cardPronouns").value=c.pronouns||"";
   const pc=$("cardPronounChips"); pc.innerHTML="";
   ["he/him","she/her","they/them","he/they","she/they","any/all"].forEach(t=>{ const b=el("button","cb-chip"+(c.pronouns===t?" on":""),t); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,pronouns:draftCard.pronouns===t?"":t}; $("cardPronouns").value=draftCard.pronouns; paintCardSheet(); }; pc.append(b); });
+  const lg=$("cardLinks");
+  if(!lg.childElementCount) Object.entries(CARD_LINKS).forEach(([k,d])=>{
+    const lab=el("label",null,d.icon+" "+d.label); lab.htmlFor="cardLink-"+k;
+    const inp=el("input","field"); inp.id="cardLink-"+k; inp.maxLength=k==="web"?120:60; inp.autocomplete="off"; inp.autocapitalize="off"; inp.spellcheck=false;
+    inp.placeholder=k==="web"?"yoursite.com":"username";
+    inp.addEventListener("input",()=>{ draftCard={...draftCard,links:{...(draftCard.links||{}),[k]:inp.value}}; });
+    lg.append(lab,inp);
+  });
+  Object.keys(CARD_LINKS).forEach(k=>{ const inp=$("cardLink-"+k); if(document.activeElement!==inp) inp.value=c.links?.[k]||""; });
   const bg=$("cardBanners"); bg.innerHTML="";
   const none=el("button","cb-sw"+(!c.banner?" on":""),"None"); none.type="button"; none.onclick=()=>{ draftCard={...draftCard,banner:null,img:null}; paintCardSheet(); }; bg.append(none);
   Object.entries(CARD_BANNERS).forEach(([id,b])=>{ const s=el("button","cb-sw"+(c.banner===id?" on":"")); s.type="button"; s.style.background=b.bg; s.title=b.label; s.setAttribute("aria-label","Banner: "+b.label); s.onclick=()=>{ draftCard={...draftCard,banner:id,img:null}; paintCardSheet(); }; bg.append(s); });
@@ -5445,7 +5512,7 @@ function paintCardSheet(){
     b.onclick=()=>{ let list=[...(draftCard.stk||[])]; if(list.includes(id)) list=list.filter(x=>x!==id); else { if(list.length>=3){ say("cardMsg","Up to 3 stickers. Tap one to remove it first.",true); return; } list.push(id); } say("cardMsg",""); draftCard={...draftCard,stk:list}; paintCardSheet(); };
     st.append(b); });
 }
-function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); show($("profile"),false); paintCardSheet(); show($("cardSheet")); }
+function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); $("cardLinksBox").open=!!draftCard.links; show($("profile"),false); paintCardSheet(); show($("cardSheet")); }
 $("openCard").onclick=openCardSheet;
 $("cardPronouns").addEventListener("input",()=>{ draftCard={...draftCard,pronouns:$("cardPronouns").value}; document.querySelectorAll("#cardPronounChips .cb-chip").forEach(b=>b.classList.toggle("on",b.textContent===draftCard.pronouns.trim())); });
 $("cardClose").onclick=()=>show($("cardSheet"),false);
@@ -5462,6 +5529,8 @@ $("cardFile").onchange=async e=>{
 $("cardSave").onclick=async()=>{
   $("cardSave").disabled=true;
   try{
+    const bad=Object.entries(draftCard.links||{}).filter(([k,v])=>String(v||"").trim()&&!cleanLink(k,v)).map(([k])=>CARD_LINKS[k]?.label);
+    if(bad.length){ $("cardLinksBox").open=true; throw new Error("that "+bad.join(" / ")+" doesn't look right"+(bad.includes("Website")?" (websites need https)":"")+"."); }
     const card=cleanCard(draftCard);
     const theme={...(meProfile?.theme||{})}; if(card) theme.card=card; else delete theme.card;
     await api.saveStyle(user.id,{theme});
@@ -7788,6 +7857,15 @@ $("stClear").onclick=async()=>{
   catch(err){ say("stMsg","Couldn't clear: "+err.message,true); }
 };
 
+function paintPersonLinks(links){
+  const box=$("personLinks"); box.innerHTML=""; if(!links) return;
+  Object.entries(links).forEach(([k,h])=>{ const d=CARD_LINKS[k]; if(!d) return;
+    const text=d.icon+" "+(k==="web"?new URL(h).hostname.replace(/^www\./,""):(k==="discord"?h:"@"+h));
+    if(!d.url){ const b=el("button","plink",text); b.type="button"; b.title="Copy Discord username";
+      b.onclick=()=>{ navigator.clipboard?.writeText(h).then(()=>toast("📋 Copied","Discord: "+h),()=>{}); }; box.append(b); return; }
+    const a=el("a","plink",text); a.href=d.url(h); a.target="_blank"; a.rel="noopener noreferrer nofollow"; a.title=d.label+(k==="web"?" · opens "+a.href:""); box.append(a);
+  });
+}
 function openPerson(uid){
   if(!uid||uid===user.id){ if(uid===user.id) openProfile(); return; }
   personUid=uid; say("personMsg",""); paintPerson(); show($("personSheet"));
@@ -7797,7 +7875,8 @@ function paintPerson(){
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
   paintFace($("personFace"),p);
   { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!(card&&(card.banner||card.fx||card.stk.length)));
-    $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns); }
+    $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns);
+    paintPersonLinks(card?.links); }
   $("personName").textContent=nick||p.username;
   { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
   $("personSub").textContent=(nick&&nick!==p.username?`@${p.username} · `:"@"+p.username+" · ")+(isBirthdayToday(p.birthday)?"🎂 birthday today! · "+(presenceLine(uid)||""):(presenceLine(uid)||(roomName&&!isDm?`in ${roomName}`:"NightLane")));
@@ -11540,13 +11619,41 @@ function openSocialLink(uid){
   show(box,!!bm);
   show($("slSheet"));
 }
-$("slClose").onclick=()=>show($("slSheet"),false);
+$("slClose").onclick=()=>{ show($("slSheet"),false); if(slFromList){ slFromList=false; show($("bondsSheet")); } };
+/* ===== My Social Bonds: every bond you have, strongest first (only you see this) ===== */
+let slFromList=false;
+function paintBondsList(){
+  const rows=[...socialLinks.entries()].map(([uid,r])=>({uid,r,...rankFromXp(r?.xp||0)}))
+    .sort((a,b)=>b.rank-a.rank||(b.r.xp||0)-(a.r.xp||0)||nameOf(a.uid).localeCompare(nameOf(b.uid)));
+  const box=$("bondRows"); box.innerHTML="";
+  const maxed=rows.filter(x=>x.rank>=10).length;
+  $("bondsSub").textContent=rows.length?`${rows.length} bond${rows.length===1?"":"s"}${maxed?` · ${maxed} maxed out 🏆`:""}. They grow as you DM each other. Only you can see this list.`
+    :"No bonds yet. Send a friend a private message to start one!";
+  rows.forEach(({uid,r,rank,into,need})=>{
+    const b=el("button","bondrow"); b.type="button";
+    const f=el("span","face"); paintFace(f,cache.get(uid));
+    const main=el("span","br-main"); main.append(el("span","br-name",nameOf(uid)), el("span","br-arc",(r.arcana||"Bond")+(rank>=10?" · MAX":` · ${into}/${need} to next`)));
+    const bar=el("span","br-bar"), fill=el("i"); fill.style.width=(rank>=10?100:Math.round(100*into/Math.max(need,1)))+"%"; bar.append(fill); main.append(bar);
+    const rk=el("span","br-rank",String(rank)); rk.prepend(el("small",null,"RANK"));
+    b.setAttribute("aria-label",`${nameOf(uid)}: ${r.arcana||"Bond"}, rank ${rank}`);
+    b.append(f,main,rk); b.onclick=()=>{ slFromList=true; show($("bondsSheet"),false); openSocialLink(uid); };
+    box.append(b);
+  });
+}
+$("openBonds").onclick=async()=>{
+  show($("profile"),false); paintBondsList(); show($("bondsSheet"));
+  await loadSocialLinks(); await ensureProfiles([...socialLinks.keys()]).catch(()=>{});
+  if(!$("bondsSheet").classList.contains("hidden")) paintBondsList();
+};
+$("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09i";
+const APP_VERSION="2026.10.09k";
 const CHANGELOG=[
+  {v:"2026.10.09k", title:"My Social Bonds 💫", items:["💫 See every Social Bond you have in one place, strongest first, with each one's arcana, rank and progress. Profile → My Social Bonds. Tap one to see what it means."]},
+  {v:"2026.10.09j", title:"Social links 🔗", items:["🔗 Add your Discord, Instagram, TikTok, YouTube, Twitch, X, Steam, GitHub or website to your profile card (Profile → Profile card → Social links). Friends tap them on your profile (thanks beef!)."]},
   {v:"2026.10.09i", title:"Your colors, everywhere 🎨", items:["🎨 Log out and Delete my account now follow your Highlight color too (thanks beef!)."]},
   {v:"2026.10.09h", title:"Mark all as read ✓", items:["✓ New \"Mark all as read\" button above your chats: clears every unread number, the app icon number and your phone notifications without opening each chat."]},
   {v:"2026.10.09g", title:"No double notifications 🔕", items:["🔕 While NightLane is open on your screen, you just get its own pop-ups instead of a phone notification too. Want both? Profile → Notifications & effects → Phone notifications while NightLane is open."]},
