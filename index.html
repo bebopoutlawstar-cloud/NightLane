@@ -160,6 +160,25 @@ body.july4 .stamp::before{content:"⭐"}
 .cb-chip{font:inherit;font-size:14px;font-weight:700;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:6px 10px}
 .cb-row{flex:none}
 .cb-links{width:100%}
+/* ===== Profile tabs ===== */
+.proftabs{position:sticky;top:-36px;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:calc(100% + 8px);margin:2px -4px 0;padding:8px 0;background:var(--night)}
+.proftabs button{font-family:var(--tech);font-size:12px;letter-spacing:.3px;color:var(--white);background:transparent;border:2px solid #3b2d80;padding:8px 2px 7px;transform:skewX(-8deg);white-space:nowrap;cursor:pointer}
+.proftabs button[aria-selected="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--night);box-shadow:3px 3px 0 var(--mag)}
+.proftabs button:focus-visible{outline:2px solid var(--volt);outline-offset:2px}
+.profpane{display:grid;gap:14px;justify-items:center;width:100%}
+.profpane[hidden]{display:none}
+.profpane > h3{margin-bottom:-4px}
+#profFace{cursor:pointer;position:relative}
+#profile #changePhoto{margin-top:-8px}
+/* on/off settings drawn as switches */
+.sheet .ghost.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:inherit;font-size:15px;font-weight:700;letter-spacing:0;text-transform:none;text-align:left;text-shadow:none;transform:none;clip-path:none;margin-left:0;border:2px solid #3b2d80;padding:10px 14px;color:var(--white)}
+.sheet .ghost.setrow:hover,.sheet .ghost.setrow:focus-visible{background:rgba(255,255,255,.05);color:var(--white);border-color:var(--cyan);transform:none}
+.setrow .sr-lab{flex:1;min-width:0}
+.setrow .swi{width:46px;height:26px;border:2px solid var(--muted);border-radius:14px;position:relative;flex:none}
+.setrow .swi::after{content:"";position:absolute;top:1px;left:1px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.setrow.on .swi{border-color:var(--cyan)}
+.setrow.on .swi::after{transform:translateX(20px);background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.setrow .sval{flex:none;font-family:var(--tech);font-size:12px;color:var(--night);background:var(--cyan);padding:3px 8px 2px;max-width:45%;text-align:center}
 .bondrows{display:flex;flex-direction:column;gap:8px;width:100%}
 .bondrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--white);background:rgba(255,255,255,.04);border:2px solid #3b2d80;padding:8px 10px;cursor:pointer}
 .bondrow:hover,.bondrow:focus-visible{border-color:var(--cyan)}
@@ -1299,6 +1318,9 @@ body.theme-pipboy .compose,body.theme-pipboy .top{background:rgba(6,16,8,.92)!im
 .xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--volt));transition:width .5s ease}
 .xptext{font-size:13px;color:var(--muted);text-align:left}
 .xpways{display:flex;flex-wrap:wrap;gap:6px}
+.xpbox:not(.open) .xpways{display:none}
+.xpmore{justify-self:start;background:none;border:none;padding:0;font-family:var(--tech);font-size:11px;color:var(--cyan);cursor:pointer}
+#profile #changePhoto{justify-self:center}
 .xpfloat{pointer-events:none;font-family:var(--num);font-size:24px;color:var(--volt);text-shadow:2px 2px 0 var(--night);animation:qxup 1.4s ease-out both;justify-self:end;margin-right:16px}
 /* ===== kenough ===== */
 .ken-wrap{position:absolute;inset:0;overflow:hidden;opacity:0;animation:dgin .6s ease forwards;transition:opacity .8s;background:#000}
@@ -3141,34 +3163,29 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="myarcana hidden" id="myArcana"></button>
     <div class="email" id="profEmail"></div>
     <input type="file" id="avatarPicker" accept="image/*" class="sr">
-    <button class="go" type="button" id="changePhoto">Change photo</button>
-    <div class="xpbox"><div class="xphead"><b id="xpLevel">LV 1</b><span id="xpTitle">Newcomer</span></div><div class="xpbar"><i id="xpFill"></i></div><div class="xptext" id="xpText"></div><div class="xpways" id="xpWays"></div></div>
+    <button class="linkbtn" type="button" id="changePhoto">📷 Change photo</button>
+    <div class="xpbox"><div class="xphead"><b id="xpLevel">LV 1</b><span id="xpTitle">Newcomer</span></div><div class="xpbar"><i id="xpFill"></i></div><div class="xptext" id="xpText"></div><button type="button" class="xpmore" id="xpMore" aria-expanded="false" aria-controls="xpWays">How to earn XP ▾</button><div class="xpways" id="xpWays"></div></div>
 
-    <h3>Appearance</h3>
-    <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
+    <div class="proftabs" role="tablist" aria-label="Profile sections">
+      <button type="button" role="tab" data-tab="me">🧑 Me</button>
+      <button type="button" role="tab" data-tab="look">🎨 Look</button>
+      <button type="button" role="tab" data-tab="alerts">🔔 Alerts</button>
+      <button type="button" role="tab" data-tab="account">⚙️ Account</button>
+    </div>
+    <p class="msgline" id="profMsg" role="status"></p>
+
+    <div class="profpane" data-pane="me" role="tabpanel">
     <button class="ghost" type="button" id="openBonds">💫 My Social Bonds</button>
-    <button class="ghost" type="button" id="openCard">🪪 Profile card (pronouns, banner, effect, stickers)</button>
-    <div class="dndrow" id="dndRow"><div class="dndlabel"><b>🔕 Do Not Disturb</b><small>Shows red to friends. Hides you from "who's online."</small></div><button type="button" class="dndswitch" id="dndSwitch" role="switch" aria-checked="false" aria-label="Do Not Disturb"></button></div>
-
-    <h3>Growth</h3>
+    <button class="ghost" type="button" id="openCard">🪪 Profile card &amp; links</button>
     <button type="button" class="ghost" id="openBacklog">🎮 Media Backlog</button>
     <button type="button" class="ghost" id="openHabits">🎯 Habits &amp; Stats</button>
     <button type="button" class="ghost" id="openQuiz">🃏 Who are you? (personality quiz)</button>
-    <p class="note" id="presenceDiag" aria-live="polite"></p>
-    <button type="button" class="ghost" id="openNews">📰 What's new</button>
-    <button type="button" class="ghost" id="openChangePass">🔑 Change password</button>
-    <button type="button" class="ghost" id="openRecovery">🛟 Recovery code</button>
-    <button type="button" class="ghost" id="openCredits">🌃 Credits</button>
-    <button type="button" class="ghost" id="openTip">💡 Tips</button>
-    <button type="button" class="ghost hidden" id="openCheats">🗝️ Secret cheat sheet</button>
-    <button type="button" class="ghost hidden" id="openReports">📋 Reports</button>
     <details class="proflist"><summary id="unlockSummary">🎁 Unlockables</summary><div class="unlockbox"><div id="unlockList"></div></div></details>
     <details class="proflist"><summary id="secretSummary">🔒 Secrets found: 0</summary><div class="secretbox">
       <div class="hintbox" id="hintBox"></div>
       <div class="secretlist" id="secretList"></div>
       <button type="button" class="linkbtn hidden" id="motionBtn">Enable motion secrets</button>
     </div></details>
-
     <h3>Birthday 🎂</h3>
     <div class="bdayrow">
       <label for="bdMonth" class="sr">Birth month</label><select class="field" id="bdMonth"></select>
@@ -3178,19 +3195,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub left">Just the month and day. On your birthday, everyone sees a cake on your picture.</p>
     <button type="button" class="linkbtn hidden" id="bdClear">Remove my birthday</button>
     <p class="msgline" id="bdMsg" role="status"></p>
+    </div>
 
-    <h3>Notifications &amp; effects</h3>
-    <button class="ghost" type="button" id="notifBtn">Turn on notifications</button>
-    <button class="ghost hidden" type="button" id="notifTest">Send a test notification</button>
-    <button class="ghost" type="button" id="badgeTest">🔢 Test the number on my app icon</button>
-    <label class="colorpick left"><span>🌐 Translate messages to</span><select class="field" id="langPick"></select></label>
-    <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
-    <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
-    <button class="ghost" type="button" id="dupBtn">📲 Phone notifications while NightLane is open: Off</button>
-    <button class="ghost" type="button" id="owlBtn">🦉 Night Owl reminders: On</button>
-    <button class="ghost" type="button" id="fxBtn">Screen effects: On</button>
-    <details class="fx-list"><summary>Words and emoji that trigger effects</summary><ul id="fxList"></ul></details>
-
+    <div class="profpane" data-pane="look" role="tabpanel">
+    <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
     <h3>Accessibility ♿</h3>
     <div class="a11yrow">
       <span class="sub left" id="tsLabel">Text size</span>
@@ -3198,12 +3206,42 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     </div>
     <button class="ghost" type="button" id="animPrefBtn">Animations: Match my device</button>
     <button class="ghost" type="button" id="cbBtn">🎨 Color-blind friendly: Off</button>
-    <p class="msgline" id="profMsg" role="status"></p>
+    <h3>Effects &amp; sound</h3>
+    <button class="ghost" type="button" id="fxBtn">Screen effects: On</button>
+    <details class="fx-list"><summary>Words and emoji that trigger effects</summary><ul id="fxList"></ul></details>
+    <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
+    </div>
+
+    <div class="profpane" data-pane="alerts" role="tabpanel">
+    <div class="dndrow" id="dndRow"><div class="dndlabel"><b>🔕 Do Not Disturb</b><small>Shows red to friends. Hides you from "who's online."</small></div><button type="button" class="dndswitch" id="dndSwitch" role="switch" aria-checked="false" aria-label="Do Not Disturb"></button></div>
+    <h3>Notifications</h3>
+    <button class="ghost" type="button" id="notifBtn">Turn on notifications</button>
+    <button class="ghost hidden" type="button" id="notifTest">Send a test notification</button>
+    <button class="ghost" type="button" id="dupBtn">📲 Phone notifications while NightLane is open: Off</button>
+    <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
+    <button class="ghost" type="button" id="owlBtn">🦉 Night Owl reminders: On</button>
+    <button class="ghost" type="button" id="badgeTest">🔢 Test the number on my app icon</button>
+    <h3>Translate</h3>
+    <label class="colorpick left"><span>🌐 Translate messages to</span><select class="field" id="langPick"></select></label>
+    </div>
+
+    <div class="profpane" data-pane="account" role="tabpanel">
+    <button type="button" class="ghost" id="openChangePass">🔑 Change password</button>
+    <button type="button" class="ghost" id="openRecovery">🛟 Recovery code</button>
     <h3 class="hidden" id="blockedTitle">Blocked people</h3>
     <div class="members" id="blockedList"></div>
+    <h3>Help &amp; info</h3>
+    <button type="button" class="ghost" id="openNews">📰 What's new</button>
+    <button type="button" class="ghost" id="openTip">💡 Tips</button>
+    <button type="button" class="ghost" id="openCredits">🌃 Credits</button>
+    <button type="button" class="ghost hidden" id="openCheats">🗝️ Secret cheat sheet</button>
+    <button type="button" class="ghost hidden" id="openReports">📋 Reports</button>
+    <p class="note" id="presenceDiag" aria-live="polite"></p>
     <button class="danger" type="button" id="logout">Log out</button>
-    <button class="ghost" type="button" id="closeProfile">Close</button>
     <button class="linkbtn" type="button" id="deleteAccount" style="justify-self:center">Delete my account</button>
+    </div>
+
+    <button class="ghost" type="button" id="closeProfile">Close</button>
     <p class="legallinks"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@nightlane.chat">support@nightlane.chat</a></p>
   </div></div>
 </div>
@@ -5648,7 +5686,7 @@ $("tourNext").onclick=()=>{ if(tourStep>=tourSteps().length-1){ closeTour(); if(
 $("tourBack").onclick=()=>{ if(tourStep>0){ tourStep--; paintTour(); } };
 $("tourSkip").onclick=closeTour;
 $("tourTry").querySelectorAll("[data-fx]").forEach(b=>b.onclick=()=>{
-  if(!fxEnabled()){ toast("Effects are off","Turn on Screen effects in Profile → Notifications & effects to see them."); return; }
+  if(!fxEnabled()){ toast("Effects are off","Turn on Screen effects in Profile → 🎨 Look to see them."); return; }
   if(reducedMotion()){ toast("Effects are paused","Your device asks for reduced motion, so effects stay still."); return; }
   FX.play(b.dataset.fx,{text:b.dataset.text||undefined});
 });
@@ -5897,6 +5935,36 @@ $("openProfile1").onclick=openProfile; $("openProfile2").onclick=openProfile; $(
 $("joinToggle").onclick=()=>{ const open=$("joinPanel").classList.contains("hidden"); show($("joinPanel"),open); $("joinToggle").setAttribute("aria-expanded",String(open)); $("joinToggle").textContent=open?"✕":"＋"; if(open) setTimeout(()=>$("room").focus(),60); };
 $("closeProfile").onclick=()=>show($("profile"),false);
 $("changePhoto").onclick=()=>$("avatarPicker").click();
+$("profFace").onclick=()=>$("avatarPicker").click();
+$("xpMore").onclick=()=>{ const box=$("xpMore").closest(".xpbox"), on=!box.classList.contains("open"); box.classList.toggle("open",on); $("xpMore").setAttribute("aria-expanded",String(on)); $("xpMore").textContent=on?"How to earn XP ▴":"How to earn XP ▾"; }; $("profFace").title="Change photo";
+/* ===== Profile tabs: Me · Look · Alerts · Account (remembers your last one) ===== */
+const PROF_TABS=["me","look","alerts","account"];
+function profTab(name){
+  if(!PROF_TABS.includes(name)) name="me";
+  document.querySelectorAll(".proftabs [data-tab]").forEach(b=>{ const on=b.dataset.tab===name; b.setAttribute("aria-selected",String(on)); b.tabIndex=on?0:-1; });
+  document.querySelectorAll(".profpane").forEach(p=>{ p.hidden=p.dataset.pane!==name; });
+  try{ LS.set("nl-prof-tab",name); }catch(e){}
+}
+document.querySelectorAll(".proftabs [data-tab]").forEach(b=>{
+  b.id="proftab-"+b.dataset.tab; b.setAttribute("aria-controls","profpane-"+b.dataset.tab);
+  b.onclick=()=>{ profTab(b.dataset.tab); const sh=$("profile").querySelector(".sheetbody"), t=document.querySelector(".proftabs"); if(sh&&t.getBoundingClientRect().top<sh.getBoundingClientRect().top+4) sh.scrollTop=t.offsetTop-sh.offsetTop-36; };
+  b.onkeydown=e=>{ const i=PROF_TABS.indexOf(b.dataset.tab), d=e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:0; if(!d) return; e.preventDefault(); const n=PROF_TABS[(i+d+4)%4]; profTab(n); $("proftab-"+n).focus(); };
+});
+document.querySelectorAll(".profpane").forEach(p=>{ p.id="profpane-"+p.dataset.pane; p.setAttribute("aria-labelledby","proftab-"+p.dataset.pane); });
+profTab((()=>{ try{ return LS.get("nl-prof-tab"); }catch(e){ return null; } })()||"me");
+/* "Sounds: On" style buttons become switches. The old code still just sets the text; we redraw it. */
+function drawSetRow(btn){
+  const m=(btn.textContent||"").match(/^(.*\S)\s*:\s*(.+)$/); if(!m) return;
+  const lab=m[1], val=m[2].trim(), bool=val==="On"||val==="Off";
+  btn.classList.add("setrow"); btn.classList.toggle("on",val==="On");
+  btn.replaceChildren(el("span","sr-lab",lab), bool?el("span","swi"):el("span","sval",val));
+  if(bool){ btn.setAttribute("role","switch"); btn.setAttribute("aria-checked",String(val==="On")); btn.setAttribute("aria-label",lab); }
+  else { btn.removeAttribute("role"); btn.removeAttribute("aria-checked"); btn.setAttribute("aria-label",lab+": "+val); }
+}
+["fxBtn","uiSoundBtn","buzzBtn","dupBtn","owlBtn","cbBtn","animPrefBtn"].forEach(id=>{
+  const b=$(id); if(!b) return; drawSetRow(b);
+  new MutationObserver(()=>drawSetRow(b)).observe(b,{childList:true,characterData:true,subtree:true});
+});
 $("avatarPicker").onchange=async e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f) return;
   if(f.size>15e6) return say("profMsg","That photo is over 15 MB. Pick a smaller one.",true);
@@ -9430,7 +9498,7 @@ function translationBlock(m){
   box.onclick=e=>{ e.stopPropagation(); showOriginal.has(m.id)?showOriginal.delete(m.id):showOriginal.add(m.id); refreshMsg(m.id); };
   return box;
 }
-$("menuTranslate").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); if(!myLang()){ $("status").textContent="Pick your language in your profile first."; openProfile(); return; } translateMsg(m,true); };
+$("menuTranslate").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); if(!myLang()){ $("status").textContent="Pick your language in Profile → Alerts first."; openProfile(); profTab("alerts"); return; } translateMsg(m,true); };
 
 /* ---------- dates → calendar ---------- */
 const MONTH_RE="jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
@@ -9723,7 +9791,7 @@ function hintNudge(){
   setTimeout(()=>{
     const t=el("button","toast"); t.type="button"; const body=el("span","tbody");
     body.append(el("div","ttitle","🔍 Daily secret hint"), el("div","ttext",HINTS[h.id]));
-    t.append(el("span","sx-lock","🔍"),body); t.onclick=()=>{ t.remove(); openProfile(); setTimeout(()=>$("hintBox").scrollIntoView({behavior:"smooth",block:"center"}),300); };
+    t.append(el("span","sx-lock","🔍"),body); t.onclick=()=>{ t.remove(); openProfile(); profTab("me"); setTimeout(()=>$("hintBox").scrollIntoView({behavior:"smooth",block:"center"}),300); };
     $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },7000);
   },2500);
 }
@@ -11650,8 +11718,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.09k";
+const APP_VERSION="2026.10.09l";
 const CHANGELOG=[
+  {v:"2026.10.09l", title:"A tidier Profile 🗂️", items:["🗂️ Profile is now split into 4 tabs: 🧑 Me, 🎨 Look, 🔔 Alerts and ⚙️ Account. It remembers the one you used last.","🔘 On/off settings are real switches now.","📷 Tap your picture to change it."]},
   {v:"2026.10.09k", title:"My Social Bonds 💫", items:["💫 See every Social Bond you have in one place, strongest first, with each one's arcana, rank and progress. Profile → My Social Bonds. Tap one to see what it means."]},
   {v:"2026.10.09j", title:"Social links 🔗", items:["🔗 Add your Discord, Instagram, TikTok, YouTube, Twitch, X, Steam, GitHub or website to your profile card (Profile → Profile card → Social links). Friends tap them on your profile (thanks beef!)."]},
   {v:"2026.10.09i", title:"Your colors, everywhere 🎨", items:["🎨 Log out and Delete my account now follow your Highlight color too (thanks beef!)."]},
@@ -11763,7 +11832,7 @@ const CHANGELOG=[
     "🎞️ Tapping a GIF now shows it big first, so you can make sure it's the right one. Add a message under it if you want, then hit Send. Thanks to jimmylikespie21 for the idea!",
   ]},
   {v:"2026.09.30m", title:"Accessibility ♿", items:[
-    "🔠 Profile → Accessibility → Text size: make messages, the typing box, and your chat list smaller or bigger.",
+    "🔠 Profile → 🎨 Look → Text size: make messages, the typing box, and your chat list smaller or bigger.",
     "🎞️ Animations now has a Less motion choice that calms things down even if your device isn't set to reduce motion.",
     "🎨 Color-blind friendly mode: online, away, and do-not-disturb dots get different shapes and easier-to-tell colors.",
   ]},
@@ -11840,7 +11909,7 @@ const CHANGELOG=[
     "⚙️ A new theme, Divergence, is waiting at the end of the right world line. Find it to unlock it.",
   ]},
   {v:"2026.09.27h", title:"Secrets on every screen 🎞️", items:[
-    "🎞️ Secrets and animations not playing on your computer? Your device may be set to reduce motion. Profile → Notifications & effects → Animations: Always play turns them back on.",
+    "🎞️ Secrets and animations not playing on your computer? Your device may be set to reduce motion. Profile → 🎨 Look → Animations: Always play turns them back on.",
   ]},
   {v:"2026.09.27g", title:"Defenders of the universe 🦁", items:[
     "🦁 Seven new secrets are hiding in the chat for paladins. Patience yields focus…",
@@ -12748,7 +12817,7 @@ addEventListener("resize",applyDesktop); applyDesktop();
 addEventListener("keydown",e=>{
   if(!document.body.classList.contains("desktop")) return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); if(user) openSearch(room?"room":"all"); }
-  if((e.ctrlKey||e.metaKey)&&e.key==="/"){ e.preventDefault(); if(user){ openProfile(); setTimeout(()=>{ const d=$("secretSummary")?.closest("details"); if(d) d.open=true; $("secretSummary").scrollIntoView({behavior:"smooth",block:"center"}); },300); } }
+  if((e.ctrlKey||e.metaKey)&&e.key==="/"){ e.preventDefault(); if(user){ openProfile(); profTab("me"); setTimeout(()=>{ const d=$("secretSummary")?.closest("details"); if(d) d.open=true; $("secretSummary").scrollIntoView({behavior:"smooth",block:"center"}); },300); } }
 });
 /* boot sequence: once per session, desktop only */
 function bootSequence(){
