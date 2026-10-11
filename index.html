@@ -2099,7 +2099,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .bltabs{width:100%}
 .bltabs button{white-space:nowrap;font-size:clamp(14px,4.4vw,18px)}
 /* five tabs (Library + Games/Anime/TV/Movies) must fit inside the sheet: equal columns, text shrinks instead of pushing the sheet wider */
-.bltabs{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px!important}
+.bltabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px!important}
 .bltabs button{min-width:0;padding:8px 1px!important;font-size:clamp(11px,3.5vw,16px)!important;letter-spacing:0!important;overflow:hidden;text-overflow:ellipsis}
 #backlogSheet .sheetbody>*{min-width:0;max-width:100%}
 @media (max-width:350px){.bltabs button{font-size:10px!important}}
@@ -2112,6 +2112,27 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .blfilters .field{grid-column:1/-1;font-size:15px;padding:9px 12px}
 .blsel{min-width:0;width:100%;-webkit-appearance:none;appearance:none;color-scheme:dark;background:var(--deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300F0FF'/%3E%3C/svg%3E") no-repeat right 8px center/9px 6px;color:var(--white);border:2px solid #3b2d80;border-radius:0;padding:7px 22px 7px 8px;font-family:var(--body);font-size:14px;text-overflow:ellipsis}
 .bllist{display:grid;gap:10px}
+.blviewrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.blviewrow .blcount{font-family:var(--tech);font-size:11px;color:var(--muted)}
+.blview{display:inline-flex;border:2px solid var(--cyan)}
+.blview button{background:none;border:none;color:var(--cyan);font-family:var(--tech);font-size:11px;padding:5px 10px;cursor:pointer}
+.blview button[aria-pressed="true"]{background:var(--cyan);color:var(--night)}
+.bllist.blgrid{grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}
+.bltile{position:relative;aspect-ratio:2/3;border:2px solid #3b2d80;background:linear-gradient(160deg,var(--deep),var(--night));padding:0;overflow:hidden;cursor:pointer;color:var(--white);font:inherit;display:block;width:100%}
+.bltile:hover,.bltile:focus-visible{border-color:var(--cyan)}
+.bltile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bltile .bt-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:6px;text-align:center;font-size:12px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.bltile .bt-ph b{font-size:24px}
+.bltile .bt-badge{position:absolute;top:3px;left:3px;font-family:var(--tech);font-size:9px;padding:2px 4px;background:var(--night);color:var(--cyan);border:1px solid var(--cyan)}
+.bltile.done .bt-badge{background:var(--cyan);color:var(--night)}
+.bltile .bt-stars{position:absolute;left:0;right:0;bottom:0;font-size:11px;letter-spacing:-1px;color:var(--volt);background:linear-gradient(transparent,rgba(0,0,0,.85));padding:10px 4px 3px;text-align:left}
+#backlogSheet.blwide .sheet{width:min(100%,860px)}
+#blPeek .sheet{width:min(100%,420px)}
+#blPeekBody{width:100%;text-align:left}
+.blimport{display:grid;gap:10px}
+.blimport ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.blimport .blsum{border:2px solid var(--cyan);padding:10px;background:rgba(0,240,255,.06);font-size:14px;display:grid;gap:6px}
+.blimport .blsum b{color:var(--volt)}
 .blcard{display:flex;gap:10px;border:2px solid #3b2d80;background:rgba(7,4,26,.7);padding:8px;align-items:flex-start}
 .blcard.done{border-color:rgba(46,230,107,.55)}
 .blcover,.blposter{flex:none;object-fit:cover;border:2px solid var(--cyan);background:#000}
@@ -3961,11 +3982,17 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <h2 id="blTitle">Media Backlog</h2>
     <div class="segmented bltabs" id="blTabs" role="radiogroup" aria-label="Backlog sections">
-      <button type="button" role="radio" data-tab="library">Library</button><button type="button" role="radio" data-tab="game">+ Games</button><button type="button" role="radio" data-tab="anime">+ Anime</button><button type="button" role="radio" data-tab="tv">+ TV</button><button type="button" role="radio" data-tab="movie">+ Movies</button>
+      <button type="button" role="radio" data-tab="library">Library</button><button type="button" role="radio" data-tab="game">+ Games</button><button type="button" role="radio" data-tab="anime">+ Anime</button><button type="button" role="radio" data-tab="tv">+ TV</button><button type="button" role="radio" data-tab="movie">+ Movies</button><button type="button" role="radio" data-tab="book">+ Books</button><button type="button" role="radio" data-tab="manga">+ Manga</button><button type="button" role="radio" data-tab="import">📥 Import</button>
     </div>
     <div class="blbody" id="blBody"></div>
     <p class="msgline" id="blMsg" role="status"></p>
     <button class="ghost" type="button" id="blClose">Close</button>
+  </div></div>
+</div>
+<div class="overlay hidden" id="blPeek" role="dialog" aria-modal="true" aria-label="Backlog item">
+  <div class="sheet"><div class="sheetbody">
+    <div id="blPeekBody"></div>
+    <button class="ghost" type="button" id="blPeekClose">Close</button>
   </div></div>
 </div>
 <div class="overlay hidden" id="blShareSheet" role="dialog" aria-modal="true" aria-labelledby="blShareTitle">
@@ -4657,6 +4684,7 @@ const live = {
   // Night Owl: sent while the app is closing, so it uses a keepalive request the browser finishes even after the page freezes
   async backlog(uid){ return must(await sb.from("backlog_items").select("*").eq("user_id",uid).order("created_at",{ascending:false})); },
   async addBacklog(it){ return must(await sb.from("backlog_items").insert(it).select().single()); },
+  async addBacklogMany(list){ return must(await sb.from("backlog_items").insert(list).select()); },
   async updateBacklog(id,patch){ must(await sb.from("backlog_items").update(patch).eq("id",id)); },
   async deleteBacklog(id){ must(await sb.from("backlog_items").delete().eq("id",id)); },
   async saveProgress(d){ return must(await sb.rpc("save_progress",{p_xp:d.xp,p_log:d.log,p_secrets:d.secrets,p_unlocks:d.unlocks})); },
@@ -5041,6 +5069,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async savePush(){}, async deletePush(){}, async testPush(){ return {sent:1,devices:1,demo:true}; },
     owlSchedule(){}, async owlCancel(){},
     async backlog(uid){ return (demoBl[uid]||[]).map(x=>({...x})); },
+    async addBacklogMany(arr){ const out=[]; for(const it of arr) out.push(await this.addBacklog(it)); return out; },
     async addBacklog(it){ const list=(demoBl.me ||= []); if(it.source_id&&list.some(x=>x.source_id===it.source_id)) throw new Error('duplicate key value violates unique constraint "backlog_items_no_dupes"');
       const row={id:demoBlId++,user_id:"me",status:"planned",progress:0,total:null,rating:0,platform:null,image:null,source_id:null,created_at:iso(),...it}; list.unshift(row); return {...row}; },
     async updateBacklog(id,patch){ const r=(demoBl.me||[]).find(x=>x.id===id); if(r) Object.assign(r,patch); },
@@ -11806,8 +11835,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.10b";
+const APP_VERSION="2026.10.11a";
 const CHANGELOG=[
+  {v:"2026.10.11a", title:"Backlog glow-up 📚", items:["▦ Grid view: see your backlog as a poster wall. Tap a cover to open it.","📚 Books and 📖 Manga: search and add them with covers, and track pages or chapters.","📥 Import your Letterboxd, Goodreads or IMDb lists in one go. Covers fill in by themselves. (Thanks beef!)"]},
   {v:"2026.10.10b", title:"Tidier friends list ⭐", items:["⭐ Star friends to pin them at the top of your list.","🟢 Friends who are online now show first. Offline friends fold into their own section.","🔍 Got lots of friends? A search box finds anyone fast."]},
   {v:"2026.10.10a", title:"Share PDFs 📄", items:["📄 Send PDFs in any chat: tap ＋ then 📄 PDF. Friends tap it to open (up to 20 MB)."]},
   {v:"2026.10.09l", title:"A tidier Profile 🗂️", items:["🗂️ Profile is now split into 4 tabs: 🧑 Me, 🎨 Look, 🔔 Alerts and ⚙️ Account. It remembers the one you used last.","🔘 On/off settings are real switches now.","📷 Tap your picture to change it."]},
@@ -12299,13 +12329,14 @@ QX.rankup=function(name,arcana,rank){
    and any item can be shared into a chat as a card that friends can add to their own list. */
 const RAWG_KEY="bdc93c6f8ede4fb2b7427360172996ae";   // same key as the Media Backlog site
 const BL_STATUS={planned:"Planned","in-progress":"In Progress",completed:"Completed"};
-let blOwner=null, blItems=[], myBl=null, blTab="library", blFilters={q:"",type:"all",status:"all",sort:"default"}, blResults={game:null,anime:null,tv:null,movie:null}, blQuery={game:"",anime:"",tv:"",movie:""};
+let blOwner=null, blItems=[], myBl=null, blTab="library", blFilters={q:"",type:"all",status:"all",sort:"default"}, blResults={game:null,anime:null,tv:null,movie:null,book:null,manga:null}, blQuery={game:"",anime:"",tv:"",movie:"",book:"",manga:""};
 const blMine=()=>blOwner===user?.id;
 const isBlCard=m=>m?.card&&typeof m.card==="object"&&m.card.kind==="backlog"&&typeof m.card.title==="string";
 const blKey=it=>it.source_id||("title:"+String(it.title||"").toLowerCase()+"|"+it.type);
 function blFriendlyError(err){
   const m=String(err?.message||err);
   if(/duplicate key|no_dupes/i.test(m)) return "That's already on your backlog.";
+  if(/backlog_items_type_check|violates check constraint/i.test(m)) return "Books and manga need a quick setup: run backlog-books.sql in Supabase.";
   if(/relation|does not exist|schema cache|backlog_items/i.test(m)) return "The backlog isn't set up yet: run media-backlog.sql in Supabase.";
   return m;
 }
@@ -12316,15 +12347,16 @@ async function openBacklog(uid){
   blOwner=uid||user.id; blTab="library"; blFilters={q:"",type:"all",status:"all",sort:"default"}; say("blMsg","");
   $("blTitle").textContent=blMine()?"Media Backlog":`${cache.get(blOwner)?.username||"Friend"}'s Backlog`;
   show($("blTabs"),blMine()); $("blBody").innerHTML='<p class="note">Loading…</p>'; show($("backlogSheet"));
-  try{ blItems=await api.backlog(blOwner); if(blMine()) myBl=blItems; else await loadMyBacklog(); }
+  try{ blItems=await api.backlog(blOwner); if(blMine()) myBl=blItems; else await loadMyBacklog(); blCoverSoon(3000); }
   catch(err){ blItems=[]; $("blBody").innerHTML=""; $("blBody").append(el("p","msgline bad",blFriendlyError(err))); return; }
   paintBacklog();
 }
 function paintBacklog(){
   $("blTabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.tab===blTab)));
-  if(blTab==="library") paintBlLibrary(); else paintBlSearch(blTab);
+  $("backlogSheet").classList.toggle("blwide",blTab==="library"&&blView()==="grid");
+  if(blTab==="library") paintBlLibrary(); else if(blTab==="import") paintBlImport(); else paintBlSearch(blTab);
 }
-$("blTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ blTab=b.dataset.tab; say("blMsg",""); paintBacklog(); });
+$("blTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ blTab=b.dataset.tab; say("blMsg",""); closeBlPeek(); paintBacklog(); });
 
 /* ---------- library ---------- */
 function paintBlLibrary(){
@@ -12334,7 +12366,7 @@ function paintBlLibrary(){
                [anime.reduce((n,i)=>n+(+i.progress||0),0),"Eps"],[games.reduce((n,i)=>n+(+i.progress||0),0),"Hours"]];
   const st=el("div","blstats"); stats.forEach(([n,l])=>{ const d=el("div","blstat"); d.append(el("b","",String(n)),el("span","",l)); st.append(d); }); box.append(st);
   if(!blItems.length){
-    box.append(el("p","note",blMine()?"Your backlog is empty. Tap + Games, + Anime, + TV, or + Movies to find something to add.":"Nothing to show. A backlog only shows to people its owner has added as a friend."));
+    box.append(el("p","note",blMine()?"Your backlog is empty. Tap a + tab to find something to add, or 📥 Import your Letterboxd, Goodreads or IMDb list.":"Nothing to show. A backlog only shows to people its owner has added as a friend."));
     if(blMine()) box.append(blManualForm());
     return;
   }
@@ -12342,10 +12374,13 @@ function paintBlLibrary(){
   const q=el("input","field"); q.placeholder="Search this backlog…"; q.value=blFilters.q; q.setAttribute("aria-label","Search this backlog");
   q.oninput=()=>{ blFilters.q=q.value; paintBlList(); };
   const mk=(key,opts,label)=>{ const s=document.createElement("select"); s.className="blsel"; s.setAttribute("aria-label",label); opts.forEach(([v,t])=>s.append(new Option(t,v))); s.value=blFilters[key]; s.onchange=()=>{ blFilters[key]=s.value; paintBlList(); }; return s; };
-  fb.append(q, mk("type",[["all","All"],["game","Games"],["anime","Anime"],["tv","TV"],["movie","Movies"]],"Type"),
+  fb.append(q, mk("type",[["all","All"],["game","Games"],["anime","Anime"],["tv","TV"],["movie","Movies"],["book","Books"],["manga","Manga"]],"Type"),
     mk("status",[["all","Status"],["planned","Planned"],["in-progress","In Progress"],["completed","Completed"]],"Status"),
     mk("sort",[["default","Newest"],["title","A–Z"],["rating","Top rated"],["progress","Most progress"]],"Sort"));
-  box.append(fb, el("div","bllist"));
+  const vr=el("div","blviewrow"), cnt=el("span","blcount"), vt=el("div","blview"); vt.setAttribute("role","group"); vt.setAttribute("aria-label","View");
+  [["list","☰ List"],["grid","▦ Grid"]].forEach(([v,t])=>{ const b=el("button","",t); b.type="button"; b.dataset.v=v; b.setAttribute("aria-pressed",String(blView()===v)); b.onclick=()=>{ setBlView(v); vt.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.v===v))); $("backlogSheet").classList.toggle("blwide",v==="grid"); paintBlList(); }; vt.append(b); });
+  vr.append(cnt,vt);
+  box.append(fb, vr, el("div","bllist"));
   paintBlList();
   if(blMine()) box.append(blManualForm());
 }
@@ -12356,8 +12391,11 @@ function paintBlList(){
   if(f.sort==="title") items=[...items].sort((a,b)=>a.title.localeCompare(b.title));
   if(f.sort==="rating") items=[...items].sort((a,b)=>b.rating-a.rating);
   if(f.sort==="progress") items=[...items].sort((a,b)=>b.progress-a.progress);
+  const cnt=$("blBody").querySelector(".blcount"); if(cnt) cnt.textContent=items.length===blItems.length?`${items.length} item${items.length===1?"":"s"}`:`${items.length} of ${blItems.length}`;
+  const grid=blView()==="grid"; list.classList.toggle("blgrid",grid);
   if(!items.length){ list.append(el("p","note","No items match your filters.")); return; }
-  items.forEach(it=>list.append(blCard(it)));
+  items.forEach(it=>list.append(grid?blTile(it):blCard(it)));
+  if(blPeekItem&&!$("blPeek").classList.contains("hidden")) paintBlPeek();
 }
 function blStars(rating,onRate){
   if(!onRate){ const r=el("div","blstars ro","★".repeat(rating)+"☆".repeat(5-rating)); r.setAttribute("role","img"); r.setAttribute("aria-label",rating?`Rated ${rating} out of 5`:"Not rated"); return r; }
@@ -12368,6 +12406,8 @@ function blStars(rating,onRate){
 }
 const blProgressText=it=>{
   if(it.type==="anime"||it.type==="tv") return `Episode ${it.progress} / ${it.total??"?"}`;
+  if(it.type==="book") return `Page ${it.progress} / ${it.total??"?"}`;
+  if(it.type==="manga") return `Chapter ${it.progress} / ${it.total??"?"}`;
     if(it.type==="movie") return it.status==="completed" ? "Watched" : "Not watched yet";
   return `${it.progress} hrs played`;
 };
@@ -12390,7 +12430,7 @@ if(it.type==="movie"){
   plus=el("button","blbtn",it.status==="completed"?"Mark as not watched":"Mark as watched"); plus.type="button";
   plus.onclick=()=>blUpdate(it,{status:it.status==="completed"?"planned":"completed"});
 } else {
-  plus=el("button","blbtn","+1"); plus.type="button"; plus.disabled=!!(it.total&&it.progress>=it.total); plus.setAttribute("aria-label",(it.type==="anime"||it.type==="tv"?"Add an episode to ":"Add an hour to ")+it.title); plus.onclick=()=>blPlusOne(it);
+  plus=el("button","blbtn","+1"); plus.type="button"; plus.disabled=!!(it.total&&it.progress>=it.total); plus.setAttribute("aria-label",(blCounted(it.type)?"Add one "+BL_COUNTED[it.type]+" to ":"Add an hour to ")+it.title); plus.onclick=()=>blPlusOne(it);
 }
     const share=el("button","blbtn","Share"); share.type="button"; share.onclick=()=>openBlShare(it);
     const pic=el("button","blbtn blpic","🖼️"); pic.type="button"; pic.title=it.image?"Change the picture":"Add your own picture"; pic.setAttribute("aria-label",(it.image?"Change the picture for ":"Add a picture for ")+it.title); pic.onclick=()=>blChangePoster(it);
@@ -12438,19 +12478,19 @@ function blPlusOne(it){
 /* Tap the progress line: − / + / type a number / +1 +5 +10 / set total episodes. Saves once on Done. */
 function openProgressEditor(it,card){
   card.querySelector(".blpedit")?.remove();
-  const anime=it.type==="anime"||it.type==="tv", unit=anime?"episode":"hour";
+  const anime=blCounted(it.type), unit=BL_COUNTED[it.type]||"hour";
   let prog=+it.progress||0, total=it.total||null;
   const box=el("div","blpedit"); box.setAttribute("role","group"); box.setAttribute("aria-label",`Progress for ${it.title}`);
   const minus=el("button","blbtn","−"), plus=el("button","blbtn","+"); minus.type=plus.type="button";
   minus.setAttribute("aria-label",`One less ${unit}`); plus.setAttribute("aria-label",`One more ${unit}`);
-  const num=el("input","field blpnum"); num.type="number"; num.inputMode="numeric"; num.min="0"; num.value=prog; num.setAttribute("aria-label",anime?"Episodes watched":"Hours played");
+  const num=el("input","field blpnum"); num.type="number"; num.inputMode="numeric"; num.min="0"; num.value=prog; num.setAttribute("aria-label",anime?(blReads(it.type)?unit[0].toUpperCase()+unit.slice(1)+"s read":"Episodes watched"):"Hours played");
   const row=el("div","blprow"); row.append(minus,num);
   let tot=null;
-  if(anime){ row.append(el("span","blpof","of")); tot=el("input","field blpnum"); tot.type="number"; tot.inputMode="numeric"; tot.min="1"; tot.placeholder="?"; tot.value=total||""; tot.setAttribute("aria-label","Total episodes"); row.append(tot); }
+  if(anime){ row.append(el("span","blpof","of")); tot=el("input","field blpnum"); tot.type="number"; tot.inputMode="numeric"; tot.min="1"; tot.placeholder="?"; tot.value=total||""; tot.setAttribute("aria-label","Total "+unit+"s"); row.append(tot); }
   else row.append(el("span","blpof","hrs"));
   row.append(plus);
   const quick=el("div","blprow blquick");
-  [1,5,10].forEach(n=>{ const q=el("button","blbtn",`+${n}${anime?"":"h"}`); q.type="button"; q.setAttribute("aria-label",`Add ${n} ${unit}${n>1?"s":""}`); q.onclick=()=>set(prog+n); quick.append(q); });
+  (it.type==="book"?[10,25,50]:[1,5,10]).forEach(n=>{ const q=el("button","blbtn",`+${n}${anime?"":"h"}`); q.type="button"; q.setAttribute("aria-label",`Add ${n} ${unit}${n>1?"s":""}`); q.onclick=()=>set(prog+n); quick.append(q); });
   const done=el("button","blbtn add","Done"); done.type="button"; quick.append(done);
   const cap=()=>{ const t=tot&&+tot.value>0?Math.round(+tot.value):(anime?null:null); return t; };
   function set(v){ const t=anime?cap():null; prog=Math.max(0,Math.min(Math.round(+v)||0,t||100000)); num.value=prog; minus.disabled=prog<=0; plus.disabled=!!(t&&prog>=t); }
@@ -12467,13 +12507,14 @@ function openProgressEditor(it,card){
 function blCompleted(it){
   gainXP("backlogdone");
   const t=el("button","toast mention"); t.type="button"; const body=el("span","tbody");
-  body.append(el("div","ttitle",it.type==="game" ? "🎮 Game complete!" : blIcon(it.type)+" Finished watching!"), el("div","ttext",`${it.title} · tap to share it`));
+  body.append(el("div","ttitle",it.type==="game" ? "🎮 Game complete!" : blIcon(it.type)+(blReads(it.type)?" Finished reading!":" Finished watching!")), el("div","ttext",`${it.title} · tap to share it`));
   t.append(el("span","sx-lock","🏆"),body); t.onclick=()=>{ t.remove(); openBlShare(it); };
   $("toasts").prepend(t); setTimeout(()=>{ if(t.isConnected){ t.classList.add("out"); setTimeout(()=>t.remove(),260); } },6000);
   if(fxEnabled()) FX.play("confetti");
 }
 async function blDelete(it){
   if(!confirm(`Remove ${it.title} from your backlog?`)) return;
+  if(blPeekItem===it) closeBlPeek();
   const i=blItems.indexOf(it); blItems.splice(i,1); paintBlLibrary();
   try{ await api.deleteBacklog(it.id); }catch(err){ blItems.splice(i,0,it); paintBlLibrary(); say("blMsg","Couldn't remove it: "+blFriendlyError(err),true); }
 }
@@ -12517,10 +12558,10 @@ async function blChangePoster(it){
 function blManualForm(){
   const d=el("details","blmanual"); d.append(el("summary","","+ Add one manually"));
   const t=el("input","field"); t.placeholder="Title"; t.maxLength=120; t.setAttribute("aria-label","Title");
-  const type=document.createElement("select"); type.className="blsel"; type.setAttribute("aria-label","Type"); type.append(new Option("Game","game"),new Option("Anime","anime"),new Option("TV","tv"),new Option("Movie","movie"));
+  const type=document.createElement("select"); type.className="blsel"; type.setAttribute("aria-label","Type"); type.append(new Option("Game","game"),new Option("Anime","anime"),new Option("TV","tv"),new Option("Movie","movie"),new Option("Book","book"),new Option("Manga","manga"));
   const plat=el("input","field"); plat.placeholder="Platform"; plat.maxLength=40; plat.setAttribute("aria-label","Platform");
   const tot=el("input","field"); tot.type="number"; tot.min="1"; tot.placeholder="Episodes"; tot.setAttribute("aria-label","Total episodes");
-  type.onchange=()=>{ tot.style.visibility=type.value==="anime"||type.value==="tv"?"visible":"hidden"; }; tot.style.visibility="hidden";
+  type.onchange=()=>{ tot.style.visibility=blCounted(type.value)?"visible":"hidden"; tot.placeholder=({book:"Pages",manga:"Chapters"})[type.value]||"Episodes"; plat.placeholder=type.value==="book"?"Author":"Platform"; tot.setAttribute("aria-label","Total "+(BL_COUNTED[type.value]||"episode")+"s"); }; tot.style.visibility="hidden";
   let posterFile=null;
   const pRow=el("div","blposterpick"), pBtn=el("button","blbtn","🖼️ Add a poster (optional)"), pPrev=el("span","blposterprev");
   pBtn.type="button";
@@ -12528,7 +12569,7 @@ function blManualForm(){
   pRow.append(pBtn,pPrev);
   const go=el("button","blbtn add","Add"); go.type="button";
   go.onclick=async()=>{ go.disabled=true; try{ if(!t.value.trim()) throw new Error("Give it a title first."); let image=null; if(posterFile){ say("blMsg","Uploading poster…"); image=await blUploadPoster(posterFile); }
-      await blAdd({title:t.value,type:type.value,platform:plat.value,total:type.value==="anime"||type.value==="tv"?tot.value:null,image}); t.value=""; plat.value=""; tot.value=""; posterFile=null; pPrev.innerHTML=""; pBtn.textContent="🖼️ Add a poster (optional)"; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
+      await blAdd({title:t.value,type:type.value,platform:plat.value,total:blCounted(type.value)?tot.value:null,image}); t.value=""; plat.value=""; tot.value=""; posterFile=null; pPrev.innerHTML=""; pBtn.textContent="🖼️ Add a poster (optional)"; say("blMsg","Added!"); paintBlLibrary(); }catch(err){ say("blMsg",blFriendlyError(err),true); } go.disabled=false; };
   const r=el("div","row2"); r.append(type,plat,tot);
   d.append(t,r,pRow,go); return d;
 }
@@ -12538,7 +12579,9 @@ const BL_SEARCH_TEXT={
   game:{ph:"Search games…", help:"Find a game to add. Covers and platforms come from RAWG."},
   anime:{ph:"Search anime…", help:"Find an anime to add. Posters and episode counts come from Kitsu."},
   tv:{ph:"Search TV shows…", help:"Find a TV show to add. Posters and episode counts come from TVmaze."},
-  movie:{ph:"", help:""}
+  movie:{ph:"", help:""},
+  book:{ph:"Search books or authors…", help:"Find a book to add. Covers and page counts come from Open Library."},
+  manga:{ph:"Search manga…", help:"Find a manga to add. Covers and chapter counts come from Kitsu."}
 };
 function paintBlSearch(type){
   const box=$("blBody"); box.innerHTML="";
@@ -12558,7 +12601,7 @@ function paintBlSearch(type){
 async function blRunSearch(type,query){
   query=String(query||"").trim(); blQuery[type]=query;
   const res=$("blBody").querySelector(".blresults"); if(!res) return;
-  const what={game:"a game",anime:"an anime",tv:"a TV show",movie:"a movie"}[type]||"a title";
+  const what={game:"a game",anime:"an anime",tv:"a TV show",movie:"a movie",book:"a book",manga:"a manga"}[type]||"a title";
   if(!query){ say("blMsg",`Type ${what} name to search.`,true); return; }
   say("blMsg",""); res.innerHTML='<p class="note">Searching…</p>';
   try{
@@ -12570,6 +12613,14 @@ async function blRunSearch(type,query){
       blResults.tv=(await r.json()).slice(0,12).map(x=>{ const s=x.show||{}, net=s.network?.name||s.webChannel?.name||null; return {
         type:"tv", title:s.name||"Untitled", image:s.image?.medium||null, platform:net, total:null, source_id:"tvmaze:"+s.id,
         meta:[s.premiered?.slice(0,4), net, s.status==="Running"?"still airing":null].filter(Boolean).join(" · ") }; });
+    } else if(type==="book"){
+      const r=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12&fields=key,title,author_name,cover_i,first_publish_year,number_of_pages_median`); if(!r.ok) throw new Error(r.status);
+      blResults.book=((await r.json()).docs||[]).map(b=>({type:"book",title:b.title||"Untitled",image:b.cover_i?`https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`:null,
+        platform:(b.author_name||[])[0]||null,total:b.number_of_pages_median||null,source_id:"ol:"+String(b.key||"").split("/").pop(),
+        meta:[(b.author_name||[])[0],b.first_publish_year,b.number_of_pages_median?b.number_of_pages_median+" pages":null].filter(Boolean).join(" · ")}));
+    } else if(type==="manga"){
+      const r=await fetch(`https://kitsu.io/api/edge/manga?filter[text]=${encodeURIComponent(query)}&page[limit]=12`); if(!r.ok) throw new Error(r.status);
+      blResults.manga=((await r.json()).data||[]).map(a=>{ const x=a.attributes||{}; return {type:"manga",title:x.titles?.en||x.canonicalTitle||"Untitled",image:x.posterImage?.small||null,platform:x.subtype&&x.subtype!=="manga"?x.subtype[0].toUpperCase()+x.subtype.slice(1):"Manga",total:x.chapterCount||null,source_id:"kitsu-m:"+a.id,meta:[x.startDate?.slice(0,4),x.chapterCount?x.chapterCount+" ch":null,x.volumeCount?x.volumeCount+" vol":null,x.status==="current"?"ongoing":null].filter(Boolean).join(" · ")}; });
     } else {
       const r=await fetch(`https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=12`); if(!r.ok) throw new Error(r.status);
       blResults.anime=((await r.json()).data||[]).map(a=>{ const x=a.attributes||{}; return {type:"anime",title:x.titles?.en||x.canonicalTitle||"Untitled",image:x.posterImage?.small||null,platform:"Streaming",total:x.episodeCount||null,source_id:"kitsu:"+a.id,meta:[x.startDate?.slice(0,4),x.episodeCount?x.episodeCount+" eps":null,x.subtype?.toUpperCase()].filter(Boolean).join(" · ")}; });
@@ -12588,12 +12639,183 @@ function paintBlResults(type){
   });
 }
 
+/* ---------- grid view: a poster wall. Tap a cover to open its full card. ---------- */
+function blView(){ try{ return LS.get("nl-bl-view")==="grid"?"grid":"list"; }catch(e){ return "list"; } }
+function setBlView(v){ try{ LS.set("nl-bl-view",v); }catch(e){} }
+let blPeekItem=null;
+function blTile(it){
+  const b=el("button","bltile"+(it.status==="completed"?" done":"")); b.type="button";
+  b.setAttribute("aria-label",`${it.title}, ${BL_TYPE_LABEL[it.type]||""}, ${BL_STATUS[it.status]||""}${it.rating?`, ${it.rating} stars`:""}`);
+  const ph=el("span","bt-ph"); ph.append(el("b","",blIcon(it.type)), el("span","",it.title)); b.append(ph);
+  const u=safeImg(it.image); if(u){ const i=document.createElement("img"); i.src=u; i.alt=""; i.loading="lazy"; i.onerror=()=>i.remove(); b.append(i); }
+  const badge=it.status==="completed"?"✓":it.status==="in-progress"?(blCounted(it.type)&&it.total?Math.round(100*(+it.progress||0)/it.total)+"%":"▶"):"";
+  if(badge) b.append(el("span","bt-badge",badge));
+  if(it.rating) b.append(el("span","bt-stars","★".repeat(it.rating)));
+  b.onclick=()=>openBlPeek(it);
+  return b;
+}
+function openBlPeek(it){ blPeekItem=it; paintBlPeek(); show($("blPeek")); }
+function paintBlPeek(){
+  const box=$("blPeekBody");
+  if(!blPeekItem||!blItems.includes(blPeekItem)){ closeBlPeek(); return; }
+  if(box.querySelector(".blpedit")) return;   // don't wipe the progress editor while it's open
+  box.innerHTML=""; box.append(blCard(blPeekItem));
+}
+function closeBlPeek(){ blPeekItem=null; show($("blPeek"),false); }
+$("blPeekClose").onclick=closeBlPeek;
+
+/* ---------- 📥 import from Letterboxd, Goodreads or IMDb (their CSV exports) ---------- */
+function parseCsv(text){
+  text=String(text||"").replace(/^﻿/,""); const rows=[]; let row=[], f="", q=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===","){ row.push(f); f=""; }
+    else if(c==="\n"||c==="\r"){ if(c==="\r"&&text[i+1]==="\n") i++; row.push(f); f=""; if(row.some(x=>x!=="")) rows.push(row); row=[]; }
+    else f+=c; }
+  row.push(f); if(row.some(x=>x!=="")) rows.push(row);
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>h.trim());
+  return rows.slice(1).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]??"").trim()])));
+}
+/* turns a CSV export into backlog items: {type,title,status,rating,progress,total,platform,image,source_id} */
+function blFromCsv(rows,fileName){
+  const h=rows.length?Object.keys(rows[0]):[], has=k=>h.includes(k), wl=/watchlist|to.?read/i.test(fileName||"");
+  const stars=(v,max)=>{ const n=parseFloat(v); return n>0?Math.max(1,Math.min(5,Math.round(n*5/max))):0; };
+  if(has("Letterboxd URI")&&has("Name")){
+    return {source:"Letterboxd",items:rows.map(r=>({type:"movie",title:r.Name,status:wl?"planned":"completed",rating:has("Rating")?stars(r.Rating,5):0,progress:0,total:null,
+      platform:/^\d{4}$/.test(r.Year||"")?r.Year:null,image:null,source_id:"lb:"+(String(r["Letterboxd URI"]).split("/").filter(Boolean).pop()||r.Name).slice(0,30)}))};
+  }
+  if(has("Book Id")&&has("Title")&&(has("Exclusive Shelf")||has("My Rating"))){
+    return {source:"Goodreads",items:rows.map(r=>{ const shelf=(r["Exclusive Shelf"]||"").toLowerCase(), pages=parseInt(r["Number of Pages"])||null;
+      const status=shelf==="read"?"completed":shelf==="currently-reading"?"in-progress":"planned";
+      const isbn=(r.ISBN13||r.ISBN||"").replace(/[^0-9X]/gi,"");
+      return {type:"book",title:r.Title,status,rating:stars(r["My Rating"],5),progress:status==="completed"&&pages?pages:0,total:pages,platform:r.Author||null,
+        image:isbn.length>=10?`https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg?default=false`:null,source_id:"gr:"+r["Book Id"]}; })};
+  }
+  if(has("Const")&&has("Title")&&has("Title Type")){
+    const map={movie:"movie",tvMovie:"movie",short:"movie",video:"movie",tvSpecial:"movie",tvSeries:"tv",tvMiniSeries:"tv",videoGame:"game"};
+    return {source:"IMDb",items:rows.filter(r=>map[r["Title Type"]]).map(r=>{ const type=map[r["Title Type"]];
+      const status=!wl&&r["Your Rating"]?"completed":"planned";
+      return {type,title:r.Title,status,rating:stars(r["Your Rating"],10),progress:0,total:null,platform:type==="movie"&&/^\d{4}$/.test(r.Year||"")?r.Year:null,image:null,source_id:"imdb:"+r.Const}; })};
+  }
+  return {source:null,items:[]};
+}
+let blImport=null;   // {source, file, fresh:[...], dupes, done, running}
+function paintBlImport(){
+  const box=$("blBody"); box.innerHTML="";
+  const w=el("div","blimport");
+  w.append(el("p","note","Bring your lists over in one go. Export a CSV from the site, then pick it here:"));
+  const ol=el("ol");
+  [["🎬 Letterboxd","Settings → Data → Export your data. Use watched.csv, ratings.csv or watchlist.csv."],
+   ["📚 Goodreads","My Books → Import and export → Export library."],
+   ["🎞️ IMDb","Your ratings or your watchlist → ⋯ → Export."]].forEach(([a,b])=>{ const li=el("li"); li.append(el("b","",a+": "),document.createTextNode(b)); ol.append(li); });
+  w.append(ol);
+  const inp=document.createElement("input"); inp.type="file"; inp.accept=".csv,text/csv"; inp.className="sr"; inp.id="blCsv"; inp.tabIndex=-1;
+  const pick=el("button","blbtn add","📂 Choose a CSV file"); pick.type="button"; pick.onclick=()=>inp.click();
+  inp.onchange=async()=>{ const f=inp.files?.[0]; inp.value=""; if(f) await blReadCsv(f); };
+  w.append(inp,pick);
+  if(blImport) w.append(blImportSummary());
+  box.append(w);
+}
+async function blReadCsv(f){
+  if(f.size>8e6){ say("blMsg","That file is over 8 MB. Is it the right export?",true); return; }
+  try{
+    const {source,items}=blFromCsv(parseCsv(await f.text()),f.name);
+    if(!source){ blImport=null; say("blMsg","That doesn't look like a Letterboxd, Goodreads or IMDb export.",true); paintBlImport(); return; }
+    await loadMyBacklog();
+    const have=new Set((myBl||[]).map(blKey)), haveTitle=new Set((myBl||[]).map(x=>x.type+"|"+String(x.title).toLowerCase().trim()));
+    const seen=new Set(), fresh=[]; let dupes=0;
+    items.forEach(it=>{ it.title=String(it.title||"").trim().slice(0,120); if(!it.title) return;
+      const tk=it.type+"|"+it.title.toLowerCase();
+      if(have.has(blKey(it))||haveTitle.has(tk)||seen.has(it.source_id)||seen.has(tk)){ dupes++; return; }
+      seen.add(it.source_id); seen.add(tk); fresh.push(it); });
+    blImport={source,file:f.name,fresh:fresh.slice(0,2000),dupes,done:0,running:false};
+    say("blMsg",""); paintBlImport();
+  }catch(err){ say("blMsg","Couldn't read that file: "+err.message,true); }
+}
+function blImportSummary(){
+  const im=blImport, s=el("div","blsum");
+  const by={}; im.fresh.forEach(i=>by[i.type]=(by[i.type]||0)+1);
+  const kinds=Object.entries(by).map(([t,n])=>`${n} ${({tv:"TV show",manga:"manga"})[t]||BL_TYPE_LABEL[t].toLowerCase()}${n===1||t==="manga"?"":"s"}`).join(", ");
+  const head=el("div"); head.append(el("b","",im.source), document.createTextNode(` · ${im.file}`)); s.append(head);
+  if(im.fresh.length&&im.done>=im.fresh.length){ s.append(el("div","",`✓ Added ${im.done}! Covers fill in over the next few minutes while NightLane is open.`)); return s; }
+  s.append(el("div","",im.fresh.length?`Ready to add ${kinds}.`:"Everything in this file is already on your backlog."));
+  if(im.dupes) s.append(el("div","note",`${im.dupes} skipped (already on your backlog or listed twice).`));
+  if(im.fresh.length){
+    const go=el("button","blbtn add",im.running?`Adding… ${im.done} / ${im.fresh.length}`:im.done?`Continue (${im.done} / ${im.fresh.length} added)`:`Add ${im.fresh.length} to my backlog`);
+    go.type="button"; go.disabled=!!im.running; go.onclick=()=>blRunImport(); s.append(go);
+  }
+  return s;
+}
+async function blRunImport(){
+  const im=blImport; if(!im||im.running) return; im.running=true; paintBlImport();
+  const clean=it=>({type:it.type,title:it.title,status:BL_STATUS[it.status]?it.status:"planned",rating:Math.max(0,Math.min(5,Math.round(+it.rating)||0)),
+    progress:Math.max(0,Math.round(+it.progress)||0),total:Number.isInteger(+it.total)&&+it.total>0?+it.total:null,
+    platform:it.platform?String(it.platform).slice(0,40):null,image:safeImg(it.image)&&String(it.image).startsWith("https://")?String(it.image).slice(0,500):null,
+    source_id:String(it.source_id||"").slice(0,40)||null});
+  const isDupe=e=>/duplicate|no_dupes/i.test(String(e?.message||e));
+  try{
+    for(let i=im.done;i<im.fresh.length;i+=50){
+      const chunk=im.fresh.slice(i,i+50).map(clean); let rows;
+      try{ rows=await api.addBacklogMany(chunk); }
+      catch(err){ if(!isDupe(err)) throw err; rows=[]; for(const one of chunk){ try{ rows.push(await api.addBacklog(one)); }catch(e){ if(!isDupe(e)) throw e; } } }
+      (myBl ||= []); rows.forEach(r=>{ if(!myBl.includes(r)) myBl.unshift(r); if(blMine()&&blItems!==myBl&&!blItems.includes(r)) blItems.unshift(r); });
+      im.done=Math.min(im.fresh.length,i+50); if(blTab==="import") paintBlImport();
+    }
+    gainXP("backlog"); say("blMsg",`📥 Imported ${im.done} from ${im.source}!`); if(fxEnabled()) FX.play("confetti");
+    blCoverSoon(2000);
+  }catch(err){ say("blMsg","Import stopped: "+blFriendlyError(err)+" Tap Continue to pick up where it left off.",true); }
+  finally{ im.running=false; if(blTab==="import") paintBlImport(); }
+}
+/* covers for imported items: looked up one at a time in the background (these sites limit how fast you can ask) */
+let blCoverTimer=null, blCoverBusy=false;
+function blCoverTried(){ try{ return new Set(JSON.parse(LS.get("nl-bl-cover-tried")||"[]")); }catch(e){ return new Set(); } }
+function blCoverSoon(ms=4000){ clearTimeout(blCoverTimer); blCoverTimer=setTimeout(blCoverStep,ms); }
+async function blCoverStep(){
+  if(!user||blCoverBusy||document.hidden||!myBl) return;
+  const tried=blCoverTried();
+  const it=myBl.find(x=>!x.image&&/^(lb|imdb|gr):/.test(x.source_id||"")&&!tried.has(String(x.id)));
+  if(!it) return;
+  blCoverBusy=true; let gap=3500;
+  const fetchT=u=>Promise.race([fetch(u),new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),8000))]);
+  try{
+    let img=null, total=null;
+    if(it.type==="tv"){
+      gap=800; const r=await fetchT(`https://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(it.title)}`);
+      if(r.ok){ const sh=await r.json(); img=sh.image?.medium||null; }
+    } else if(it.type==="book"){
+      gap=1500; const r=await fetchT(`https://openlibrary.org/search.json?q=${encodeURIComponent(it.title+" "+(it.platform||""))}&limit=1&fields=cover_i,number_of_pages_median`);
+      if(r.ok){ const d=(await r.json()).docs?.[0]; img=d?.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`:null; if(!it.total&&d?.number_of_pages_median) total=d.number_of_pages_median; }
+    } else if(it.type==="movie"||it.type==="game"){
+      if(it.type==="movie"){
+        const r=await fetchT(`https://itunes.apple.com/search?term=${encodeURIComponent(it.title)}&media=movie&entity=movie&limit=5`);
+        if(r.ok){ const res=(await r.json()).results||[], yr=/^\d{4}$/.test(it.platform||"")?it.platform:null, t=it.title.toLowerCase();
+          const hit=res.find(m=>yr&&String(m.releaseDate||"").startsWith(yr)&&m.trackName?.toLowerCase()===t)||res.find(m=>m.trackName?.toLowerCase()===t)||(yr?res.find(m=>String(m.releaseDate||"").startsWith(yr)):null);
+          img=hit?.artworkUrl100?hit.artworkUrl100.replace(/\/\d+x\d+bb\./,"/300x450bb."):null; }
+      } else {
+        const r=await fetchT(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(it.title)}&page_size=1`);
+        if(r.ok){ img=((await r.json()).results||[])[0]?.background_image||null; }
+      }
+    }
+    tried.add(String(it.id)); try{ LS.set("nl-bl-cover-tried",JSON.stringify([...tried].slice(-3000))); }catch(e){}
+    const patch={}; if(img&&img.startsWith("https://")) patch.image=img; if(total) patch.total=total;
+    if(Object.keys(patch).length){ Object.assign(it,patch); await api.updateBacklog(it.id,patch).catch(()=>{});
+      if(!$("backlogSheet").classList.contains("hidden")&&blTab==="library") paintBlList(); }
+  }catch(e){ gap=8000; }
+  finally{ blCoverBusy=false; blCoverSoon(gap); }
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&user&&myBl) blCoverSoon(5000); });
+
 /* ---------- sharing into a chat ---------- */
 let blSharing=null;
-const BL_TYPE_LABEL={game:"Game",anime:"Anime",movie:"Movie",tv:"TV show"};
-const blIcon=t=>({game:"🎮",anime:"📺",movie:"🎬",tv:"📺"}[t]||"🎮");
+const BL_TYPE_LABEL={game:"Game",anime:"Anime",movie:"Movie",tv:"TV show",book:"Book",manga:"Manga"};
+const BL_COUNTED={anime:"episode",tv:"episode",book:"page",manga:"chapter"};   // types with a total you count toward
+const blCounted=t=>!!BL_COUNTED[t];
+const blReads=t=>t==="book"||t==="manga";
+const blIcon=t=>({game:"🎮",anime:"📺",movie:"🎬",tv:"📺",book:"📚",manga:"📖"}[t]||"🎮");
 function blShareText(it){
-  const verb=it.status==="completed"?"Finished":it.status==="in-progress"?(it.type==="game"?"Playing":"Watching"):"On my backlog";
+  const verb=it.status==="completed"?"Finished":it.status==="in-progress"?(it.type==="game"?"Playing":blReads(it.type)?"Reading":"Watching"):"On my backlog";
   const stars=it.rating?" · "+"★".repeat(it.rating)+"☆".repeat(5-it.rating):"";
   return `${blIcon(it.type)} ${verb}: ${it.title}${stars}`;
 }
