@@ -7315,7 +7315,19 @@ function pdfCard(url){
   const name=pdfName(url).replace(/_/g," ");
   const t=el("span","pdf-txt"); t.append(el("span","pdf-name",name), el("span","pdf-sub","PDF · tap to open"));
   a.append(el("span","pdf-ico","PDF"),t); a.setAttribute("aria-label","Open PDF: "+name);
-  a.addEventListener("click",e=>e.stopPropagation());
+  /* chat files are private: swap in a short-lived signed link (the service worker can't help with opening a new tab) */
+  const m=String(url).match(PRIVATE_FILE_RE);
+  let signed=null;
+  if(m&&sb){ privateLink(m[1],decodeURIComponent(m[2])).then(u=>{ if(u){ signed=u; a.href=u; } }).catch(()=>{}); }
+  a.addEventListener("click",async e=>{
+    e.stopPropagation();
+    if(!m||!sb||signed) return;   // already signed (or demo): let the link open normally
+    e.preventDefault();
+    const w=window.open("about:blank","_blank");   // open right away so it isn't treated as a pop-up
+    const u=await privateLink(m[1],decodeURIComponent(m[2])).catch(()=>null);
+    if(u){ signed=u; a.href=u; if(w) w.location.href=u; else location.href=u; }
+    else { if(w) w.close(); $("status").textContent="Couldn't open that PDF. Check your connection and try again."; }
+  });
   return a;
 }
 $("trayPdf").onclick=()=>{ closeTray(); $("pdfPicker").click(); };
@@ -11835,8 +11847,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.11a";
+const APP_VERSION="2026.10.11b";
 const CHANGELOG=[
+  {v:"2026.10.11b", title:"PDF fix 📄", items:["📄 PDFs open properly now instead of showing a \"Bucket not found\" page (thanks Malcolm!)."]},
   {v:"2026.10.11a", title:"Backlog glow-up 📚", items:["▦ Grid view: see your backlog as a poster wall. Tap a cover to open it.","📚 Books and 📖 Manga: search and add them with covers, and track pages or chapters.","📥 Import your Letterboxd, Goodreads or IMDb lists in one go. Covers fill in by themselves. (Thanks beef!)"]},
   {v:"2026.10.10b", title:"Tidier friends list ⭐", items:["⭐ Star friends to pin them at the top of your list.","🟢 Friends who are online now show first. Offline friends fold into their own section.","🔍 Got lots of friends? A search box finds anyone fast."]},
   {v:"2026.10.10a", title:"Share PDFs 📄", items:["📄 Send PDFs in any chat: tap ＋ then 📄 PDF. Friends tap it to open (up to 20 MB)."]},
