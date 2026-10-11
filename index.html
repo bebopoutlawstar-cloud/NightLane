@@ -2532,15 +2532,15 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .face.frame-creator{--fr:conic-gradient(from var(--cra),#ff2e3f,#07041a 12%,#ff2e3f 25%,#00f0ff 38%,#1b2a6b 50%,#f3ff3a 62%,#ff2e3f 75%,#07041a 87%,#ff2e3f);filter:drop-shadow(0 0 6px rgba(255,46,63,.75)) drop-shadow(0 0 10px rgba(0,240,255,.35))}
 .face.frame-creator::before{animation:crspin 5s linear infinite}
 @keyframes crspin{to{--cra:360deg}}
-.face.frame-creator>.frx .cr{position:absolute;font-size:max(9px,.34em);line-height:1;filter:drop-shadow(1px 1px 0 #07041a);animation:crbob 3.2s ease-in-out infinite}
-.face.frame-creator>.frx .cr.c0{left:-.5em;top:-.55em;animation-delay:0s}
-.face.frame-creator>.frx .cr.c1{right:-.5em;top:-.55em;animation-delay:-.8s}
-.face.frame-creator>.frx .cr.c2{left:-.5em;bottom:-.5em;animation-delay:-1.6s}
-.face.frame-creator>.frx .cr.c3{right:-.5em;bottom:-.5em;animation-delay:-2.4s}
-.face.frame-creator>.frx .crtag{position:absolute;left:50%;bottom:-1.25em;transform:translateX(-50%) rotate(-3deg);font-family:var(--tech);font-size:max(7px,.17em);letter-spacing:.12em;white-space:nowrap;color:#07041a;background:linear-gradient(90deg,#ff2e3f,#f3ff3a);padding:.15em .5em .1em;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
-.face.sm.frame-creator>.frx .cr:not(.c1),.face.sm.frame-creator>.frx .crtag{display:none}
+.face.frame-creator>.frx .cr{position:absolute;right:-.5em;top:-.55em;font-size:max(10px,.36em);line-height:1;filter:drop-shadow(1px 1px 0 #07041a);opacity:0;animation:crcycle 10s ease-in-out infinite}   /* one corner, the four favorites take turns */
+.face.frame-creator>.frx .cr.c1{animation-delay:-7.5s}
+.face.frame-creator>.frx .cr.c2{animation-delay:-5s}
+.face.frame-creator>.frx .cr.c3{animation-delay:-2.5s}
+@keyframes crcycle{0%{opacity:0;transform:scale(.6) rotate(-20deg)}4%,21%{opacity:1;transform:scale(1) rotate(-6deg)}25%,100%{opacity:0;transform:scale(.6) rotate(10deg)}}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .face.frame-creator>.frx .cr.c0{opacity:1}}
+.face.frame-creator>.frx .crtag{position:absolute;left:50%;bottom:-1.25em;transform:translateX(-50%) rotate(-3deg);font-family:var(--tech);font-size:max(7px,.15em);letter-spacing:.14em;white-space:nowrap;color:#07041a;background:linear-gradient(90deg,#ff2e3f,#f3ff3a);padding:.15em .5em .1em;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%)}
 .face:not(.lg).frame-creator>.frx .crtag{display:none}
-@keyframes crbob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-.12em) rotate(6deg)}}
+.face.frame-creator{filter:drop-shadow(0 0 5px rgba(255,46,63,.6))}
 @keyframes frbump{0%,70%,100%{transform:scale(1) rotate(0)}78%{transform:scale(1.25) rotate(-6deg)}86%{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){.face.frame-crew>.frx::after{animation:none}}
 @media (prefers-reduced-motion:reduce){html:not(.motion-always) .face>.frx::after,html:not(.motion-always) .face[class*="frame-"],html:not(.motion-always) .face[class*="frame-"]::before,html:not(.motion-always) .face[class*="frame-"]::after,html:not(.motion-always) .face[class*="frame-"] .fi{animation:none!important}}
@@ -11869,8 +11869,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.11e";
+const APP_VERSION="2026.10.11f";
 const CHANGELOG=[
+  {v:"2026.10.11f", title:"Creator frame, cleaner 👑", items:["👑 The Creator frame is calmer now: one corner icon that cycles through its four favorites."]},
   {v:"2026.10.11e", title:"Theme fix 🎨", items:["🎨 Theme & colors opens again (thanks kennie!)."]},
   {v:"2026.10.11d", title:"Creator frame 👑", items:["👑 The person who made NightLane now has his own one-of-a-kind frame. Spot it around the app."]},
   {v:"2026.10.11c", title:"Ride or Die 🤜🤛", items:["🤜🤛 New Ride or Die frame for your best friends and bros. It unlocks at Social Bond rank 5, right next to the Bonded frame (now called Lovers 💞). Pick whichever fits in Theme & colors."]},
