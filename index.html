@@ -10320,7 +10320,7 @@ function paintFrameRow(){
   const none=el("button","framepick"+(cur===""?" on":"")); none.type="button";
   const nf=el("span","face"); nf.append(el("span","fi","★")); none.append(nf,el("span","framelabel","None"));
   none.onclick=()=>{ draftTheme={...draftTheme,frame:null}; paintThemeSheet(); }; row.append(none);
-  Object.entries(FRAMES).forEach(([id,label])=>{ if(!unlockOk("frame",id)) return; if(id==="creator"&&!isAdmin&&cur!=="creator") return;   // only the app's creator can pick this one const b=el("button","framepick"+(cur===id?" on":"")); b.type="button";
+  Object.entries(FRAMES).forEach(([id,label])=>{ if(!unlockOk("frame",id)) return; if(id==="creator"&&!isAdmin&&cur!=="creator") return; /* only the app's creator can pick this one */ const b=el("button","framepick"+(cur===id?" on":"")); b.type="button";
     const f=el("span","face frame-"+id); f.append(el("span","fi","★")); if(id==="creator"){ const x=el("span","frx"); creatorBits(x); f.append(x); } b.append(f,el("span","framelabel",label));
     b.onclick=()=>{ draftTheme={...draftTheme,frame:id}; paintThemeSheet(); }; row.append(b); });
   const pf=$("themePreviewFace"); [...pf.classList].filter(c=>c.startsWith("frame-")).forEach(c=>pf.classList.remove(c)); if(draftTheme.frame&&FRAMES[draftTheme.frame]) pf.classList.add("frame-"+draftTheme.frame);
@@ -11869,8 +11869,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.11d";
+const APP_VERSION="2026.10.11e";
 const CHANGELOG=[
+  {v:"2026.10.11e", title:"Theme fix 🎨", items:["🎨 Theme & colors opens again (thanks kennie!)."]},
   {v:"2026.10.11d", title:"Creator frame 👑", items:["👑 The person who made NightLane now has his own one-of-a-kind frame. Spot it around the app."]},
   {v:"2026.10.11c", title:"Ride or Die 🤜🤛", items:["🤜🤛 New Ride or Die frame for your best friends and bros. It unlocks at Social Bond rank 5, right next to the Bonded frame (now called Lovers 💞). Pick whichever fits in Theme & colors."]},
   {v:"2026.10.11b", title:"PDF fix 📄", items:["📄 PDFs open properly now instead of showing a \"Bucket not found\" page (thanks Malcolm!)."]},
