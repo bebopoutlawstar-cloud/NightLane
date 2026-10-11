@@ -2523,6 +2523,11 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .face.frame-bonded{--fr:linear-gradient(135deg,#ff9ccc,#ff5aa8 50%,#d9267a);filter:drop-shadow(0 0 5px rgba(255,90,168,.7))}
 .face.frame-bonded>.frx::after{content:"💞";position:absolute;right:-.35em;top:-.4em;font-size:max(11px,.45em);z-index:3;animation:frbeat 1.2s ease-in-out infinite}
 @keyframes frbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.18)}}
+/* ride or die (the friends / bros version of Bonded) */
+.face.frame-crew{--fr:linear-gradient(135deg,#3ad1ff,#2b6cff 45%,#ff8a1f);filter:drop-shadow(0 0 5px rgba(58,209,255,.6))}
+.face.frame-crew>.frx::after{content:"🤜🤛";position:absolute;right:-.55em;top:-.45em;font-size:max(10px,.4em);letter-spacing:-.15em;z-index:3;animation:frbump 2.4s ease-in-out infinite}
+@keyframes frbump{0%,70%,100%{transform:scale(1) rotate(0)}78%{transform:scale(1.25) rotate(-6deg)}86%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.face.frame-crew>.frx::after{animation:none}}
 @media (prefers-reduced-motion:reduce){html:not(.motion-always) .face>.frx::after,html:not(.motion-always) .face[class*="frame-"],html:not(.motion-always) .face[class*="frame-"]::before,html:not(.motion-always) .face[class*="frame-"]::after,html:not(.motion-always) .face[class*="frame-"] .fi{animation:none!important}}
 /* ===== Rice's reference secrets ===== */
 .ein-dog{position:absolute;bottom:18%;left:-20%;font-size:clamp(60px,18vw,96px);animation:einrun 2.2s cubic-bezier(.4,0,.6,1) both;transform:scaleX(-1)}
@@ -10212,7 +10217,8 @@ Object.assign(HINTS,{
 /* ================= UNLOCKABLES ================= */
 const UNLOCKS=[
   {id:"frame:guts",     type:"frame", label:"Blazing frame",        by:{stat:"guts",stat_n:12}},
-  {id:"frame:bonded",   type:"frame", label:"Bonded frame",         by:{linkRank:5}},
+  {id:"frame:bonded",   type:"frame", label:"Lovers frame 💞",       by:{linkRank:5}},
+  {id:"frame:crew",     type:"frame", label:"Ride or Die frame 🤜🤛", by:{linkRank:5}},
   {id:"theme:phantom",  type:"theme", label:"🎭 Phantom theme",     by:{secret:"konami"}},
   {id:"theme:pipboy",   type:"theme", label:"☢️ Wasteland theme",   by:{secret:"pipboy"}},
   {id:"theme:mochi",    type:"theme", label:"🍡 Mochi theme",       by:{secret:"uwa"}},
@@ -10256,7 +10262,7 @@ const UNLOCKS=[
   {id:"frame:shadow",   type:"frame", label:"Shadow frame",          by:{secret:"johnny"}},
   {id:"frame:heartbeat",type:"frame", label:"Heartbeat frame",       by:{linkRank:8}},
 ];
-const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Bonded",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat"};
+const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Lovers 💞",crew:"Ride or Die 🤜🤛",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat"};
 const myLevel=()=>xpLevel(xpData().xp).lvl;
 function unlockMet(u){ return u.by.secret?hasSecret(u.by.secret):u.by.level?myLevel()>=u.by.level:u.by.stat?statCount(u.by.stat)>=u.by.stat_n:u.by.linkRank?[...socialLinks.values()].some(r=>rankFromXp(r.xp).rank>=u.by.linkRank):true; }
 const unlockOk=(type,key)=>{ const u=UNLOCKS.find(x=>x.id===type+":"+key); return !u||unlockMet(u); };
@@ -11847,8 +11853,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.11b";
+const APP_VERSION="2026.10.11c";
 const CHANGELOG=[
+  {v:"2026.10.11c", title:"Ride or Die 🤜🤛", items:["🤜🤛 New Ride or Die frame for your best friends and bros. It unlocks at Social Bond rank 5, right next to the Bonded frame (now called Lovers 💞). Pick whichever fits in Theme & colors."]},
   {v:"2026.10.11b", title:"PDF fix 📄", items:["📄 PDFs open properly now instead of showing a \"Bucket not found\" page (thanks Malcolm!)."]},
   {v:"2026.10.11a", title:"Backlog glow-up 📚", items:["▦ Grid view: see your backlog as a poster wall. Tap a cover to open it.","📚 Books and 📖 Manga: search and add them with covers, and track pages or chapters.","📥 Import your Letterboxd, Goodreads or IMDb lists in one go. Covers fill in by themselves. (Thanks beef!)"]},
   {v:"2026.10.10b", title:"Tidier friends list ⭐", items:["⭐ Star friends to pin them at the top of your list.","🟢 Friends who are online now show first. Offline friends fold into their own section.","🔍 Got lots of friends? A search box finds anyone fast."]},
