@@ -12349,8 +12349,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.13e";
+const APP_VERSION="2026.10.13f";
 const CHANGELOG=[
+  {v:"2026.10.13f", title:"Back button fix ⬅️", items:["⬅️ Opening a chat from a notification (like the Owl's \"your turn\" ping) and then pressing Back on Android now takes you to your chat list instead of closing the app."]},
   {v:"2026.10.13e", title:"Pins menu 📌", items:["📌 Got more than one pin? Tap the \"1/3 ▾\" on the pin bar to see them all at once and jump straight to any game or message. Games waiting on you are highlighted (thanks hachiware!)."]},
   {v:"2026.10.13d", title:"Lucky 7 fix 🍀", items:["🃏 The card you just flipped now stays face up next to the deck, so you always see what you got, even when it ends the round (thanks hachiware!).","🛡️ Flip a 2nd Shield? It now goes to the next player who doesn't have one, instead of quietly vanishing.","📋 Round results show everyone's cards from that round."]},
   {v:"2026.10.13c", title:"Games list fix 🎮", items:["🎮 The Games list in ＋ scrolls again, so you can reach every game on smaller phones (thanks hachiware!).","➕ The ＋ menu tabs sit in two tidy rows instead of squishing together."]},
@@ -13714,7 +13715,13 @@ feed.addEventListener("click",e=>{
 // Each chat or sheet you open adds a history step, so Back closes the top one instead of leaving the app.
 (function(){
   const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet","gifPreview","blNoteSheet"];
-  const stack=[]; let popping=false, ignorePops=0, pendingBack=0, flushQueued=false;
+  const stack=[], waiting=[]; let popping=false, ignorePops=0, pendingBack=0, flushQueued=false;
+  /* Android Chrome skips history steps a page adds without a tap first. So when a chat opens on its own
+     (from a notification or an Owl "your turn" ping), Back used to skip it and close the whole app.
+     Now that step waits until your first tap, which makes it count. */
+  const tapped=()=>!navigator.userActivation||navigator.userActivation.isActive;
+  function flushWaiting(){ if(!waiting.length||!tapped()) return; waiting.splice(0).forEach(id=>history.pushState({nl:id},"")); }
+  ["click","keydown","touchend","pointerup"].forEach(t=>addEventListener(t,flushWaiting,true));
   const isOpen=id=>!$(id).classList.contains("hidden");
   function queueBack(){
     pendingBack++;
@@ -13724,8 +13731,8 @@ feed.addEventListener("click",e=>{
   function watch(id){
     new MutationObserver(()=>{
       const open=isOpen(id), i=stack.indexOf(id);
-      if(open&&i<0){ stack.push(id); history.pushState({nl:id},""); }
-      else if(!open&&i>=0){ stack.splice(i,1); if(!popping) queueBack(); }
+      if(open&&i<0){ stack.push(id); if(tapped()) history.pushState({nl:id},""); else waiting.push(id); }
+      else if(!open&&i>=0){ stack.splice(i,1); const w=waiting.indexOf(id); if(w>=0) waiting.splice(w,1); else if(!popping) queueBack(); }
     }).observe($(id),{attributes:true,attributeFilter:["class"]});
   }
   LAYERS.forEach(watch);
