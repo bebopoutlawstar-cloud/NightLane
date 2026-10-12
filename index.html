@@ -471,7 +471,13 @@ html,body{overflow-x:hidden}
 .pinicon{flex:none}
 .pintext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px}
 .pintext b{font-family:var(--tech);font-size:11px;color:var(--volt);margin-right:6px}
-.pincount{flex:none;font-family:var(--tech);font-size:10px;color:var(--muted)}
+.pinbar{display:flex;align-items:stretch;position:relative;z-index:6}.pinbar .pinmain{flex:1;min-width:0}
+.pincount{flex:none;font-family:var(--tech);font-size:11px;color:var(--cyan);background:rgba(39,231,255,.08);border:none;border-left:2px solid rgba(39,231,255,.35);padding:0 12px;min-width:56px}
+.pincount[aria-expanded="true"]{background:var(--cyan);color:#07041a}
+.pinmenu{position:absolute;left:8px;right:8px;top:100%;margin-top:4px;background:#0d0826;border:2px solid var(--cyan);box-shadow:4px 4px 0 var(--mag);max-height:min(50vh,380px);overflow-y:auto;padding:4px}
+.pinitem{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.08);color:var(--white);padding:10px;text-align:left;font-size:15px}
+.pinitem:last-child{border-bottom:none}.pinitem .pt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pinitem b{font-family:var(--tech);font-size:11px;color:var(--volt);margin-right:6px}
+.pinitem.myturn{background:rgba(243,255,58,.1)}.pinitem.myturn .pt{color:var(--volt)}.pinitem.cur{outline:1px dashed rgba(39,231,255,.5)}
 
 /* media */
 .pdfcard{display:flex;align-items:center;gap:10px;max-width:min(62vw,260px);margin:2px 0 6px;padding:10px 12px;background:var(--night);border:3px solid var(--cyan);color:var(--white);text-decoration:none;text-align:left}
@@ -3262,7 +3268,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="ib-x db-x" id="dailyX" aria-label="Hide for today">✕</button>
   </div>
   <div class="pinbar hidden" id="pinBar">
-    <button type="button" class="pinmain" id="pinJump"><span class="pinicon" aria-hidden="true">📌</span><span class="pintext" id="pinText"></span><span class="pincount" id="pinCount"></span></button>
+    <button type="button" class="pinmain" id="pinJump"><span class="pinicon" aria-hidden="true">📌</span><span class="pintext" id="pinText"></span></button><button type="button" class="pincount hidden" id="pinCount" aria-haspopup="true" aria-expanded="false"></button>
+    <div class="pinmenu hidden" id="pinMenu" role="menu"></div>
   </div>
   <main class="feed" id="feed" aria-live="polite"></main>
   <div class="typing" id="typing" aria-live="polite"></div>
@@ -7073,7 +7080,8 @@ function paintPinBar(){
   $("pinBar").querySelector(".pinicon").textContent=g?"🎮":"📌";
   if(g){ t.append(el("b","",(m.text||"Game")+" · ")); t.append(anyGameStatus(g).text); }
   else { t.append(el("b","",nameOf(m.user_id))); t.append(previewOf(m)); }
-  $("pinCount").textContent=list.length>1?`${pinCursor+1}/${list.length}`:"";
+  $("pinCount").textContent=list.length>1?`${pinCursor+1}/${list.length} ▾`:""; show($("pinCount"),list.length>1);
+  if(list.length<2) closePinMenu(); else if(!$("pinMenu").classList.contains("hidden")) paintPinMenu();
   $("pinJump").setAttribute("aria-label",g?`Pinned game: ${m.text}, ${anyGameStatus(g).text}. Tap to open it`:`Pinned message from ${nameOf(m.user_id)}. Tap to jump to it`);
 }
 $("pinJump").onclick=async()=>{
@@ -7084,6 +7092,30 @@ $("pinJump").onclick=async()=>{
   if(elById.has(m.id)) jumpTo(m.id); else $("status").textContent="That pinned message is too far back to show.";
   if(list.length>1){ pinCursor=(pinCursor+1)%list.length; paintPinBar(); }
 };
+/* tap the "1/3 ▾" to see every pin at once and jump straight to the one you want (thanks hachiware!) */
+function openPinFrom(m){
+  closePinMenu();
+  if(m.kind==="game"&&gamesById.has(m.id)){ openGame(m.id); return; }
+  (async()=>{ let tries=0; while(!elById.has(m.id)&&hasMore&&tries++<6) await loadOlder();
+    if(elById.has(m.id)) jumpTo(m.id); else $("status").textContent="That pinned message is too far back to show."; })();
+}
+function paintPinMenu(){
+  const box=$("pinMenu"); box.innerHTML="";
+  pinnedList().forEach((m,i)=>{
+    const g=m.kind==="game"&&gamesById.get(m.id), up=!!g&&pinnedGameUp(m);
+    const b=el("button","pinitem"+(up?" myturn":"")+(i===pinCursor?" cur":"")); b.type="button"; b.setAttribute("role","menuitem");
+    const t=el("span","pt");
+    if(g){ t.append(el("b","",m.text||"Game"),anyGameStatus(g).text); } else { t.append(el("b","",nameOf(m.user_id)),previewOf(m)); }
+    b.append(el("span","",g?"🎮":"📌"),t);
+    b.onclick=e=>{ e.stopPropagation(); pinCursor=i; paintPinBar(); openPinFrom(m); };
+    box.append(b);
+  });
+}
+function closePinMenu(){ show($("pinMenu"),false); $("pinCount").setAttribute("aria-expanded","false"); }
+$("pinCount").onclick=e=>{ e.stopPropagation(); const open=$("pinMenu").classList.contains("hidden");
+  if(open){ paintPinMenu(); show($("pinMenu"),true); $("pinCount").setAttribute("aria-expanded","true"); } else closePinMenu(); };
+document.addEventListener("click",e=>{ if(!$("pinMenu").classList.contains("hidden")&&!e.target.closest("#pinBar")) closePinMenu(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("pinMenu").classList.contains("hidden")) closePinMenu(); });
 function paintPins(){
   const list=pinnedList(), box=$("pinList"); box.innerHTML=""; show($("pinTitle"),list.length>0);
   $("pinTitle").textContent=`Pinned (${list.length})`;
@@ -12317,8 +12349,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.13d";
+const APP_VERSION="2026.10.13e";
 const CHANGELOG=[
+  {v:"2026.10.13e", title:"Pins menu 📌", items:["📌 Got more than one pin? Tap the \"1/3 ▾\" on the pin bar to see them all at once and jump straight to any game or message. Games waiting on you are highlighted (thanks hachiware!)."]},
   {v:"2026.10.13d", title:"Lucky 7 fix 🍀", items:["🃏 The card you just flipped now stays face up next to the deck, so you always see what you got, even when it ends the round (thanks hachiware!).","🛡️ Flip a 2nd Shield? It now goes to the next player who doesn't have one, instead of quietly vanishing.","📋 Round results show everyone's cards from that round."]},
   {v:"2026.10.13c", title:"Games list fix 🎮", items:["🎮 The Games list in ＋ scrolls again, so you can reach every game on smaller phones (thanks hachiware!).","➕ The ＋ menu tabs sit in two tidy rows instead of squishing together."]},
   {v:"2026.10.13b", title:"New card art 🃏", items:["🃏 Crazy Eights and BS got a real pixel-art deck in NightLane colors, with a matching neon card back. Card art by art-bickles."]},
