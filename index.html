@@ -726,6 +726,9 @@ html,body{overscroll-behavior:none}
 .contactrow .send{padding:8px 12px;font-size:12px}
 .friendfind{width:100%;margin:0 0 8px}
 .chattools{display:flex;gap:8px;align-items:center;margin:0 0 8px;width:100%}.chattools .field{flex:1;min-width:0;margin:0}.chattools.nosearch .field{display:none}.chattools.nosearch{justify-content:flex-end}
+.rowwrap{display:flex;align-items:stretch;gap:4px;width:100%}
+.rowwrap .roomrow{flex:1;min-width:0}
+.pinbtn{flex:none;width:40px;background:none;border:2px solid #3b2d80;color:var(--volt);font-size:18px}
 .chatfilter{display:flex;flex:none;border:2px solid #3b2d80}.chatfilter .cf{background:none;border:none;color:var(--muted);font-family:var(--tech);font-size:10px;padding:8px 10px;letter-spacing:.5px}.chatfilter .cf.on{background:var(--cyan);color:#07041a}
 .inbox details.quiet{width:100%}.inbox details.quiet>summary{list-style:none;cursor:pointer;font-family:var(--tech);font-size:11px;color:var(--muted);padding:10px 4px 6px;letter-spacing:.5px}.inbox details.quiet>summary::-webkit-details-marker{display:none}.inbox details.quiet>summary::after{content:" ▾"}.inbox details.quiet[open]>summary::after{content:" ▴"}.inbox details.quiet .roomrow{opacity:.75}
 .inbox .inote{font-size:14px;color:var(--muted);text-align:center;padding:14px 4px;width:100%}
@@ -2338,6 +2341,31 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .l7-icon{display:grid;place-items:center;background:linear-gradient(160deg,#1fd17a,#0b6b45);border:2px solid #07041a;border-radius:6px;width:34px;height:46px;position:relative}
 .l7-icon b{font-family:var(--num);font-size:22px;color:#fff;text-shadow:2px 2px 0 #07041a}.l7-icon i{position:absolute;bottom:1px;font-style:normal;font-size:9px}
 .l7-gcicon{font-family:var(--num);color:#1fd17a}
+.mjt{--z:2;--i:0;display:inline-block;flex:none;width:calc(20px*var(--z));height:calc(28px*var(--z));background:url(data:image/png;base64,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) no-repeat;background-size:calc(700px*var(--z)) calc(28px*var(--z));background-position:calc(var(--i)*-20px*var(--z)) 0;image-rendering:pixelated;vertical-align:middle}
+.mj-icon{display:flex;gap:2px;align-items:center;justify-content:center}
+.gcmjt{margin-right:4px}
+.mjgame{display:grid;gap:8px;width:100%;justify-items:center}
+.mjtable{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;width:100%}
+.mjwall{display:grid;justify-items:center;gap:3px}.mjwall small{font-family:var(--tech);font-size:10px;color:var(--muted)}
+.mjrivers{display:grid;gap:5px;min-width:0}
+.mjriver{border:2px solid #3b2d80;background:rgba(0,0,0,.25);padding:5px 7px;display:grid;gap:4px;text-align:left;font-size:13px}.mjriver.up{border-color:var(--volt)}
+.mjrtiles{display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.mjt.hot{outline:2px solid var(--volt);outline-offset:1px;animation:e8takepulse 1s ease-in-out infinite}
+.mjhandwrap{width:100%;border:2px solid var(--cyan);background:rgba(0,240,255,.05);padding:8px;display:grid;gap:6px}
+.mjhandhead{display:flex;justify-content:space-between;align-items:center}.mjhandhead small{font-family:var(--tech);font-size:11px;color:var(--volt)}
+.mjgroups{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.mjset{display:inline-flex;gap:1px;padding:3px;border:2px solid transparent;border-radius:4px}
+.mjset.run,.mjset.trip{border-color:var(--cyan);background:rgba(0,240,255,.08)}.mjset.pair{border-color:var(--mag);background:rgba(255,79,216,.08)}.mjset.loose{border-style:dashed;border-color:#3b2d80}
+.mjset .mjt[role=button]{cursor:pointer;transition:transform .12s}
+.mjt.picked{transform:translateY(-10px);filter:drop-shadow(0 0 6px var(--volt))}
+.mjt.good{position:relative}.mjt.good::after{content:"★";position:absolute;right:-3px;top:-8px;color:var(--volt);font-size:13px;text-shadow:1px 1px 0 #07041a}
+.mjhint{margin:0;font-size:13px;color:var(--muted);text-align:center;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center}.mjhint .mjstar{color:var(--volt)}.mjhint .mjwin{color:var(--volt);font-size:15px}.mjwait{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;color:var(--volt)}
+.mjact{display:flex;flex-wrap:wrap;gap:10px;width:100%;justify-content:center}.mjact .go{flex:1;min-width:150px}
+.mjbig{background:var(--volt)!important;color:#07041a!important;font-family:var(--num);font-size:26px!important;letter-spacing:1px;animation:e8takepulse 1s ease-in-out infinite}
+.mjthrow{background:var(--mag)!important;color:#07041a!important}
+.mjend{width:100%;border:2px dashed var(--volt);padding:10px;display:grid;gap:8px;text-align:center}.mjendhead{font-size:15px}.mjflush{font-family:var(--tech);color:var(--volt);font-size:12px}
+.mjother{display:grid;gap:3px;text-align:left}.mjother small{color:var(--muted);font-size:11px}
+.rulebox .mjt{--z:1}
 .e8card.wild4{background:conic-gradient(from 30deg,#FF2E3F,#F3FF3A,#2EE66B,#00F0FF,#7A4BD6,#FF2E3F)!important;color:#fff;text-shadow:2px 2px 0 #07041a}
 .e8card.wild4 b{font-family:var(--num);font-size:24px}.e8card.wild4.sm b{font-size:13px}
 .e8card.act{position:relative}
@@ -3338,11 +3366,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
           <span class="gp-icon bs-icon" aria-hidden="true"><span class="e8card sm back"></span><span class="e8card sm back"></span><b>BS!</b></span>
           <span class="gp-text"><b>BS</b><small class="gp-hint">2–8 players · bluff your cards, call BS!</small></span>
         </button>
+        <button type="button" class="gamepick" data-game="mahjong">
+          <span class="gp-icon mj-icon" aria-hidden="true"><span class="mjt" style="--z:1.4;--i:4"></span><span class="mjt" style="--z:1.4;--i:13"></span></span>
+          <span class="gp-text"><b>Mahjong</b><small class="gp-hint">2–4 players · NEW · collect 4 sets and a pair</small></span>
+        </button>
         <button type="button" class="gamepick" data-game="lucky7">
           <span class="gp-icon l7-icon" aria-hidden="true"><b>7</b><i>🍀</i></span>
           <span class="gp-text"><b>Lucky 7</b><small class="gp-hint">2–8 players · push your luck, don't bust!</small></span>
         </button>
-        <p class="rulelinks">📖 Rules: <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="bs">BS</button></p>
+        <p class="rulelinks">📖 Rules: <button type="button" data-rules="mahjong">Mahjong</button> · <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="bs">BS</button></p>
         <p class="note">More games coming soon 👀</p>
       </div>
     </div>
@@ -3742,6 +3774,19 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <div class="e8-actions"><button type="button" class="ghost hidden" id="bsSkip">Skip their turn</button></div>
       <button class="go hidden" type="button" id="bsDeal">Deal cards</button>
     </div>
+    <div class="mjgame hidden" id="mjArea">
+      <div class="e8-players" id="mjPlayers"></div>
+      <p class="e8-last" id="mjLast"></p>
+      <div class="mjtable hidden" id="mjTable">
+        <div class="mjwall"><span class="mjt" style="--z:1.5;--i:34" aria-hidden="true"></span><small id="mjWall"></small></div>
+        <div class="mjrivers" id="mjRivers"></div>
+      </div>
+      <div class="mjhandwrap hidden" id="mjHandWrap"><div class="mjhandhead"><b>Your hand</b><small id="mjProgress"></small></div><div id="mjHand"></div><p class="mjhint" id="mjHint" role="status"></p></div>
+      <div class="mjact hidden" id="mjAct"><button type="button" class="go" id="mjDraw">🀫 Draw a tile</button><button type="button" class="go mjthrow hidden" id="mjThrowBtn">Throw away</button><button type="button" class="go mjbig hidden" id="mjMahjong">🀄 MAHJONG!</button></div>
+      <div class="mjend hidden" id="mjEnd"></div>
+      <div class="e8-actions"><button type="button" class="ghost hidden" id="mjSkip">Skip their turn</button></div>
+      <button class="go hidden" type="button" id="mjDeal">Deal</button>
+    </div>
     <div class="l7game hidden" id="l7Area">
       <div class="e8-players" id="l7Players"></div>
       <p class="e8-last" id="l7Last"></p>
@@ -4134,7 +4179,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Halloween pixel art</h3>
     <p class="sub">Halloween Graphics by finalbossblues · Jacko by Tyler Warren</p>
     <h3>Dice &amp; card art</h3>
-    <p class="sub">Pixel dice by LullabyJazz · Liar's Dice d6 looks and playing cards by art-bickles (All Dice, Playing Cards) · restyled for NightLane</p>
+    <p class="sub">Pixel dice by LullabyJazz · Liar's Dice d6 looks and playing cards by art-bickles (All Dice, Playing Cards) · Mahjong tiles by natonato (Simple Tiny Mahjong Tiles) · restyled for NightLane</p>
     <h3>Effects, icons &amp; font</h3>
     <p class="sub">Pixel effects: Super Pixel Effects Gigapack by Will Tice / unTied Games · Item icons: Assorted Icons by Quintino Pixels · Pixel font: monogram by datagoblin · recolored for NightLane</p>
     <h3>Powered by</h3>
@@ -4843,6 +4888,12 @@ const live = {
   async l7Stay(id){ must(await sb.rpc("l7_stay",{p_message:id})); },
   async l7Freeze(id,seat){ must(await sb.rpc("l7_freeze",{p_message:id,p_target:seat})); },
   async l7Skip(id){ must(await sb.rpc("l7_skip",{p_message:id})); },
+  async mjStart(id){ must(await sb.rpc("mj_start",{p_message:id})); },
+  async mjDraw(id){ return must(await sb.rpc("mj_draw",{p_message:id})); },
+  async mjDiscard(id,t){ must(await sb.rpc("mj_discard",{p_message:id,p_tile:t})); },
+  async mjWin(id){ must(await sb.rpc("mj_win",{p_message:id})); },
+  async mjClaim(id){ must(await sb.rpc("mj_claim",{p_message:id})); },
+  async mjSkip(id){ must(await sb.rpc("mj_skip",{p_message:id})); },
   async eightsLastCard(id){ must(await sb.rpc("eights_lastcard",{p_message:id})); },
   async eightsCatch(id,seat){ must(await sb.rpc("eights_catch",{p_message:id,p_seat:seat})); },
   async eightsPlay(id,card,suit){ must(await sb.rpc("eights_play",{p_message:id,p_card:card,p_suit:suit||null})); },
@@ -4978,6 +5029,35 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   const fire=(f,...a)=>H&&H[f](...a);
   // ---- Crazy Eights (demo mirror of the server rules) ----
   const demoE8={};
+  // ---- Mahjong (demo mirror of mahjong.sql) ----
+  function mjDemoBegin(g){
+    const n=g.state.players.length, wall=[]; for(const s of "dbc") for(let v=1;v<=9;v++) for(let k=0;k<4;k++) wall.push(s+v);
+    wall.sort(()=>Math.random()-.5); const hands={}; g.state.players.forEach((u,i)=>hands[u]=wall.splice(0,13));
+    demoE8[g.message_id]={deck:wall,discard:[],hands}; const first=Math.floor(Math.random()*n);
+    Object.assign(g.state,{turn:first,phase:"draw",wall:wall.length,counts:Array(n).fill(13),rivers:Array.from({length:n},()=>[]),pend:null,last:null,winner:null,how:null,from:null,reveal:null}); g.status="active"; }
+  function mjDemoFinish(g,winner,how,from){ const d=demoE8[g.message_id]; g.state.reveal=JSON.parse(JSON.stringify(d.hands)); Object.assign(g.state,{winner,how,from,pend:null}); g.status="done"; }
+  function mjDemoMove(g,who,act){
+    const st=g.state, P=st.players, seat=P.indexOf(who), d=demoE8[g.message_id], n=P.length;
+    if(g.status!=="active") throw new Error("This game isn't being played right now.");
+    if(act.claim){ const p=st.pend; if(!p||st.phase!=="draw") throw new Error("Too late, that tile is gone."); if(p.seat===seat) throw new Error("You can't claim your own tile.");
+      if(!mjIsWin([...d.hands[who],p.tile])) throw new Error("That tile doesn't finish your hand."); d.hands[who].push(p.tile); st.rivers[p.seat].pop(); st.last={by:who,act:"claim",tile:p.tile}; mjDemoFinish(g,who,"claim",p.seat); e8DemoAfter(g); return; }
+    if(seat!==st.turn) throw new Error("It's not your turn.");
+    if(act.draw){ if(st.phase!=="draw") throw new Error("You already drew. Throw a tile away.");
+      if(!d.deck.length){ st.last={by:who,act:"wall"}; mjDemoFinish(g,null,"wall",null); e8DemoAfter(g); return null; }
+      const t=d.deck.shift(); d.hands[who].push(t); st.wall=d.deck.length; st.counts[seat]++; st.phase="discard"; st.pend=null; st.last={by:who,act:"draw"}; e8DemoAfter(g); return t; }
+    if(act.win){ if(st.phase!=="discard") throw new Error("Draw a tile first."); if(!mjIsWin(d.hands[who])) throw new Error("Not quite! You need 4 sets and a pair."); st.last={by:who,act:"win"}; mjDemoFinish(g,who,"self",null); e8DemoAfter(g); return; }
+    if(act.discard){ if(st.phase!=="discard") throw new Error("Draw a tile first."); const h=d.hands[who], k=h.indexOf(act.discard); if(k<0) throw new Error("That tile isn't in your hand.");
+      h.splice(k,1); st.rivers[seat].push(act.discard); st.counts[seat]=h.length; st.turn=(seat+1)%n; st.phase="draw"; st.pend={tile:act.discard,seat}; st.last={by:who,act:"discard",tile:act.discard}; e8DemoAfter(g); }
+  }
+  function mjDemoBot(g){
+    const st=g.state; if(g.status!=="active") return; const d=demoE8[g.message_id];
+    if(st.pend&&st.phase==="draw"){ for(const u of st.players){ if(u==="me"||st.players.indexOf(u)===st.pend.seat) continue; if(mjIsWin([...d.hands[u],st.pend.tile])){ mjDemoMove(g,u,{claim:true}); return; } } }
+    const who=st.players[st.turn]; if(who==="me") return;
+    if(st.phase==="draw"){ mjDemoMove(g,who,{draw:true}); return; }
+    const h=d.hands[who]; if(mjIsWin(h)){ mjDemoMove(g,who,{win:true}); return; }
+    const good=[...mjGoodThrows(h)], loose=mjGroups(h).loose;
+    mjDemoMove(g,who,{discard:good.length?good[0]:loose.length?loose[Math.floor(Math.random()*loose.length)]:h[h.length-1]});
+  }
   // ---- Lucky 7 (demo mirror of lucky7.sql) ----
   function l7DemoDeck(){ const d=[]; for(let v=0;v<=12;v++) for(let k=0;k<Math.max(v,1);k++) d.push("n"+v); d.push("S","S","S","F","F","F","X2","P4","P4","P8","P8"); return d.sort(()=>Math.random()-.5); }
   const l7Empty=n=>Array.from({length:n},()=>({n:[],m:[],st:"in",sh:false}));
@@ -5146,6 +5226,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     g.moves++; g.updated_at=iso(); const copy=JSON.parse(JSON.stringify(g)); setTimeout(()=>fire("game",copy),30);
     const who=g.state.players[g.state.turn];
     if(g.type==="bs"){ if(g.status==="active") setTimeout(()=>bsDemoBots(g),1300); return; }
+    if(g.type==="mahjong"){ if(g.status==="active") setTimeout(()=>mjDemoBot(g),900); return; }
     if(g.type==="lucky7"){ const f=g.state.freezer!=null?g.state.players[g.state.freezer]:null; if(g.status==="active"&&(f?f!=="me":who!=="me")) setTimeout(()=>l7DemoBot(g),1000); return; }
     if(g.status==="active"&&who!=="me") setTimeout(()=>g.type==="liarsdice"?ldDemoBot(g,who):e8DemoBot(g,who),900);
   }
@@ -5199,8 +5280,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async unpin(id){ const p=pins[id]; delete pins[id]; setTimeout(()=>fire("pin",{message_id:id},false),30); },
     async games(ids){ return ids.map(i=>games[i]).filter(Boolean).map(g=>JSON.parse(JSON.stringify(g))); },
     async createGame(room,type){
-      if(type==="eights"||type==="liarsdice"||type==="bs"||type==="lucky7"){
-        const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="eights"?"Crazy Eights":type==="bs"?"BS":type==="lucky7"?"Lucky 7":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
+      if(type==="eights"||type==="liarsdice"||type==="bs"||type==="lucky7"||type==="mahjong"){
+        const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="eights"?"Crazy Eights":type==="bs"?"BS":type==="lucky7"?"Lucky 7":type==="mahjong"?"Mahjong":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
         games[m.id]={message_id:m.id,room,type,player_x:"me",player_o:null,status:"waiting",state:{players:["me"],host:"me"},moves:0,updated_at:iso()};
         ["vee","rook"].forEach((b,i)=>setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting"||g.state.players.includes(b)) return; g.state.players.push(b); g.moves++; fire("game",JSON.parse(JSON.stringify(g))); },700+i*700));
         return m;
@@ -5212,7 +5293,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       if(!other) setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting") return; g.player_o=Object.keys(r.members).find(u=>u!=="me")||"rook"; g.status="active"; fire("game",JSON.parse(JSON.stringify(g))); if(type==="kingscourt"&&g.player_x!=="me") setTimeout(()=>kcBotTurn(m.id),900); },1500);
       return m;
     },
-    async joinGame(id){ const g=games[id]; if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"){ if(g.status!=="waiting") throw new Error("This game already started."); if(!g.state.players.includes("me")) g.state.players.push("me"); g.moves++; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); return; } g.player_o="me"; g.status="active"; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); setTimeout(()=>demoBot(id),900); },
+    async joinGame(id){ const g=games[id]; if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"){ if(g.status!=="waiting") throw new Error("This game already started."); if(!g.state.players.includes("me")) g.state.players.push("me"); g.moves++; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); return; } g.player_o="me"; g.status="active"; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); setTimeout(()=>demoBot(id),900); },
     async playTicTacToe(id,cell){
       const g=games[id], mark=g.player_x==="me"?"x":"o";
       if(g.status!=="active"||g.state.turn!==mark||g.state.board[cell]) throw new Error("Not your turn.");
@@ -5250,6 +5331,12 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async l7Stay(id){ l7DemoMove(games[id],"me",{stay:true}); },
     async l7Freeze(id,seat){ l7DemoMove(games[id],"me",{freeze:seat}); },
     async l7Skip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); },
+    async mjStart(id){ const g=games[id]; if(g.state.host!=="me") throw new Error("Only the person who started the game can deal."); mjDemoBegin(g); e8DemoAfter(g); },
+    async mjDraw(id){ return mjDemoMove(games[id],"me",{draw:true}); },
+    async mjDiscard(id,t){ mjDemoMove(games[id],"me",{discard:t}); },
+    async mjWin(id){ mjDemoMove(games[id],"me",{win:true}); },
+    async mjClaim(id){ mjDemoMove(games[id],"me",{claim:true}); },
+    async mjSkip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); },
     async eightsLastCard(id){ const g=games[id], st=g.state, seat=st.players.indexOf("me"); if(st.counts[seat]>2) throw new Error("You can only call it when you're about to have one card."); st.called={...(st.called||{}),[seat]:true}; st.last={by:"me",lastcard:true}; e8DemoAfter(g); },
     async eightsCatch(id,seat){ const g=games[id], st=g.state, d=demoE8[id]; if(st.counts[seat]!==1||st.called?.[seat]) throw new Error("Too late, they're safe."); const u=st.players[seat]; e8DemoTake(d,u,2); st.counts[seat]=d.hands[u].length; st.deck=d.deck.length; st.last={by:"me",caught:u}; e8DemoAfter(g); },
     async eightsPlay(id,card,suit){ e8DemoMove(games[id],"me",{play:card,suit}); },
@@ -5257,9 +5344,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async eightsPass(id){ e8DemoMove(games[id],"me",{pass:true}); },
     async eightsSkip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); const n=g.state.players.length; g.state.last={by:"me",skipped:g.state.players[g.state.turn]}; g.state.turn=(g.state.turn+1)%n; g.state.drew=false; e8DemoAfter(g); },
     async rematch(id){
-      if(games[id].type==="eights"||games[id].type==="liarsdice"||games[id].type==="bs"||games[id].type==="lucky7"){ const old=games[id], r=rooms[old.room]; const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:old.type==="eights"?"Crazy Eights":old.type==="bs"?"BS":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
+      if(games[id].type==="eights"||games[id].type==="liarsdice"||games[id].type==="bs"||games[id].type==="lucky7"||games[id].type==="mahjong"){ const old=games[id], r=rooms[old.room]; const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:old.type==="eights"?"Crazy Eights":old.type==="bs"?"BS":old.type==="lucky7"?"Lucky 7":old.type==="mahjong"?"Mahjong":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
         games[m.id]={message_id:m.id,room:old.room,type:old.type,player_x:"me",player_o:null,status:"waiting",state:{players:[...old.state.players],host:"me"},moves:0,updated_at:iso()};
-        if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
+        if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else if(old.type==="mahjong") mjDemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
       const old=games[id], r=rooms[old.room], label=old.type==="kingscourt"?"King's Court":old.type==="mancala"?"Mancala":"Tic-tac-toe";
       const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:label,created_at:iso()}; r.msgs.push(m);
       const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
@@ -5970,7 +6057,7 @@ function openGamesTray(pick){
 
 /* --- 🎲 surprise me: something fun to try right now --- */
 const SURPRISE_WORDS=[["let's go","🏆"],["boom","💥"],["congrats","🎉"],["good night","🌠"],["lol","😂"],["lit","🔥"],["mwah","💋"],["love you","💖"]];
-const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7"};
+const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7",mahjong:"Mahjong"};
 let lastSurprise=-1;
 function surpriseMe(){
   if(!room) return;
@@ -6088,6 +6175,14 @@ function paintInboxLists(){
   paintInboxBox($("inbox"),inboxRows.filter(r=>!r.is_dm),"rooms",$("roomTools"),$("roomFind"));
   paintInboxBox($("dmList"),inboxRows.filter(r=>r.is_dm),"dms",$("dmTools"),$("dmFind"));
 }
+/* ⭐ Pinned chats (coded by Cole): saved per account on this device */
+const pinKey=()=>"nl-pin-chats-"+(user?.id||"");
+function pinSet() { try{ return new Set(JSON.parse(LS.get(pinKey())||"[]")); }catch(e){ return new Set(); } }
+function togglePin(code){
+  const p=pinSet(); if(p.has(code)) p.delete(code); else p.add(code);
+  try{ LS.set(pinKey(),JSON.stringify([...p])); }catch(e){}
+  paintInboxLists();
+}
 function paintInboxBox(box,rows,kind,tools,find){
   box.innerHTML=""; const v=inboxView[kind];
   const many=rows.length>=8; show(tools,rows.length>=5); tools.classList.toggle("nosearch",!many);
@@ -6098,10 +6193,16 @@ function paintInboxBox(box,rows,kind,tools,find){
   if(v.f==="unread"&&rows.length>=5) shown=shown.filter(r=>+r.unread>0);
   if(q) shown=shown.filter(r=>rowName(r).includes(q));
   if(!shown.length&&rows.length){ box.append(el("p","inote",q?`Nothing matches "${q}".`:"You're all caught up ✨")); return; }
+  const pins=pinSet();
   const cutoff=Date.now()-QUIET_DAYS*864e5;
-  const isQuiet=r=>!(+r.unread>0)&&(!r.last_at||new Date(r.last_at).getTime()<cutoff);
+  const isQuiet=r=>!(+r.unread>0)&&(!r.last_at||new Date(r.last_at).getTime()<cutoff)&&!pins.has(r.code);
   const fold=many&&!q&&v.f==="all";
   const active=fold?shown.filter(r=>!isQuiet(r)):shown, quiet=fold?shown.filter(isQuiet):[];
+  active.sort((a,b)=>{   // pinned first, then unread first, then most recent first
+    const pa=pins.has(a.code), pb=pins.has(b.code); if(pa!==pb) return pa?-1:1;
+    const ua=+a.unread>0, ub=+b.unread>0; if(ua!==ub) return ua?-1:1;
+    const ta=new Date(a.last_at||0).getTime(), tb=new Date(b.last_at||0).getTime(); return tb-ta;   // most recent first
+  });
   active.forEach(r=>box.append(inboxRow(r)));
   if(quiet.length){
     const d=document.createElement("details"); d.className="quiet"; d.open=v.open||!active.length;
@@ -6132,7 +6233,11 @@ function inboxRow(r){
     b.append(hash,info,when);
     b.setAttribute("aria-label",`${r.is_dm?"Private chat with "+(r.dm_name||"someone"):"Room "+(r.name||r.code)}${+r.unread?`, ${r.unread} unread`:""}`);
     b.onclick=()=>{ if(isOffline()){ offlineNotice(); return; } if(!r.is_dm) $("room").value=r.code; enterRoom(r.code); };
-    return b;
+    const pinned = pinSet().has(r.code);
+    const wrap=el("div","rowwrap"); wrap.append(b);
+    const pin=el("button","pinbtn",pinned ? "⭐" : "☆"); pin.type="button"; pin.setAttribute("aria-label",pinned?"Unpin chat":"Pin chat"); pin.onclick=e=>{ e.stopPropagation(); togglePin(r.code); };
+    wrap.append(pin);
+    return wrap;
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ if(room) markReadSoon(); else loadInbox(); } });
 
@@ -7120,7 +7225,7 @@ async function loadPinnedContext(){
   if(games.length){ await loadGames(games).catch(()=>{}); const ids=new Set(games.flatMap(m=>{ const g=gamesById.get(m.id); return g?[g.player_x,g.player_o,...(g.state?.players||[])]:[]; }).filter(Boolean)); if(ids.size) await ensureProfiles([...ids]).catch(()=>{}); }
 }
 // "whose turn / who won" for any game, for the pin bar
-function anyGameStatus(g){ return g.type==="eights"?e8Status(g):g.type==="liarsdice"?ldStatus(g):g.type==="bs"?bsStatus(g):g.type==="lucky7"?l7Status(g):gameStatusText(g); }
+function anyGameStatus(g){ return g.type==="eights"?e8Status(g):g.type==="liarsdice"?ldStatus(g):g.type==="bs"?bsStatus(g):g.type==="lucky7"?l7Status(g):g.type==="mahjong"?mjStatus(g):gameStatusText(g); }
 const pinnedGameUp=m=>{ const g=m?.kind==="game"&&gamesById.get(m.id); return !!(g&&g.status!=="done"&&anyGameStatus(g).turn); };
 function pinnedList(){   // games waiting on you come first
   return [...pins.values()].sort((a,b)=>a.created_at<b.created_at?1:-1).map(p=>byId.get(p.message_id)||contextById.get(p.message_id)).filter(m=>m&&!blocked.has(m.user_id))
@@ -8654,6 +8759,7 @@ function gameCard(m){
   if(g?.type==="liarsdice"||(!g&&m.text==="Liar's Dice")) return ldGameCard(m,g);
   if(g?.type==="bs"||(!g&&m.text==="BS")) return bsGameCard(m,g);
   if(g?.type==="lucky7"||(!g&&m.text==="Lucky 7")) return l7GameCard(m,g);
+  if(g?.type==="mahjong"||(!g&&m.text==="Mahjong")) return mjGameCard(m,g);
   const card=el("div","gamecard");
   const isMC=g?.type==="mancala"||(!g&&m.text==="Mancala");
   const top=el("div","gc-top"); top.append(isMC?mcMini(g):g?.type==="kingscourt"?kcMiniBoard(g):miniGrid(g));
@@ -8681,8 +8787,9 @@ function playerTile(node,uid,mark,active){
 function paintGame(prev){
   const g=gamesById.get(openGameId); if(!g){ closeGame(); return; }
   paintGameRules(g);
-  const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7";
-  show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7); show($("board"),!e8&&!ld&&!bs&&!l7);
+  const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7", mj=g.type==="mahjong";
+  show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); show($("mjArea"),mj); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7||mj); show($("board"),!e8&&!ld&&!bs&&!l7&&!mj);
+  if(mj){ paintMahjong(g,prev); return; }
   if(l7){ paintLucky(g,prev); return; }
   if(e8){ paintEights(g,prev); return; }
   if(bs){ paintBS(g,prev); return; }
@@ -8745,7 +8852,7 @@ $("gameJoin").onclick=async()=>{
   const g=gamesById.get(openGameId); if(!g) return;
   $("gameJoin").disabled=true;
   try{ await api.joinGame(g.message_id); const before=JSON.parse(JSON.stringify(g));
-    if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"){ if(!g.state.players.includes(user.id)) g.state.players.push(user.id); } else { g.player_o=user.id; g.status="active"; }
+    if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"){ if(!g.state.players.includes(user.id)) g.state.players.push(user.id); } else { g.player_o=user.id; g.status="active"; }
     paintGame(before); refreshMsg(g.message_id); }
   catch(err){ say("gameMsg","Couldn't join: "+err.message,true); }
   finally{ $("gameJoin").disabled=false; }
@@ -8762,6 +8869,15 @@ $("gameRematch").onclick=async()=>{
    Plain-language rules for every game. They open by themselves the first time you open a game type,
    any time from "📖 How to play", and from the Rules links in the Games tray. */
 const GAME_RULES={
+  mahjong:{name:"Mahjong (Lite)",emoji:"🀄",players:"2–4 players",goal:"Be the first to make a hand of 4 sets and 1 pair (14 tiles).",
+    steps:["There are 3 suits: <b>Dots</b> "+mjTileHtml("d3")+", <b>Bamboo</b> "+mjTileHtml("b3")+" and <b>Characters</b> "+mjTileHtml("c3")+", numbered 1–9, with 4 of each tile.",
+           "Everyone starts with <b>13 tiles</b>. On your turn, <b>draw 1</b> tile, then <b>throw 1 away</b>.",
+           "A <b>set</b> is 3 in a row of the same suit "+mjTileHtml("b4")+mjTileHtml("b5")+mjTileHtml("b6")+" or 3 of the same tile "+mjTileHtml("d7")+mjTileHtml("d7")+mjTileHtml("d7")+".",
+           "A <b>pair</b> is 2 of the same tile "+mjTileHtml("c2")+mjTileHtml("c2")+".",
+           "Get <b>4 sets + 1 pair</b> and hit <b>MAHJONG!</b> to win.",
+           "If someone throws away the exact tile that finishes your hand, hit <b>MAHJONG!</b> to grab it, but be quick, before the next player draws!",
+           "If the wall of tiles runs out first, the game is a draw."],
+    tip:"Your hand sorts itself: sets glow cyan, your pair glows pink, and ★ marks tiles that are good to throw away. When you're one tile from winning, it tells you which tiles you need."},
   lucky7:{name:"Lucky 7",emoji:"🍀",players:"2–8 players",goal:"Be the first to 150 points.",
     steps:["On your turn, <b>Hit</b> to flip a card, or <b>Stay</b> to bank the points you have this round.",
            "Number cards go from 0 to 12, and big numbers are more common (there are twelve 12s but only one 1).",
@@ -8915,7 +9031,7 @@ function e8GameCard(m,g){
   card.append(btn); return card;
 }
 let e8Busy=false, e8PendingEight=null;
-setInterval(()=>{ const g=gamesById.get(openGameId); if(g?.status==="active"&&!e8Busy){ if(g.type==="eights") paintEights(g); else if(g.type==="liarsdice") paintDice(g); else if(g.type==="bs") paintBS(g); else if(g.type==="lucky7") paintLucky(g); } },20000);
+setInterval(()=>{ const g=gamesById.get(openGameId); if(g?.status==="active"&&!e8Busy){ if(g.type==="eights") paintEights(g); else if(g.type==="liarsdice") paintDice(g); else if(g.type==="bs") paintBS(g); else if(g.type==="lucky7") paintLucky(g); else if(g.type==="mahjong") paintMahjong(g); } },20000);
 async function e8Act(fn){
   if(e8Busy) return; e8Busy=true; say("gameMsg","");
   const id=openGameId;
@@ -9310,6 +9426,165 @@ async function paintLucky(g,prev){
 $("l7Hit").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.l7Hit(g.message_id)); };
 $("l7Stay").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.l7Stay(g.message_id)); };
 $("l7Skip").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.l7Skip(g.message_id)); };
+/* ================= 🀄 MAHJONG LITE =================
+   A simple Mahjong for 2–4 players: Dots, Bamboo and Characters 1–9 (no winds, dragons or flowers).
+   Draw a tile, throw one away. Win with 4 sets + 1 pair. The server (mahjong.sql) deals and checks every move;
+   the helpers below just show you your sets, what you're waiting on, and which tiles are safe to throw away.
+   Tile art: "Simple Tiny Mahjong Tiles" by natonato, recolored for NightLane. */
+const MJ_SUITS={d:"Dots",b:"Bamboo",c:"Characters"};
+function mjIdx(t){ return ({d:0,b:9,c:18})[t[0]]+(+t.slice(1))-1; }   // 0..26 (function declarations: the rules card uses these before this point)
+const mjCode=i=>"dbc"[Math.floor(i/9)]+(i%9+1);
+function mjName(t){ return `${t.slice(1)} ${({d:"Dots",b:"Bamboo",c:"Characters"})[t[0]]}`; }
+const mjSort=h=>[...h].sort((a,b)=>mjIdx(a)-mjIdx(b));
+function mjTileEl(t,{z=2,cls=""}={}){
+  const e=el("span","mjt"+(cls?" "+cls:"")); e.style.setProperty("--z",z); e.style.setProperty("--i",t==="back"?34:mjIdx(t));
+  e.setAttribute("role","img"); e.setAttribute("aria-label",t==="back"?"face-down tile":mjName(t)); return e;
+}
+function mjTileHtml(t,z=1){ return `<span class="mjt" style="--z:${z};--i:${t==="back"?34:mjIdx(t)}" role="img" aria-label="${t==="back"?"tile":mjName(t)}"></span>`; }
+function mjCounts(h){ const c=Array(27).fill(0); h.forEach(t=>c[mjIdx(t)]++); return c; }
+function mjSetsOnly(c){
+  let i=0; while(i<27&&!c[i]) i++; if(i>=27) return true;
+  if(c[i]>=3){ c[i]-=3; const ok=mjSetsOnly(c); c[i]+=3; if(ok) return true; }
+  if(i%9<=6&&c[i+1]&&c[i+2]){ c[i]--;c[i+1]--;c[i+2]--; const ok=mjSetsOnly(c); c[i]++;c[i+1]++;c[i+2]++; if(ok) return true; }
+  return false;
+}
+function mjIsWin(h){ if(h.length!==14) return false; const c=mjCounts(h); for(let i=0;i<27;i++) if(c[i]>=2){ c[i]-=2; const ok=mjSetsOnly(c); c[i]+=2; if(ok) return true; } return false; }
+// with 13 tiles: which tiles would finish the hand?
+function mjWaits(h){ if(h.length!==13) return []; const c=mjCounts(h), out=[]; for(let i=0;i<27;i++){ if(c[i]>=4) continue; if(mjIsWin([...h,mjCode(i)])) out.push(mjCode(i)); } return out; }
+// with 14 tiles: which throw-aways leave you one tile from winning?
+function mjGoodThrows(h){ if(h.length!==14) return new Set(); const out=new Set(); for(const t of new Set(h)){ const i=h.indexOf(t); if(mjWaits([...h.slice(0,i),...h.slice(i+1)]).length) out.add(t); } return out; }
+// split a hand into the most complete sets + one pair, for showing your progress
+function mjGroups(h){
+  const memo=new Map();
+  function best(c,pair){
+    let i=0; while(i<27&&!c[i]) i++; if(i>=27) return {score:0,groups:[],loose:[]};
+    const key=c.join(",")+"|"+pair; if(memo.has(key)) return memo.get(key);
+    let top=null; const take=(score,group,next,np,looseTile)=>{ const r=best(next,np); const s=r.score+score; if(!top||s>top.score) top={score:s,groups:group?[group,...r.groups]:r.groups,loose:looseTile?[looseTile,...r.loose]:r.loose}; };
+    const t=mjCode(i);
+    if(c[i]>=3){ const n=[...c]; n[i]-=3; take(3,{type:"trip",tiles:[t,t,t]},n,pair); }
+    if(i%9<=6&&c[i+1]&&c[i+2]){ const n=[...c]; n[i]--;n[i+1]--;n[i+2]--; take(3,{type:"run",tiles:[t,mjCode(i+1),mjCode(i+2)]},n,pair); }
+    if(!pair&&c[i]>=2){ const n=[...c]; n[i]-=2; take(2.5,{type:"pair",tiles:[t,t]},n,true); }
+    { const n=[...c]; n[i]--; take(0,null,n,pair,t); }
+    memo.set(key,top); return top;
+  }
+  const r=best(mjCounts(h),false);
+  r.groups.sort((a,b)=>(a.type==="pair")-(b.type==="pair")||mjIdx(a.tiles[0])-mjIdx(b.tiles[0]));
+  return r;
+}
+const mjSeat=g=>(g.state.players||[]).indexOf(user.id);
+const mjPend=g=>{ const p=g.state.pend; return p&&p.tile&&g.state.phase==="draw"?p:null; };
+function mjStatus(g){
+  const s=g.state, P=s.players||[], me=mjSeat(g), host=s.host;
+  if(g.status==="waiting"){
+    if(me<0) return {text:`${nameOf(host)} wants to play! (${P.length}/4)`,turn:P.length<4};
+    return {text:host===user.id?`${P.length} player${P.length===1?"":"s"} in. Deal when everyone's here (2–4).`:`Waiting for ${nameOf(host)} to deal… (${P.length} in)`,turn:false};
+  }
+  if(g.status==="done"){ if(!s.winner) return {text:"The wall ran out. It's a draw!"}; return s.winner===user.id?{text:"MAHJONG! You won! 🀄🏆",won:true}:{text:`${nameOf(s.winner)} won with MAHJONG! 🀄`}; }
+  const up=P[s.turn];
+  if(up===user.id) return {text:s.phase==="draw"?"Your turn! Draw a tile.":"Pick a tile to throw away.",turn:true};
+  return {text:`${nameOf(up)}'s turn · ${s.wall} tiles left`};
+}
+function mjLastText(g){
+  const l=g.state.last; if(!l) return "";
+  const who=l.by===user.id?"You":nameOf(l.by);
+  if(l.act==="discard") return `${who} threw away ${mjName(l.tile)}`;
+  if(l.act==="draw") return `${who} drew a tile`;
+  return "";
+}
+function mjGameCard(m,g){
+  const card=el("div","gamecard e8gc"), top=el("div","gc-top");
+  top.append(mjTileEl(g?.state?.pend?.tile&&g.status==="active"?g.state.pend.tile:"back",{z:1.5,cls:"gcmjt"}));
+  const info=el("div"); info.append(el("div","gc-title","🀄 MAHJONG"));
+  if(!g){ info.append(el("div","gc-status","Loading…")); top.append(info); card.append(top); return card; }
+  const st=mjStatus(g); info.append(el("div","gc-status"+(st.turn?" turn":""),st.text)); top.append(info); card.append(top);
+  const inIt=mjSeat(g)>=0;
+  const label=g.status==="waiting"?(inIt?(g.state.host===user.id?"Open lobby":"Open game"):"Join game"):g.status==="done"?(inIt?"See hands · Rematch":"See hands"):(st.turn?"Play your turn":inIt?"Open game":"Watch game");
+  const btn=el("button","play"+(st.turn?" big":""),label); btn.type="button"; btn.onclick=e=>{ e.stopPropagation(); openGame(m.id); };
+  card.append(btn); return card;
+}
+let mjPick=null, mjClaimBuzz=null;
+function mjGroupRow(h,{z=2,pick=false,good=null}={}){
+  const r=mjGroups(h), row=el("div","mjgroups");
+  r.groups.forEach(gr=>{ const b=el("span","mjset "+gr.type); gr.tiles.forEach(t=>b.append(mjTileBtn(t,z,pick,good))); row.append(b); });
+  if(r.loose.length){ const b=el("span","mjset loose"); mjSort(r.loose).forEach(t=>b.append(mjTileBtn(t,z,pick,good))); row.append(b); }
+  return {row,groups:r.groups};
+}
+function mjTileBtn(t,z,pick,good){
+  const e=mjTileEl(t,{z,cls:(good?.has(t)?"good":"")+(pick&&mjPick===t?" picked":"")});
+  if(pick){ e.tabIndex=0; e.setAttribute("role","button"); e.setAttribute("aria-label",`${mjName(t)}${good?.has(t)?" (good to throw away)":""}`);
+    const go=()=>{ if(mjPick===t){ mjThrow(t); return; } mjPick=t; const g=gamesById.get(openGameId); if(g) paintMahjong(g); };
+    e.onclick=go; e.onkeydown=ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }; }
+  return e;
+}
+function mjThrow(t){ const g=gamesById.get(openGameId); if(!g) return; mjPick=null; e8Act(()=>api.mjDiscard(g.message_id,t)); }
+async function paintMahjong(g,prev){
+  const s=g.state, P=s.players||[], me=mjSeat(g), st=mjStatus(g), playing=g.status!=="waiting";
+  show($("kcChainBar"),false);
+  $("gameTitle").textContent="Mahjong"; $("gameSub").textContent="Collect 4 sets and a pair. A set is 3 in a row of one suit, or 3 the same."; show($("gameSub"),g.status==="waiting");
+  $("gameStatus").textContent=st.text; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
+  const row=$("mjPlayers"); row.innerHTML="";
+  P.forEach((u,i)=>{ const chip=el("div","e8p"+(g.status==="active"&&i===s.turn?" turn":"")+(g.status==="done"&&u===s.winner?" won":""));
+    chip.dataset.uid=u; const f=el("span","face"); paintFace(f,cache.get(u)); chip.append(f,el("span","pname",u===user.id?"You":nameOf(u)));
+    if(g.status==="active") chip.append(el("span","e8count",`🀫${s.counts?.[i]??13}`)); row.append(chip); });
+  $("mjLast").textContent=g.status==="active"?mjLastText(g):"";
+  // the table: wall + everyone's thrown-away tiles
+  show($("mjTable"),playing); $("mjWall").textContent=playing?`${s.wall??0} left`:"";
+  const rv=$("mjRivers"); rv.innerHTML="";
+  if(playing) P.forEach((u,i)=>{ const line=el("div","mjriver"+(i===s.turn&&g.status==="active"?" up":""));
+    line.append(el("b","",u===user.id?"You":nameOf(u)));
+    const tiles=el("div","mjrtiles"), r=s.rivers?.[i]||[], pend=mjPend(g);
+    if(!r.length) tiles.append(el("span","note","nothing thrown yet"));
+    r.forEach((t,k)=>tiles.append(mjTileEl(t,{z:1,cls:pend&&pend.seat===i&&k===r.length-1?"hot":""})));
+    line.append(tiles); rv.append(line); });
+  // your hand
+  const handBox=$("mjHand"), hint=$("mjHint"); handBox.innerHTML=""; hint.innerHTML="";
+  let hand=[];
+  if(g.status==="active"&&me>=0){ hand=await e8Hand(g); if(openGameId!==g.message_id) return; }
+  const myTurn=g.status==="active"&&P[s.turn]===user.id, throwing=myTurn&&s.phase==="discard"&&hand.length===14;
+  const pend=g.status==="active"&&me>=0?mjPend(g):null, canClaim=!!(pend&&pend.seat!==me&&hand.length===13&&mjIsWin([...hand,pend.tile]));
+  const canSelf=throwing&&mjIsWin(hand);
+  if(mjPick&&!hand.includes(mjPick)) mjPick=null;
+  show($("mjHandWrap"),hand.length>0);
+  if(hand.length){
+    const good=throwing&&!canSelf?mjGoodThrows(hand):null;
+    const {row:gr,groups}=mjGroupRow(hand,{pick:throwing,good});
+    handBox.append(gr);
+    const sets=groups.filter(x=>x.type!=="pair").length, pair=groups.some(x=>x.type==="pair");
+    $("mjProgress").textContent=`Sets ${sets}/4 · Pair ${pair?"✔":"✘"}`;
+    if(canSelf||canClaim) hint.append(el("b","mjwin","🀄 Your hand is complete! Hit MAHJONG!"));
+    else if(throwing){ hint.append(el("span","",mjPick?`Tap ${mjName(mjPick)} again (or Throw away) to get rid of it.`:"Tap a tile you don't need to throw it away.")); if(good?.size) hint.append(el("span","mjstar"," ★ = throw this and you're one tile from winning!")); }
+    else if(hand.length===13){ const w=mjWaits(hand); if(w.length){ const b=el("span","mjwait"); b.append(el("b","","🀄 One away! You win with: ")); w.forEach(t=>b.append(mjTileEl(t,{z:1}))); hint.append(b); } }
+  }
+  // buttons
+  show($("mjAct"),myTurn||canClaim);
+  show($("mjDraw"),myTurn&&s.phase==="draw"); $("mjDraw").textContent=(s.wall??0)>0?"🀫 Draw a tile":"🀫 Wall's empty: end in a draw";
+  show($("mjThrowBtn"),throwing&&!!mjPick&&!canSelf); if(mjPick) $("mjThrowBtn").textContent=`Throw away ${mjName(mjPick)}`;
+  show($("mjMahjong"),canSelf||canClaim); $("mjMahjong").dataset.how=canSelf?"self":"claim";
+  ["mjDraw","mjThrowBtn","mjMahjong"].forEach(id=>$(id).disabled=e8Busy);
+  if(canClaim&&mjClaimBuzz!==g.moves){ mjClaimBuzz=g.moves; if(navigator.vibrate) navigator.vibrate([80,60,80]); }
+  // the end: show everyone's hands
+  const end=$("mjEnd"); end.innerHTML=""; show(end,g.status==="done"&&!!s.reveal);
+  if(g.status==="done"&&s.reveal){
+    if(s.winner){ const wh=mjSort(s.reveal[s.winner]||[]);
+      const head=el("div","mjendhead"); head.append(el("b","",`🀄 ${s.winner===user.id?"You":nameOf(s.winner)} won `),el("span","",s.how==="claim"?`with ${P[s.from]===user.id?"your":nameOf(P[s.from])+"'s"} tile!`:"by drawing the winning tile!")); end.append(head);
+      end.append(mjGroupRow(wh,{z:1.5}).row);
+      if(wh.length&&new Set(wh.map(t=>t[0])).size===1) end.append(el("div","mjflush","✨ FULL FLUSH: all one suit!"));
+    } else end.append(el("div","mjendhead","The wall ran out, so nobody won this time."));
+    P.forEach(u=>{ if(u===s.winner) return; const h=s.reveal[u]; if(!h) return; const d=el("div","mjother"); d.append(el("small","",u===user.id?"Your hand":`${nameOf(u)}'s hand`)); const t=el("div","mjrtiles"); mjSort(h).forEach(x=>t.append(mjTileEl(x,{z:1}))); d.append(t); end.append(d); });
+  }
+  if(g.status==="done"&&prev&&prev.status!=="done"&&s.winner===user.id){ gainXP("gamewin"); if(fxEnabled()){ FX.play("confetti"); pxWin(); } }
+  const stale=g.status==="active"&&me>=0&&P[s.turn]!==user.id&&Date.now()-new Date(g.updated_at||Date.now()).getTime()>120000;
+  show($("mjSkip"),stale); if(stale) $("mjSkip").textContent=`Skip ${nameOf(P[s.turn])} (auto-play their turn)`;
+  show($("mjDeal"),g.status==="waiting"&&s.host===user.id); $("mjDeal").disabled=P.length<2; $("mjDeal").textContent=P.length<2?"Waiting for players…":`Deal (${P.length} players)`;
+  show($("gameJoin"),g.status==="waiting"&&me<0&&P.length<4);
+  show($("gameRematch"),g.status==="done"&&me>=0);
+}
+$("mjDraw").onclick=()=>{ const g=gamesById.get(openGameId); if(g){ mjPick=null; e8Act(()=>api.mjDraw(g.message_id)); } };
+$("mjThrowBtn").onclick=()=>{ if(mjPick) mjThrow(mjPick); };
+$("mjMahjong").onclick=()=>{ const g=gamesById.get(openGameId); if(!g) return; const self=$("mjMahjong").dataset.how==="self"; e8Act(()=>self?api.mjWin(g.message_id):api.mjClaim(g.message_id)); };
+$("mjSkip").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.mjSkip(g.message_id)); };
+$("mjDeal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(async()=>{ try{ await api.mjStart(g.message_id); }catch(err){ if(/mj_start|schema cache|does not exist/i.test(err.message)) throw new Error("Mahjong needs a quick setup: run mahjong.sql in Supabase."); throw err; } }); };
+
 $("l7Deal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(async()=>{ try{ await api.l7Start(g.message_id); }catch(err){ if(/l7_start|schema cache|does not exist/i.test(err.message)) throw new Error("Lucky 7 needs a quick setup: run lucky7.sql in Supabase."); throw err; } }); };
 function bsGameCard(m,g){
   const card=el("div","gamecard e8gc"), top=el("div","gc-top");
@@ -12442,8 +12717,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.14c";
+const APP_VERSION="2026.10.15b";
 const CHANGELOG=[
+  {v:"2026.10.15a", title:"New game: Mahjong 🀄", items:["🀄 Mahjong Lite for 2–4 players: draw a tile, throw one away, and be the first to collect 4 sets and a pair. Tap ＋ → Games.","🧠 Never played? Your hand sorts itself into sets, ★ marks good tiles to throw away, and it tells you when you're one tile from winning (and which tiles you need).","🀄 Someone throws away the tile you need? Hit MAHJONG! to grab it and win.","Tile art by natonato, recolored for NightLane."]},
   {v:"2026.10.14c", title:"Tidier chat lists 🧹", items:["🧹 Rooms and DMs got the Friends tab treatment: chats quiet for 2+ weeks fold into a 💤 Quiet section at the bottom (a new message brings them right back up).","🔍 Got 8+ chats? A search box shows up to find one fast.","📬 Tap Unread to see only the chats waiting on you."]},
   {v:"2026.10.14b", title:"Question of the day fix ❓", items:["❓ Once you answer the Question of the Day in a chat, its bar disappears from that chat for the rest of the day, even if you answered from another device.","✨ Answering the Question of the Day now gives +15 XP (once a day)."]},
   {v:"2026.10.14a", title:"Pixel glow-up ✨", items:["🎆 Winning a game now pops a pixel \"You Won!\" with neon fireworks, and the winner gets a little spinning crown.","💥 Lucky 7 BUSTs explode, LUCKY 7 says WOW, and level-ups get a pixel LEVEL UP.","🥚 Partner evolutions warp and sparkle (shinies shimmer extra), new friends get a heart burst, and your daily XP drops coins.","🗝️ Unlocks, achievements and level-ups have pixel item icons now.","🖥️ The PC terminal and game scores use a crisp pixel font.","Credits: effects by unTied Games, icons by Quintino Pixels, font by datagoblin."]},
