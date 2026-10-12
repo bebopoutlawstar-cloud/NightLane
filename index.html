@@ -5936,10 +5936,13 @@ const qotdToday=()=>QOTD[dayNumber()%QOTD.length];
 const isGameNight=()=>new Date().getDay()===5;   // Friday
 function dailyDismissed(code){ try{ const s=JSON.parse(LS.get("nl-daily-x")||"{}"); return s.day===dayNumber()&&(s.rooms||[]).includes(code); }catch(e){ return false; } }
 function dismissDaily(code){ try{ const s=JSON.parse(LS.get("nl-daily-x")||"{}"); const rooms=s.day===dayNumber()?(s.rooms||[]):[]; rooms.push(code); LS.set("nl-daily-x",JSON.stringify({day:dayNumber(),rooms:rooms.slice(-60)})); }catch(e){} }
+/* you already answered today's question in this chat (maybe from another device), so the bar can go away */
+const isDailyAnswer=t=>typeof t==="string"&&t.startsWith("❓ "+qotdToday());
+function answeredDaily(){ const today=new Date().toDateString(); return msgs.some(m=>m.user_id===user?.id&&isDailyAnswer(m.text)&&new Date(m.created_at).toDateString()===today); }
 function paintDailyBar(){
   const bar=$("dailyBar"); if(!bar) return;
-  if(!room||dailyDismissed(room)){ show(bar,false); return; }
   const gn=isGameNight();
+  if(!room||dailyDismissed(room)||(!gn&&answeredDaily())){ show(bar,false); return; }
   $("dailyIcon").textContent=gn?"🎮":"❓";
   $("dailyLabel").textContent=gn?"Friday game night":"Question of the day";
   $("dailyText").textContent=gn?"Start a game with the crew tonight":qotdToday();
@@ -7412,6 +7415,8 @@ $("sendForm").addEventListener("submit",async e=>{
       $("status").textContent="Uploading video…"; f.media_url=await api.upload("chat-media",user.id,vid); f.media_type="video"; f.media_duration=pendingDuration; f.kind="video"; }
     else if(pendingFile||pendingImages.length===1){ $("status").textContent="Uploading photo…"; const one=pendingFile||pendingImages[0]; f.image_url=await api.upload("chat-images",user.id,await shrink(one,1280,false)); f.kind="image"; }
     await sendFields(f);
+    if(room&&!isGameNight()&&isDailyAnswer(text)){ dismissDaily(room); show($("dailyBar"),false);   // answered: the question bar leaves this chat for today
+      try{ const k="nl-qotd-xp-"+dayNumber(); if(!LS.get(k)){ LS.set(k,"1"); gainXP("qotd"); } }catch(e){} }   // +15 XP once a day, not once per chat   // answered: the question bar leaves this chat for today
     if(hadMedia&&$("box").value.trim()===text){ $("box").value=""; $("box").style.height=""; }   // only clear the caption you sent, never new typing
     if(hadMedia) clearPending();
     mentionPicks.clear(); paintComposeMode();
@@ -10561,7 +10566,7 @@ HINTS.dragon="A winged silhouette crosses the moon when you say it.";
 
 /* ---------- XP & levels ---------- */
 const XP_KEY="nl-xp";
-const XP_RULES={secret:50,message:2,photo:6,voice:6,sticker:3,poll:10,vote:2,game:5,gamewin:30,friend:15,daily:20,reply:3,reaction:1,task:4,pin:2,rename:5,theme:10,habit:8,backlog:3,backlogdone:10};
+const XP_RULES={secret:50,message:2,photo:6,voice:6,sticker:3,poll:10,vote:2,game:5,gamewin:30,friend:15,daily:20,reply:3,reaction:1,task:4,pin:2,rename:5,theme:10,habit:8,backlog:3,backlogdone:10,qotd:15};
 const LEVEL_TITLES=["Newcomer","Regular","Night Owl","Neon Runner","Chatterbox","Phantom","Netrunner","Legend","Choom Supreme","Creator's Favorite","Mythic"];
 const xpData=()=>{ try{ return JSON.parse(LS.get(XP_KEY))||{xp:0,log:{}}; }catch(e){ return {xp:0,log:{}}; } };
 const xpNeed=lvl=>100+Math.round(60*(lvl-1)*(lvl-1)*.6+40*(lvl-1));   // xp to go from lvl → lvl+1
@@ -10595,7 +10600,7 @@ function paintXP(){
   const d=xpData(), L=xpLevel(d.xp), pct=Math.round(L.rem/L.need*100);
   $("xpLevel").textContent=`LV ${L.lvl}`; $("xpTitle").textContent=LEVEL_TITLES[Math.min(L.lvl-1,LEVEL_TITLES.length-1)];
   $("xpFill").style.width=pct+"%"; $("xpText").textContent=`${L.rem} / ${L.need} XP · ${d.xp.toLocaleString()} total`;
-  const ways=[["secret",pxIconHtml("goldkey",16)+"find a secret",50],["gamewin","🏆 win a game",30],["daily","📅 open the app daily",20],["friend","🤝 add a friend",15],["poll","📊 start a poll",10],["theme","🎨 change your theme",10],["photo","📷 send a photo",6],["voice","🎤 voice message",6],["message","💬 send a message",2]];
+  const ways=[["secret",pxIconHtml("goldkey",16)+"find a secret",50],["gamewin","🏆 win a game",30],["daily","📅 open the app daily",20],["friend","🤝 add a friend",15],["qotd","❓ answer the question of the day",15],["poll","📊 start a poll",10],["theme","🎨 change your theme",10],["photo","📷 send a photo",6],["voice","🎤 voice message",6],["message","💬 send a message",2]];
   $("xpWays").innerHTML=ways.map(([k,label,v])=>`<span class="sx-chip${(d.log[k]||0)>0?" got":""}">${label} +${v}</span>`).join("");
 }
 function dailyXP(){ const key="nl-xpday-"+new Date().toDateString(); try{ if(LS.get(key)) return; LS.set(key,"1"); }catch(e){} setTimeout(()=>{ gainXP("daily"); pxfx("coins",{at:$("homeLevel"),scale:2}); },1500); }
@@ -12396,8 +12401,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.14a";
+const APP_VERSION="2026.10.14b";
 const CHANGELOG=[
+  {v:"2026.10.14b", title:"Question of the day fix ❓", items:["❓ Once you answer the Question of the Day in a chat, its bar disappears from that chat for the rest of the day, even if you answered from another device.","✨ Answering the Question of the Day now gives +15 XP (once a day)."]},
   {v:"2026.10.14a", title:"Pixel glow-up ✨", items:["🎆 Winning a game now pops a pixel \"You Won!\" with neon fireworks, and the winner gets a little spinning crown.","💥 Lucky 7 BUSTs explode, LUCKY 7 says WOW, and level-ups get a pixel LEVEL UP.","🥚 Partner evolutions warp and sparkle (shinies shimmer extra), new friends get a heart burst, and your daily XP drops coins.","🗝️ Unlocks, achievements and level-ups have pixel item icons now.","🖥️ The PC terminal and game scores use a crisp pixel font.","Credits: effects by unTied Games, icons by Quintino Pixels, font by datagoblin."]},
   {v:"2026.10.13f", title:"Back button fix ⬅️", items:["⬅️ Opening a chat from a notification (like the Owl's \"your turn\" ping) and then pressing Back on Android now takes you to your chat list instead of closing the app."]},
   {v:"2026.10.13e", title:"Pins menu 📌", items:["📌 Got more than one pin? Tap the \"1/3 ▾\" on the pin bar to see them all at once and jump straight to any game or message. Games waiting on you are highlighted (thanks hachiware!)."]},
