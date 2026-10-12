@@ -2285,6 +2285,22 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .e8card{display:inline-grid;place-items:center;align-content:center;width:52px;height:74px;background:#f4f7ff;color:#07041a;border:2px solid #07041a;border-radius:6px;box-shadow:3px 3px 0 var(--mag);font-family:var(--num);line-height:1;gap:2px;user-select:none}
 .e8card b{font-size:22px;font-weight:400}.e8card i{font-style:normal;font-size:20px}
 .e8card.red{color:#d81b3c}
+.e8card.wild4{background:conic-gradient(from 30deg,#FF2E3F,#F3FF3A,#2EE66B,#00F0FF,#7A4BD6,#FF2E3F)!important;color:#fff;text-shadow:2px 2px 0 #07041a}
+.e8card.wild4 b{font-family:var(--num);font-size:24px}.e8card.wild4.sm b{font-size:13px}
+.e8card.act{position:relative}
+.e8card .e8act{position:absolute;top:2px;right:3px;font-style:normal;font-size:11px;font-weight:900;color:#07041a;background:var(--volt);padding:0 3px;border-radius:3px;line-height:1.3}
+.e8card.sm .e8act{font-size:7px;top:1px;right:1px;padding:0 2px}
+.e8pend{position:absolute;right:-14px;top:-12px;font-family:var(--num);font-size:22px;color:#07041a;background:var(--volt);padding:0 6px;transform:rotate(8deg);box-shadow:3px 3px 0 var(--mag);z-index:3}
+.e8-pile{position:relative}
+.e8-deck.take{outline:3px solid var(--volt);outline-offset:3px;animation:e8takepulse 1s ease-in-out infinite}
+@keyframes e8takepulse{50%{outline-color:var(--red)}}
+.e8catch{margin-left:4px;font-family:var(--tech);font-size:10px;padding:3px 6px;background:var(--red);color:#fff;border:none;cursor:pointer;animation:e8takepulse 1s ease-in-out infinite}
+.e8called{margin-left:4px;font-size:14px}
+#e8LastCard{background:var(--volt);color:#07041a}
+.e8-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:8px}
+.e8-mode button{display:grid;gap:4px;text-align:left;background:rgba(0,0,0,.3);border:2px solid #3b2d80;color:var(--white);padding:10px;font:inherit;cursor:pointer}
+.e8-mode button b{font-size:15px}.e8-mode button small{font-size:11px;color:var(--muted);line-height:1.3}
+.e8-mode button[aria-checked="true"]{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
 .e8card.sm{width:30px;height:42px;border-radius:4px;box-shadow:2px 2px 0 var(--mag)}.e8card.sm b{font-size:13px}.e8card.sm i{font-size:12px}
 .e8card.back{background:repeating-linear-gradient(45deg,var(--mag) 0 6px,#2a1b4a 6px 12px);border-color:var(--cyan)}
 .gp-icon.e8-icon{display:flex;gap:2px;align-items:center;justify-content:center}.gp-icon.e8-icon .e8card{transform:rotate(-8deg)}.gp-icon.e8-icon .e8card+.e8card{transform:rotate(8deg);margin-left:-10px}
@@ -3625,7 +3641,11 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       </div>
       <div class="e8-suitpick hidden" id="e8SuitPick" role="group" aria-label="Pick a suit for your 8"><b>Pick a suit:</b></div>
       <div class="e8-hand" id="e8Hand" aria-label="Your hand"></div>
-      <div class="e8-actions"><button type="button" class="ghost hidden" id="e8Pass">Pass</button><button type="button" class="ghost hidden" id="e8Skip">Skip their turn</button></div>
+      <div class="e8-actions"><button type="button" class="go hidden" id="e8LastCard">☝️ Last card!</button><button type="button" class="ghost hidden" id="e8Pass">Pass</button><button type="button" class="ghost hidden" id="e8Skip">Skip their turn</button></div>
+      <div class="e8-mode hidden" id="e8ModePick" role="radiogroup" aria-label="Game mode">
+        <button type="button" role="radio" data-mode="classic"><b>🃏 Classic</b><small>8s are wild. That's it.</small></button>
+        <button type="button" role="radio" data-mode="wild"><b>⚡ Wild</b><small>J skip · Q reverse · 2 = +2 · Wild +4 · call "Last card!"</small></button>
+      </div>
       <button class="go hidden" type="button" id="e8Deal">Deal cards</button>
     </div>
     <div class="ldice hidden" id="ldArea">
@@ -4737,7 +4757,9 @@ const live = {
   async playMancala(id,pit){ must(await sb.rpc("play_mancala",{p_message:id,p_pit:pit})); },
   async rematch(id){ return must(await sb.rpc("rematch_game",{p_message:id})); },
   async eightsHand(id){ const r=must(await sb.from("game_hands").select("cards").eq("message_id",id).eq("user_id",user.id).maybeSingle()); return r?.cards||[]; },
-  async eightsStart(id){ must(await sb.rpc("eights_start",{p_message:id})); },
+  async eightsStart(id,mode){ must(await sb.rpc("eights_start_mode",{p_message:id,p_mode:mode||"classic"})); },
+  async eightsLastCard(id){ must(await sb.rpc("eights_lastcard",{p_message:id})); },
+  async eightsCatch(id,seat){ must(await sb.rpc("eights_catch",{p_message:id,p_seat:seat})); },
   async eightsPlay(id,card,suit){ must(await sb.rpc("eights_play",{p_message:id,p_card:card,p_suit:suit||null})); },
   async eightsDraw(id){ return must(await sb.rpc("eights_draw",{p_message:id})); },
   async eightsPass(id){ must(await sb.rpc("eights_pass",{p_message:id})); },
@@ -4871,13 +4893,15 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   const fire=(f,...a)=>H&&H[f](...a);
   // ---- Crazy Eights (demo mirror of the server rules) ----
   const demoE8={};
-  function e8DemoDeal(g){
+  function e8DemoTake(d,u,k){ for(let i=0;i<k;i++){ if(!d.deck.length&&d.discard.length>1){ const top=d.discard.pop(); d.deck=d.discard.sort(()=>Math.random()-.5); d.discard=[top]; } if(!d.deck.length) break; d.hands[u].push(d.deck.shift()); } }
+  function e8DemoDeal(g,mode){
     const deck=[]; for(const r of ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]) for(const su of ["S","H","D","C"]) deck.push(r+su);
+    if(mode==="wild") deck.push("+4W","+4W","+4W","+4W");
     for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
     const P=g.state.players, size=P.length===2?7:5, hands={}; P.forEach(u=>hands[u]=deck.splice(0,size));
-    let k=deck.findIndex(c=>!c.startsWith("8")); const top=deck.splice(k,1)[0];
+    let k=deck.findIndex(c=>!c.startsWith("8")&&!c.startsWith("+4")); const top=deck.splice(k,1)[0];
     demoE8[g.message_id]={deck,discard:[top],hands};
-    Object.assign(g.state,{counts:P.map(u=>hands[u].length),turn:Math.floor(Math.random()*P.length),top,suit:top.slice(-1),deck:deck.length,drew:false,winner:null,last:null});
+    Object.assign(g.state,{counts:P.map(u=>hands[u].length),turn:Math.floor(Math.random()*P.length),top,suit:top.slice(-1),deck:deck.length,drew:false,winner:null,last:null,mode:mode==="wild"?"wild":"classic",dir:1,pending:0,pendkind:null,called:{}});
     g.status="active";
   }
   function e8DemoMove(g,who,act){
@@ -4885,14 +4909,22 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     if(g.status!=="active") throw new Error("This game isn't being played right now.");
     if(seat!==st.turn) throw new Error("It's not your turn.");
     const hand=d.hands[who]; let drawn=null;
+    const wild=st.mode==="wild", n=P.length, nxt=(k)=>(((seat+(st.dir||1)*k)%n)+n)%n;
     if(act.play){
       const i=hand.indexOf(act.play); if(i<0) throw new Error("That card isn't in your hand.");
       const c=act.play, r=c.slice(0,-1), su=c.slice(-1);
-      if(r==="8"){ if(!["S","H","D","C"].includes(act.suit)) throw new Error("Pick a suit for your 8."); }
+      if(wild&&st.pending>0&&r!==st.pendkind) throw new Error(`You have to take the +${st.pending}. Stack a ${st.pendkind} on it, or tap Take.`);
+      if(r==="8"||(wild&&r==="+4")){ if(!["S","H","D","C"].includes(act.suit)) throw new Error("Pick a suit."); }
       else if(su!==st.suit&&r!==st.top.slice(0,-1)) throw new Error("That card doesn't match. Play the same suit or number, or an 8.");
       hand.splice(i,1); d.discard.push(c);
-      st.top=c; st.suit=r==="8"?act.suit:su; st.drew=false; st.last={by:who,card:c,suit:st.suit}; st.counts[seat]=hand.length;
-      if(!hand.length){ g.status="done"; st.winner=who; } else st.turn=(seat+1)%P.length;
+      let steps=1, a=null;
+      if(wild&&hand.length){ if(r==="J"){ steps=2; a="skip"; } else if(r==="Q"){ if(n===2) steps=2; else st.dir=-(st.dir||1); a="reverse"; } else if(r==="2"){ st.pending+=2; st.pendkind="2"; a="draw2"; } else if(r==="+4"){ st.pending+=4; st.pendkind="+4"; a="draw4"; }
+        if(hand.length>1&&st.called) delete st.called[seat]; }
+      st.top=c; st.suit=(r==="8"||r==="+4")?act.suit:su; st.drew=false; st.last={by:who,card:c,suit:st.suit,act:a}; st.counts[seat]=hand.length;
+      if(!hand.length){ g.status="done"; st.winner=who; st.pending=0; } else st.turn=(((seat+(st.dir||1)*steps)%n)+n)%n;
+    } else if(act.draw&&wild&&st.pending>0){
+      const k=st.pending; e8DemoTake(d,who,k); st.counts[seat]=hand.length; st.deck=d.deck.length; st.pending=0; st.pendkind=null; if(st.called) delete st.called[seat];
+      st.turn=nxt(1); st.drew=false; st.last={by:who,took:k};
     } else if(act.draw){
       if(st.drew) throw new Error("You already drew. Play a card or pass.");
       if(!d.deck.length){ const top=d.discard.pop(); d.deck=d.discard.sort(()=>Math.random()-.5); d.discard=[top]; }
@@ -4900,7 +4932,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       drawn=d.deck.shift(); hand.push(drawn); st.drew=true; st.deck=d.deck.length; st.counts[seat]=hand.length; st.last={by:who,drew:true};
     } else if(act.pass){
       if(!st.drew&&d.deck.length+d.discard.length>1) throw new Error("Draw a card first. You can pass after drawing.");
-      st.drew=false; st.turn=(seat+1)%P.length; st.last={by:who,passed:true};
+      st.drew=false; st.turn=nxt(1); st.last={by:who,passed:true};
     }
     e8DemoAfter(g); return drawn;
   }
@@ -4998,12 +5030,13 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   function e8DemoBot(g,who){
     if(g.status!=="active"||g.state.players[g.state.turn]!==who) return;
     const hand=demoE8[g.message_id].hands[who], st=g.state;
-    const ok=c=>c.startsWith("8")||c.slice(-1)===st.suit||c.slice(0,-1)===st.top.slice(0,-1);
+    const ok=c=>st.mode==="wild"&&st.pending>0?c.slice(0,-1)===st.pendkind:(c.startsWith("8")||c.startsWith("+4")&&st.mode==="wild"||c.slice(-1)===st.suit||c.slice(0,-1)===st.top.slice(0,-1));
     const best=()=>hand.filter(ok).sort((a,b)=>(a.startsWith("8")?1:0)-(b.startsWith("8")?1:0))[0];
     const fav=()=>{ const n={}; hand.forEach(c=>{ if(!c.startsWith("8")) n[c.slice(-1)]=(n[c.slice(-1)]||0)+1; }); return Object.keys(n).sort((a,b)=>n[b]-n[a])[0]||"S"; };
     let c=best();
     if(!c&&!st.drew){ try{ e8DemoMove(g,who,{draw:true}); }catch(e){ e8DemoMove(g,who,{pass:true}); } return; }
-    if(c) e8DemoMove(g,who,{play:c,suit:c.startsWith("8")?fav():undefined}); else e8DemoMove(g,who,{pass:true});
+    if(!c&&st.mode==="wild"&&st.pending>0){ e8DemoMove(g,who,{draw:true}); return; }
+    if(c) e8DemoMove(g,who,{play:c,suit:c.startsWith("8")||c.startsWith("+4")?fav():undefined}); else e8DemoMove(g,who,{pass:true});
   }
   return {
     async session(){ return user; },
@@ -5089,7 +5122,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async diceBid(id,qty,face){ ldDemoMove(games[id],"me",{bid:[qty,face]}); },
     async diceCall(id){ ldDemoMove(games[id],"me",{call:true}); },
     async diceSkip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); ldDemoMove(g,g.state.players[g.state.turn],{skip:true},"me"); },
-    async eightsStart(id){ const g=games[id]; if(g.state.host!=="me") throw new Error("Only the person who started the game can deal."); e8DemoDeal(g); e8DemoAfter(g); },
+    async eightsStart(id,mode){ const g=games[id]; if(g.state.host!=="me") throw new Error("Only the person who started the game can deal."); e8DemoDeal(g,mode); e8DemoAfter(g); },
+    async eightsLastCard(id){ const g=games[id], st=g.state, seat=st.players.indexOf("me"); if(st.counts[seat]>2) throw new Error("You can only call it when you're about to have one card."); st.called={...(st.called||{}),[seat]:true}; st.last={by:"me",lastcard:true}; e8DemoAfter(g); },
+    async eightsCatch(id,seat){ const g=games[id], st=g.state, d=demoE8[id]; if(st.counts[seat]!==1||st.called?.[seat]) throw new Error("Too late, they're safe."); const u=st.players[seat]; e8DemoTake(d,u,2); st.counts[seat]=d.hands[u].length; st.deck=d.deck.length; st.last={by:"me",caught:u}; e8DemoAfter(g); },
     async eightsPlay(id,card,suit){ e8DemoMove(games[id],"me",{play:card,suit}); },
     async eightsDraw(id){ return e8DemoMove(games[id],"me",{draw:true}); },
     async eightsPass(id){ e8DemoMove(games[id],"me",{pass:true}); },
@@ -8519,7 +8554,9 @@ const GAME_RULES={
            "<b>8s are wild.</b> Play one anytime and pick the suit the next player has to follow.",
            "Can't play? Tap the deck to <b>draw one card</b>. Play it if you can, or tap <b>Pass</b>.",
            "The <b>first player with no cards left wins</b>.",
-           "Nobody can see your cards but you. If someone goes quiet for 2 minutes on their turn, anyone can <b>skip</b> them."],
+           "Nobody can see your cards but you. If someone goes quiet for 2 minutes on their turn, anyone can <b>skip</b> them.",
+           "<b>⚡ Wild mode</b> (the host picks it before dealing): <b>J</b> skips the next player, <b>Q</b> reverses the order, <b>2</b> makes the next player draw 2, and <b>Wild +4</b> picks the suit and makes them draw 4. Stack a 2 on a 2 (or a +4 on a +4) to pass it along!",
+           "In Wild, tap <b>☝️ Last card!</b> before you're down to one. Forget, and anyone can tap <b>🚨 Catch!</b> to make you draw 2."],
     tip:"Save your 8s for when you're stuck. They can get you out of anything."},
   bs:{name:"BS",emoji:"🃏",players:"2–8 players (best with 3+)",goal:"Be the first to get rid of all your cards. (Also called Cheat or I Doubt It.)",
     steps:["The <b>whole deck is dealt out</b>, so everyone starts with lots of cards.",
@@ -8577,19 +8614,29 @@ $("gameRulesBtn").onclick=()=>setRulesOpen($("gameRules").classList.contains("hi
 const E8_SUITS={S:"♠",H:"♥",D:"♦",C:"♣"}, E8_SUIT_NAME={S:"spades",H:"hearts",D:"diamonds",C:"clubs"};
 const E8_RANK_NAME={A:"Ace",J:"Jack",Q:"Queen",K:"King"};
 const e8Rank=c=>String(c).slice(0,-1), e8Suit=c=>String(c).slice(-1);
-const e8CardName=c=>`${E8_RANK_NAME[e8Rank(c)]||e8Rank(c)} of ${E8_SUIT_NAME[e8Suit(c)]}`;
-const e8Pretty=c=>c?e8Rank(c)+E8_SUITS[e8Suit(c)]:"";
-function e8CardEl(c,{small=false,back=false}={}){
-  const d=el("span","e8card"+(small?" sm":"")+(back?" back":"")+(!back&&"HD".includes(e8Suit(c))?" red":""));
-  if(!back){ d.append(el("b","",e8Rank(c)),el("i","",E8_SUITS[e8Suit(c)])); d.setAttribute("aria-label",e8CardName(c)); }
+const E8_ACT={J:["⊘","Skip"],Q:["⇄","Reverse"],"2":["+2","Draw 2"]};   // what these do in Wild mode
+const e8CardName=c=>e8Rank(c)==="+4"?"Wild +4":`${E8_RANK_NAME[e8Rank(c)]||e8Rank(c)} of ${E8_SUIT_NAME[e8Suit(c)]}`;
+const e8Pretty=c=>!c?"":e8Rank(c)==="+4"?"Wild +4":e8Rank(c)+E8_SUITS[e8Suit(c)];
+function e8CardEl(c,{small=false,back=false,wild=false}={}){
+  const w4=!back&&e8Rank(c)==="+4";
+  const d=el("span","e8card"+(small?" sm":"")+(back?" back":"")+(w4?" wild4":"")+(!back&&!w4&&"HD".includes(e8Suit(c))?" red":""));
+  if(w4){ d.append(el("b","","+4"),el("i","","✦")); d.setAttribute("aria-label","Wild +4"); return d; }
+  if(!back){ d.append(el("b","",e8Rank(c)),el("i","",E8_SUITS[e8Suit(c)])); d.setAttribute("aria-label",e8CardName(c)+(wild&&E8_ACT[e8Rank(c)]?` (${E8_ACT[e8Rank(c)][1]})`:""));
+    if(wild&&E8_ACT[e8Rank(c)]){ d.classList.add("act"); d.append(el("em","e8act",E8_ACT[e8Rank(c)][0])); } }
   return d;
 }
 const e8Seat=g=>(g.state.players||[]).indexOf(user.id);
-const e8CanPlay=(g,c)=>e8Rank(c)==="8"||e8Suit(c)===g.state.suit||e8Rank(c)===e8Rank(g.state.top);
+const e8Wild=g=>g?.state?.mode==="wild";
+const e8CanPlay=(g,c)=>{ const s=g.state;
+  if(e8Wild(g)&&s.pending>0) return e8Rank(c)===s.pendkind;
+  return e8Rank(c)==="8"||(e8Wild(g)&&e8Rank(c)==="+4")||e8Suit(c)===s.suit||e8Rank(c)===e8Rank(s.top); };
 function e8LastText(g){
   const l=g.state.last; if(!l) return "";
   const who=l.by===user.id?"You":nameOf(l.by);
-  if(l.card) return `${who} played ${e8Pretty(l.card)}${e8Rank(l.card)==="8"?` → ${E8_SUITS[l.suit]} ${E8_SUIT_NAME[l.suit]}`:""}`;
+  if(l.card) return `${who} played ${e8Pretty(l.card)}${e8Rank(l.card)==="8"||e8Rank(l.card)==="+4"?` → ${E8_SUITS[l.suit]} ${E8_SUIT_NAME[l.suit]}`:""}${l.act==="skip"?" ⊘ next player skipped!":l.act==="reverse"?" ⇄ reversed!":l.act==="draw2"?" (+2!)":l.act==="draw4"?" (+4!)":""}`;
+  if(l.took) return `${who} took ${l.took} card${l.took===1?"":"s"} 😵`;
+  if(l.lastcard) return `${who}: "Last card!" ☝️`;
+  if(l.caught) return `${who} caught ${l.caught===user.id?"you":nameOf(l.caught)} with one card! +2 🚨`;
   if(l.passed) return `${who} drew and passed`;
   if(l.drew) return `${who} drew a card`;
   if(l.skipped) return `${l.skipped===user.id?"Your":nameOf(l.skipped)+"'s"} turn was skipped`;
@@ -8603,7 +8650,8 @@ function e8Status(g){
   }
   if(g.status==="done") return s.winner===user.id?{text:"You won! 🏆",won:true}:{text:`${nameOf(s.winner)} won 🏆`};
   const up=P[s.turn];
-  if(up===user.id) return {text:s.drew?"You drew. Play a card or pass.":`Your turn! Match ${E8_SUITS[s.suit]} or ${e8Rank(s.top)}, or play an 8.`,turn:true};
+  if(up===user.id&&e8Wild(g)&&s.pending>0) return {text:`+${s.pending} on you! Stack a ${s.pendkind==="+4"?"Wild +4":"2"} or take ${s.pending}.`,turn:true};
+  if(up===user.id) return {text:s.drew?"You drew. Play a card or pass.":`Your turn! Match ${E8_SUITS[s.suit]} or ${e8Rank(s.top)==="+4"?"its suit":e8Rank(s.top)}, or play an 8${e8Wild(g)?" or Wild +4":""}.`,turn:true};
   return {text:`${nameOf(up)}'s turn`};
 }
 const e8Hands=new Map();   // message id -> {moves, cards}
@@ -8615,8 +8663,8 @@ async function e8Hand(g){
 }
 function e8GameCard(m,g){
   const card=el("div","gamecard e8gc"), top=el("div","gc-top");
-  top.append(g?.state?.top&&g.status!=="waiting"?e8CardEl(g.state.top,{small:true}):el("span","e8-gcicon","🃏"));
-  const info=el("div"); info.append(el("div","gc-title","🃏 CRAZY EIGHTS"));
+  top.append(g?.state?.top&&g.status!=="waiting"?e8CardEl(g.state.top,{small:true,wild:e8Wild(g)}):el("span","e8-gcicon","🃏"));
+  const info=el("div"); info.append(el("div","gc-title","🃏 CRAZY EIGHTS"+(e8Wild(g)?" · WILD":"")));
   if(!g){ info.append(el("div","gc-status","Loading…")); top.append(info); card.append(top); return card; }
   const st=e8Status(g); info.append(el("div","gc-status"+(st.turn?" turn":""),st.text)); top.append(info); card.append(top);
   const inIt=e8Seat(g)>=0;
@@ -8669,27 +8717,37 @@ async function paintEights(g,prev){
   const animate=!!prev&&e8Motion()&&openGameId===g.message_id;
   const before=animate?e8Snapshot():null, oldCards=[...(e8Hands.get(g.message_id)?.cards||[])];
   show($("kcChainBar"),false);
-  $("gameTitle").textContent="Crazy Eights"; $("gameSub").textContent="Match the suit or number. 8s are wild. First to empty their hand wins."; show($("gameSub"),g.status==="waiting");
+  const wildG=e8Wild(g);
+  $("gameTitle").textContent="Crazy Eights"+(wildG?" · Wild":""); $("gameSub").textContent="Match the suit or number. 8s are wild. First to empty their hand wins."; show($("gameSub"),g.status==="waiting");
   $("gameStatus").textContent=st.text; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
   const row=$("e8Players"); row.innerHTML="";
   P.forEach((u,i)=>{ const chip=el("div","e8p"+(g.status==="active"&&i===s.turn?" turn":"")+(g.status==="done"&&u===s.winner?" won":""));
     chip.dataset.uid=u;
     const f=el("span","face"); paintFace(f,cache.get(u)); chip.append(f,el("span","pname",u===user.id?"You":nameOf(u)));
-    if(g.status!=="waiting") chip.append(el("span","e8count",`🂠 ${s.counts?.[i]??"?"}`)); row.append(chip); });
+    if(g.status!=="waiting") chip.append(el("span","e8count",`🂠 ${s.counts?.[i]??"?"}`));
+    if(wildG&&g.status==="active"&&me>=0&&u!==user.id&&s.counts?.[i]===1&&!s.called?.[i]){ const c=el("button","e8catch","🚨 Catch!"); c.type="button"; c.title=`${nameOf(u)} has one card and didn't call it`; c.onclick=()=>e8Act(()=>api.eightsCatch(g.message_id,i)); chip.append(c); }
+    else if(wildG&&g.status==="active"&&s.counts?.[i]===1&&s.called?.[i]) chip.append(el("span","e8called","☝️"));
+    row.append(chip); });
   $("e8Last").textContent=g.status==="waiting"?"":e8LastText(g);
   const playing=g.status!=="waiting";
   show(document.querySelector("#e8Area .e8-table"),playing);
-  $("e8Top").innerHTML=""; $("e8Top").classList.toggle("stack",playing&&!!s.top); if(playing&&s.top) $("e8Top").append(e8CardEl(s.top));
+  $("e8Top").innerHTML=""; $("e8Top").classList.toggle("stack",playing&&!!s.top); if(playing&&s.top) $("e8Top").append(e8CardEl(s.top,{wild:wildG}));
+  if(playing&&wildG&&s.pending>0) $("e8Top").append(el("span","e8pend","+"+s.pending));
   // a new card on the pile: fly it in from whoever played it
   if(before&&playing&&s.top&&s.top!==prev?.state?.top&&prev?.status==="active"){
     const l=s.last||{}, from=(l.by===user.id&&before.hand.get(s.top))||before.chips.get(l.by)||before.deck;
     e8FlyInto($("e8Top").firstChild,from,{spin:l.by===user.id?-28:24,dur:480});
-    if(e8Rank(s.top)==="8") setTimeout(()=>e8SuitBurst(s.suit),380);
+    if(e8Rank(s.top)==="8"||e8Rank(s.top)==="+4") setTimeout(()=>e8SuitBurst(s.suit),380);
   }
   // a friend drew: a face-down card slides from the deck to them
   if(before&&s.last?.drew&&s.last.by!==user.id&&JSON.stringify(s.last)!==JSON.stringify(prev?.state?.last)) e8Ghost(before.deck,before.chips.get(s.last.by));
-  $("e8Suit").textContent=playing&&s.suit?`${E8_SUITS[s.suit]} ${e8Rank(s.top)==="8"?E8_SUIT_NAME[s.suit]:""}`:""; $("e8Suit").className="e8-suit"+("HD".includes(s.suit||"")?" red":"");
-  $("e8DeckN").textContent=playing?`Draw (${s.deck??0})`:""; $("e8Draw").disabled=!myTurn||!!s.drew||e8Busy;
+  $("e8Suit").textContent=playing&&s.suit?`${E8_SUITS[s.suit]} ${e8Rank(s.top)==="8"||e8Rank(s.top)==="+4"?E8_SUIT_NAME[s.suit]:""}${wildG&&(s.dir||1)<0?" · ⇄":""}`:""; $("e8Suit").className="e8-suit"+("HD".includes(s.suit||"")?" red":"");
+  const takeN=wildG&&myTurn?(+s.pending||0):0;
+  $("e8DeckN").textContent=playing?(takeN?`Take +${takeN}`:`Draw (${s.deck??0})`):""; $("e8Draw").disabled=!myTurn||(!!s.drew&&!takeN)||e8Busy; $("e8Draw").classList.toggle("take",!!takeN);
+  const myN=me>=0?s.counts?.[me]:null;
+  show($("e8LastCard"),wildG&&g.status==="active"&&me>=0&&myN<=2&&myN>0&&!s.called?.[me]);
+  show($("e8ModePick"),g.status==="waiting"&&s.host===user.id);
+  document.querySelectorAll("#e8ModePick [data-mode]").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.mode===e8ModeChoice)));
   show($("e8Pass"),myTurn&&!!s.drew);
   const stale=g.status==="active"&&!myTurn&&me>=0&&Date.now()-new Date(g.updated_at||Date.now()).getTime()>120000;
   show($("e8Skip"),stale); if(stale) $("e8Skip").textContent=`Skip ${nameOf(P[s.turn])}'s turn`;
@@ -8702,13 +8760,13 @@ async function paintEights(g,prev){
   if(playing&&me>=0){
     const cards=await e8Hand(g); if(openGameId!==g.message_id) return;
     const order="SHDC", ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-    const sorted=[...cards].sort((a,b)=>order.indexOf(e8Suit(a))-order.indexOf(e8Suit(b))||ranks.indexOf(e8Rank(a))-ranks.indexOf(e8Rank(b)));
+    const sorted=[...cards].sort((a,b)=>(e8Rank(a)==="+4")-(e8Rank(b)==="+4")||order.indexOf(e8Suit(a))-order.indexOf(e8Suit(b))||ranks.indexOf(e8Rank(a))-ranks.indexOf(e8Rank(b)));
     handBox.innerHTML="";
     const mid=(sorted.length-1)/2;
-    sorted.forEach((c,idx)=>{ const can=myTurn&&e8CanPlay(g,c), b=el("button","e8play"+(can?" can":myTurn?" cant":"")); b.type="button";
+    sorted.forEach((c,idx)=>{ const can=myTurn&&e8CanPlay(g,c)&&!(wildG&&s.drew&&false), b=el("button","e8play"+(can?" can":myTurn?" cant":"")); b.type="button";
       b.dataset.card=c; b.style.setProperty("--r",((idx-mid)*Math.min(4,28/Math.max(1,sorted.length)))+"deg"); b.style.setProperty("--y",(Math.abs(idx-mid)*Math.min(2.2,14/Math.max(1,sorted.length)))+"px");
-      b.append(e8CardEl(c)); b.setAttribute("aria-label",e8CardName(c)+(can?", playable":"")); b.disabled=!can;
-      b.onclick=()=>{ if(e8Rank(c)==="8"){ e8PendingEight=c; show($("e8SuitPick")); return; } e8Act(()=>api.eightsPlay(g.message_id,c)); };
+      b.append(e8CardEl(c,{wild:wildG})); b.setAttribute("aria-label",e8CardName(c)+(can?", playable":"")); b.disabled=!can;
+      b.onclick=()=>{ if(e8Rank(c)==="8"||e8Rank(c)==="+4"){ e8PendingEight=c; show($("e8SuitPick")); return; } e8Act(()=>api.eightsPlay(g.message_id,c)); };
       handBox.append(b); });
     if(!cards.length&&g.status==="active") handBox.append(el("p","note","No cards?"));
     // new cards in your hand fly out of the deck: the whole hand when it's dealt, one card when you draw
@@ -8729,7 +8787,10 @@ Object.entries(E8_SUITS).forEach(([k,v])=>{ const b=el("button","e8suitbtn"+("HD
 $("e8Draw").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.eightsDraw(g.message_id)); };
 $("e8Pass").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.eightsPass(g.message_id)); };
 $("e8Skip").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.eightsSkip(g.message_id)); };
-$("e8Deal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.eightsStart(g.message_id)); };
+let e8ModeChoice=(()=>{ try{ return LS.get("nl-e8-mode")==="wild"?"wild":"classic"; }catch(e){ return "classic"; } })();
+document.querySelectorAll("#e8ModePick [data-mode]").forEach(b=>b.onclick=()=>{ e8ModeChoice=b.dataset.mode; try{ LS.set("nl-e8-mode",e8ModeChoice); }catch(e){} document.querySelectorAll("#e8ModePick [data-mode]").forEach(x=>x.setAttribute("aria-checked",String(x.dataset.mode===e8ModeChoice))); });
+$("e8Deal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(async()=>{ try{ await api.eightsStart(g.message_id,e8ModeChoice); }catch(err){ if(/eights_start_mode|schema cache|does not exist/i.test(err.message)) throw new Error("Wild mode needs a quick setup: run eights-wild.sql in Supabase."); throw err; } }); };
+$("e8LastCard").onclick=()=>{ const g=gamesById.get(openGameId); if(g){ e8Act(()=>api.eightsLastCard(g.message_id)); if(fxEnabled()&&navigator.vibrate) navigator.vibrate(40); } };
 
 /* ================= LIAR'S DICE 🎲 =================
    Bluffing dice game for 2–6 players. Your dice are private (same table as card hands). The server checks
@@ -12018,8 +12079,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.12d";
+const APP_VERSION="2026.10.12e";
 const CHANGELOG=[
+  {v:"2026.10.12e", title:"Crazy Eights: Wild mode ⚡", items:["⚡ New Wild mode for Crazy Eights: Jacks skip, Queens reverse, 2s make the next player draw 2, and Wild +4 cards. Stack a 2 on a 2 (or a +4 on a +4) to pass it on!","☝️ Down to one card? Hit \"Last card!\" fast, or anyone can catch you for +2. The host picks Classic or Wild before dealing (thanks temmie!)."]},
   {v:"2026.10.12d", title:"Dice looks 🎲", items:["🎲 Pick how your Liar's Dice look: NightLane, Classic, Crimson, Cobalt, Toxic, Volt, Steak 🥩 or Ghost 👻. Everyone at the table sees your dice in your style. Open a Liar's Dice game → 🎨 Dice look."]},
   {v:"2026.10.12c", title:"Join your friends 🚪", items:["🎲 Roll chips under messages now show the real die you rolled (a little d20 for d20s).","🚪 Tap someone in the online list (or their picture anywhere): if they're in a room you're also in, a Join them button takes you straight there (thanks jimmylikespie21!)."]},
   {v:"2026.10.12b", title:"Pixel dice 🎲", items:["🎲 All the dice got a pixel makeover in NightLane colors: \"roll a d20\", d4 through d100, and Liar's Dice. Dice art by LullabyJazz."]},
