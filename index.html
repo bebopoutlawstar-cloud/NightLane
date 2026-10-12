@@ -725,6 +725,10 @@ html,body{overscroll-behavior:none}
 .contactrow .cname small{display:block;font-size:13px;color:var(--muted)}
 .contactrow .send{padding:8px 12px;font-size:12px}
 .friendfind{width:100%;margin:0 0 8px}
+.chattools{display:flex;gap:8px;align-items:center;margin:0 0 8px;width:100%}.chattools .field{flex:1;min-width:0;margin:0}.chattools.nosearch .field{display:none}.chattools.nosearch{justify-content:flex-end}
+.chatfilter{display:flex;flex:none;border:2px solid #3b2d80}.chatfilter .cf{background:none;border:none;color:var(--muted);font-family:var(--tech);font-size:10px;padding:8px 10px;letter-spacing:.5px}.chatfilter .cf.on{background:var(--cyan);color:#07041a}
+.inbox details.quiet{width:100%}.inbox details.quiet>summary{list-style:none;cursor:pointer;font-family:var(--tech);font-size:11px;color:var(--muted);padding:10px 4px 6px;letter-spacing:.5px}.inbox details.quiet>summary::-webkit-details-marker{display:none}.inbox details.quiet>summary::after{content:" ▾"}.inbox details.quiet[open]>summary::after{content:" ▴"}.inbox details.quiet .roomrow{opacity:.75}
+.inbox .inote{font-size:14px;color:var(--muted);text-align:center;padding:14px 4px;width:100%}
 .friendfind .field{width:100%;margin:0}
 .fsec{font-family:var(--tech);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin:10px 0 2px;text-align:left;list-style:none;cursor:default}
 .fsec:first-child{margin-top:0}
@@ -3229,10 +3233,12 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     </div>
     <button type="button" class="linkbtn markall hidden" id="markAllRead">✓ Mark all as read</button>
     <div id="chatsPane">
+      <div class="chattools hidden" id="roomTools"><label for="roomFind" class="sr">Find a room</label><input class="field" id="roomFind" type="search" placeholder="🔍 Find a room" autocomplete="off" maxlength="30"><div class="chatfilter" role="group" aria-label="Show"><button type="button" class="cf on" data-f="all" aria-pressed="true">All</button><button type="button" class="cf" data-f="unread" aria-pressed="false">Unread</button></div></div>
       <div class="inbox hidden" id="inboxWrap"><div class="inbox" id="inbox"></div></div>
       <p class="note hidden" id="inboxEmpty">No rooms yet. Make a new room above or open an invite link.</p>
     </div>
     <div id="dmsPane" class="hidden">
+      <div class="chattools hidden" id="dmTools"><label for="dmFind" class="sr">Find a chat</label><input class="field" id="dmFind" type="search" placeholder="🔍 Find a chat" autocomplete="off" maxlength="30"><div class="chatfilter" role="group" aria-label="Show"><button type="button" class="cf on" data-f="all" aria-pressed="true">All</button><button type="button" class="cf" data-f="unread" aria-pressed="false">Unread</button></div></div>
       <div class="inbox" id="dmList"></div>
       <p class="note hidden" id="dmEmpty">No private messages yet. Go to Friends and tap Message, or tap someone's picture in a room.</p>
     </div>
@@ -6065,14 +6071,50 @@ async function loadInbox(){
   inboxRows=list;
   show($("markAllRead"),list.some(r=>+r.unread>0));
   if(!isOffline()&&list.some(r=>r.dm_user)) await ensureProfiles(list.map(r=>r.dm_user).filter(Boolean));   // offline: use the names/pictures saved with the list
-  const roomsBox=$("inbox"), dmBox=$("dmList"); roomsBox.innerHTML=""; dmBox.innerHTML="";
   const roomRows=list.filter(r=>!r.is_dm), dmRows=list.filter(r=>r.is_dm);
   show($("inboxWrap"),roomRows.length>0); show($("inboxEmpty"),!roomRows.length); show($("dmEmpty"),!dmRows.length);
   const unreadOf=rows=>rows.filter(r=>r.notify!=="off").reduce((n,r)=>n+(+r.unread||0),0);
   setTabBadge("badgeRooms",unreadOf(roomRows)); setTabBadge("badgeDms",unreadOf(dmRows));
   setIconBadge(unreadOf(roomRows)+unreadOf(dmRows));   // the number on the app icon
-  for(const r of list){
-    const box=r.is_dm?dmBox:roomsBox;
+  paintInboxLists();
+}
+/* Rooms and DMs lists stay tidy: a search box once you have 8+ chats, an All / Unread switch,
+   and chats that have been quiet for 2+ weeks fold into a "Quiet" section at the bottom. */
+const QUIET_DAYS=14, inboxView={rooms:{f:"all",open:false},dms:{f:"all",open:false}};
+try{ const v=JSON.parse(LS.get("nl-inbox-view")||"null"); if(v){ inboxView.rooms.f=v.rooms==="unread"?"unread":"all"; inboxView.dms.f=v.dms==="unread"?"unread":"all"; } }catch(e){}
+function paintInboxLists(){
+  const rr=inboxRows.filter(r=>!r.is_dm), dr=inboxRows.filter(r=>r.is_dm);
+  show($("inboxWrap"),rr.length>0); show($("inboxEmpty"),!rr.length); show($("dmEmpty"),!dr.length);
+  paintInboxBox($("inbox"),inboxRows.filter(r=>!r.is_dm),"rooms",$("roomTools"),$("roomFind"));
+  paintInboxBox($("dmList"),inboxRows.filter(r=>r.is_dm),"dms",$("dmTools"),$("dmFind"));
+}
+function paintInboxBox(box,rows,kind,tools,find){
+  box.innerHTML=""; const v=inboxView[kind];
+  const many=rows.length>=8; show(tools,rows.length>=5); tools.classList.toggle("nosearch",!many);
+  tools.querySelectorAll(".cf").forEach(b=>{ const on=b.dataset.f===v.f; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+  const q=many?find.value.trim().toLowerCase().replace(/^[@#]/,""):"";
+  const rowName=r=>(r.is_dm?(r.dm_name||""):((r.name||"")+" "+r.code)).toLowerCase();
+  let shown=rows;
+  if(v.f==="unread"&&rows.length>=5) shown=shown.filter(r=>+r.unread>0);
+  if(q) shown=shown.filter(r=>rowName(r).includes(q));
+  if(!shown.length&&rows.length){ box.append(el("p","inote",q?`Nothing matches "${q}".`:"You're all caught up ✨")); return; }
+  const cutoff=Date.now()-QUIET_DAYS*864e5;
+  const isQuiet=r=>!(+r.unread>0)&&(!r.last_at||new Date(r.last_at).getTime()<cutoff);
+  const fold=many&&!q&&v.f==="all";
+  const active=fold?shown.filter(r=>!isQuiet(r)):shown, quiet=fold?shown.filter(isQuiet):[];
+  active.forEach(r=>box.append(inboxRow(r)));
+  if(quiet.length){
+    const d=document.createElement("details"); d.className="quiet"; d.open=v.open||!active.length;
+    d.append(el("summary","",`💤 Quiet · ${quiet.length}`));
+    d.addEventListener("toggle",()=>{ v.open=d.open; });
+    quiet.forEach(r=>d.append(inboxRow(r))); box.append(d);
+  }
+}
+[["roomTools","roomFind","rooms"],["dmTools","dmFind","dms"]].forEach(([t,f,k])=>{
+  $(f).addEventListener("input",paintInboxLists);
+  $(t).querySelectorAll(".cf").forEach(b=>b.onclick=()=>{ inboxView[k].f=b.dataset.f; try{ LS.set("nl-inbox-view",JSON.stringify({rooms:inboxView.rooms.f,dms:inboxView.dms.f})); }catch(e){} paintInboxLists(); });
+});
+function inboxRow(r){
     const b=el("button","roomrow"); b.type="button";
     let hash;
     if(r.is_dm){ hash=el("span","face"); paintFace(hash,cache.get(r.dm_user)||{id:r.dm_user,username:r.dm_name,avatar_url:r.dm_avatar}); }
@@ -6090,8 +6132,7 @@ async function loadInbox(){
     b.append(hash,info,when);
     b.setAttribute("aria-label",`${r.is_dm?"Private chat with "+(r.dm_name||"someone"):"Room "+(r.name||r.code)}${+r.unread?`, ${r.unread} unread`:""}`);
     b.onclick=()=>{ if(isOffline()){ offlineNotice(); return; } if(!r.is_dm) $("room").value=r.code; enterRoom(r.code); };
-    box.append(b);
-  }
+    return b;
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ if(room) markReadSoon(); else loadInbox(); } });
 
@@ -12401,8 +12442,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.14b";
+const APP_VERSION="2026.10.14c";
 const CHANGELOG=[
+  {v:"2026.10.14c", title:"Tidier chat lists 🧹", items:["🧹 Rooms and DMs got the Friends tab treatment: chats quiet for 2+ weeks fold into a 💤 Quiet section at the bottom (a new message brings them right back up).","🔍 Got 8+ chats? A search box shows up to find one fast.","📬 Tap Unread to see only the chats waiting on you."]},
   {v:"2026.10.14b", title:"Question of the day fix ❓", items:["❓ Once you answer the Question of the Day in a chat, its bar disappears from that chat for the rest of the day, even if you answered from another device.","✨ Answering the Question of the Day now gives +15 XP (once a day)."]},
   {v:"2026.10.14a", title:"Pixel glow-up ✨", items:["🎆 Winning a game now pops a pixel \"You Won!\" with neon fireworks, and the winner gets a little spinning crown.","💥 Lucky 7 BUSTs explode, LUCKY 7 says WOW, and level-ups get a pixel LEVEL UP.","🥚 Partner evolutions warp and sparkle (shinies shimmer extra), new friends get a heart burst, and your daily XP drops coins.","🗝️ Unlocks, achievements and level-ups have pixel item icons now.","🖥️ The PC terminal and game scores use a crisp pixel font.","Credits: effects by unTied Games, icons by Quintino Pixels, font by datagoblin."]},
   {v:"2026.10.13f", title:"Back button fix ⬅️", items:["⬅️ Opening a chat from a notification (like the Owl's \"your turn\" ping) and then pressing Back on Android now takes you to your chat list instead of closing the app."]},
