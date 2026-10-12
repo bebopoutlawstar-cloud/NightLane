@@ -329,6 +329,12 @@ body.july4 .stamp::before{content:"⭐"}
 .receipt .mini-faces .face{width:18px;height:18px;font-size:9px;margin-left:-4px;position:static;transform:none}
 
 /* ===== overlays ===== */
+#cropSheet{z-index:12}
+.cropbox{position:relative;width:min(72vw,280px);aspect-ratio:1;overflow:hidden;background:#000;border:3px solid var(--cyan);touch-action:none;cursor:grab;user-select:none}
+.cropbox:active{cursor:grabbing}
+.cropbox img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;pointer-events:none}
+.cropring{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 200px rgba(7,4,26,.55);outline:2px dashed rgba(255,255,255,.7);outline-offset:-2px;pointer-events:none}
+.cropzoom{display:flex;align-items:center;gap:8px;width:min(72vw,280px)}.cropzoom input{flex:1;accent-color:var(--cyan)}
 .overlay{position:fixed;inset:0;z-index:10;background:rgba(7,4,26,.86);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
 .sheet{width:min(100%,380px);background:var(--night);border:3px solid var(--cyan);box-shadow:8px 8px 0 var(--mag);padding:26px 22px;display:grid;gap:14px;justify-items:center;text-align:center;transform:rotate(-1.5deg)}
 .sheet h2{font-family:var(--tech);font-size:20px;color:var(--cyan)}
@@ -4056,6 +4062,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="note gifcredit">Powered by GIPHY</p>
   </div></form>
 </div>
+<div class="overlay hidden" id="cropSheet" role="dialog" aria-modal="true" aria-labelledby="cropTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="cropTitle">Crop your photo</h2>
+    <div class="cropbox" id="cropBox"><img id="cropImg" alt="Your photo" draggable="false"><div class="cropring" aria-hidden="true"></div></div>
+    <label class="cropzoom"><span aria-hidden="true">➖</span><input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom"><span aria-hidden="true">➕</span></label>
+    <p class="note">Drag to move · pinch or slide to zoom</p>
+    <button class="go" type="button" id="cropSave">Save photo</button>
+    <button class="ghost" type="button" id="cropCancel">Cancel</button>
+  </div></div>
+</div>
 <div class="overlay hidden" id="editSheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <form class="sheet" id="editForm"><div class="sheetbody">
     <h2 id="editTitle">Edit message</h2>
@@ -6440,12 +6456,54 @@ function drawSetRow(btn){
   const b=$(id); if(!b) return; drawSetRow(b);
   new MutationObserver(()=>drawSetRow(b)).observe(b,{childList:true,characterData:true,subtree:true});
 });
+/* ✂️ Crop your profile photo before it's saved: drag to move, pinch / slide to zoom. The circle shows how it looks. */
+const crop={img:null,x:0,y:0,z:1,base:1,box:280,ptrs:new Map(),pinch:null,done:null};
+function cropClamp(){ const s=crop.base*crop.z, w=crop.img.naturalWidth*s, h=crop.img.naturalHeight*s;
+  crop.x=Math.min(0,Math.max(crop.box-w,crop.x)); crop.y=Math.min(0,Math.max(crop.box-h,crop.y)); }
+function cropPaint(){ cropClamp(); $("cropImg").style.transform=`translate(${crop.x}px,${crop.y}px) scale(${crop.base*crop.z})`; }
+function cropZoomTo(z,cx=crop.box/2,cy=crop.box/2){   // zoom around a point so it stays under your finger
+  z=Math.min(4,Math.max(1,z)); const s0=crop.base*crop.z, s1=crop.base*z;
+  crop.x=cx-(cx-crop.x)*s1/s0; crop.y=cy-(cy-crop.y)*s1/s0; crop.z=z; $("cropZoom").value=z; cropPaint(); }
+function openCrop(file){
+  return new Promise(async(resolve,reject)=>{
+    try{
+      const url=URL.createObjectURL(await readableImage(file)), im=$("cropImg");
+      await new Promise((ok,bad)=>{ im.onload=ok; im.onerror=()=>bad(new Error("couldn't open that photo")); im.src=url; });
+      show($("cropSheet"));
+      crop.img=im; crop.box=$("cropBox").clientWidth||280; crop.z=1; $("cropZoom").value=1;
+      crop.base=crop.box/Math.min(im.naturalWidth,im.naturalHeight);   // fill the square
+      crop.x=(crop.box-im.naturalWidth*crop.base)/2; crop.y=(crop.box-im.naturalHeight*crop.base)/2; cropPaint();
+      crop.done=(blob)=>{ crop.done=null; URL.revokeObjectURL(url); show($("cropSheet"),false); resolve(blob); };
+    }catch(err){ reject(err); }
+  });
+}
+$("cropZoom").oninput=e=>cropZoomTo(+e.target.value);
+$("cropBox").addEventListener("pointerdown",e=>{ $("cropBox").setPointerCapture(e.pointerId); crop.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); crop.pinch=null; });
+$("cropBox").addEventListener("pointermove",e=>{
+  const p=crop.ptrs.get(e.pointerId); if(!p) return;
+  if(crop.ptrs.size===1){ crop.x+=e.clientX-p.x; crop.y+=e.clientY-p.y; cropPaint(); }
+  crop.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(crop.ptrs.size===2){ const [a,b]=[...crop.ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y), r=$("cropBox").getBoundingClientRect();
+    if(crop.pinch) cropZoomTo(crop.z*d/crop.pinch,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top); crop.pinch=d; }
+});
+["pointerup","pointercancel"].forEach(t=>$("cropBox").addEventListener(t,e=>{ crop.ptrs.delete(e.pointerId); crop.pinch=null; }));
+$("cropBox").addEventListener("wheel",e=>{ e.preventDefault(); const r=$("cropBox").getBoundingClientRect(); cropZoomTo(crop.z*(e.deltaY<0?1.1:1/1.1),e.clientX-r.left,e.clientY-r.top); },{passive:false});
+$("cropSave").onclick=()=>{
+  const s=crop.base*crop.z, side=crop.box/s, c=document.createElement("canvas"); c.width=c.height=Math.min(400,Math.round(side));
+  c.getContext("2d").drawImage(crop.img,-crop.x/s,-crop.y/s,side,side,0,0,c.width,c.height);
+  c.toBlob(b=>crop.done&&crop.done(b),"image/jpeg",.88);
+};
+$("cropCancel").onclick=()=>crop.done&&crop.done(null);
+$("cropSheet").addEventListener("click",e=>{ if(e.target.id==="cropSheet") crop.done&&crop.done(null); });
 $("avatarPicker").onchange=async e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f) return;
   if(f.size>15e6) return say("profMsg","That photo is over 15 MB. Pick a smaller one.",true);
+  let cropped;
+  try{ cropped=await openCrop(f); }catch(err){ return say("profMsg","Couldn't open that photo: "+err.message,true); }
+  if(!cropped) return say("profMsg","");   // cancelled
   $("changePhoto").disabled=true; say("profMsg","Uploading…");
   try{
-    const url=await api.upload("avatars",user.id,await shrink(f,400,true));
+    const url=await api.upload("avatars",user.id,cropped);
     await api.setAvatar(user.id,url);
     meProfile={...meProfile,avatar_url:url}; cache.set(user.id,meProfile); paintMe(); repaintFaces(user.id);
     say("profMsg","Photo saved.");
@@ -12717,8 +12775,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.15b";
+const APP_VERSION="2026.10.15c";
 const CHANGELOG=[
+  {v:"2026.10.15c", title:"Crop your profile pic ✂️", items:["✂️ Changing your profile photo now lets you crop it first: drag to move, pinch or slide to zoom, and the circle shows exactly how it'll look (thanks hachiware!)."]},
   {v:"2026.10.15a", title:"New game: Mahjong 🀄", items:["🀄 Mahjong Lite for 2–4 players: draw a tile, throw one away, and be the first to collect 4 sets and a pair. Tap ＋ → Games.","🧠 Never played? Your hand sorts itself into sets, ★ marks good tiles to throw away, and it tells you when you're one tile from winning (and which tiles you need).","🀄 Someone throws away the tile you need? Hit MAHJONG! to grab it and win.","Tile art by natonato, recolored for NightLane."]},
   {v:"2026.10.14c", title:"Tidier chat lists 🧹", items:["🧹 Rooms and DMs got the Friends tab treatment: chats quiet for 2+ weeks fold into a 💤 Quiet section at the bottom (a new message brings them right back up).","🔍 Got 8+ chats? A search box shows up to find one fast.","📬 Tap Unread to see only the chats waiting on you."]},
   {v:"2026.10.14b", title:"Question of the day fix ❓", items:["❓ Once you answer the Question of the Day in a chat, its bar disappears from that chat for the rest of the day, even if you answered from another device.","✨ Answering the Question of the Day now gives +15 XP (once a day)."]},
@@ -14087,7 +14146,7 @@ feed.addEventListener("click",e=>{
 /* ================= BACK BUTTON (Android / browser back) ================= */
 // Each chat or sheet you open adds a history step, so Back closes the top one instead of leaving the app.
 (function(){
-  const LAYERS=["chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet","gifPreview","blNoteSheet"];
+  const LAYERS=["cropSheet","chat","profile","roomSheet","msgMenu","themeSheet","pollSheet","installSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","lightbox","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet","editSheet","gifPreview","blNoteSheet"];
   const stack=[], waiting=[]; let popping=false, ignorePops=0, pendingBack=0, flushQueued=false;
   /* Android Chrome skips history steps a page adds without a tap first. So when a chat opens on its own
      (from a notification or an Owl "your turn" ping), Back used to skip it and close the whole app.
@@ -14113,6 +14172,7 @@ feed.addEventListener("click",e=>{
     if(id==="chat") exitRoom();
     else if(id==="gameSheet") closeGame();
     else if(id==="themeSheet") $("themeClose").click();
+    else if(id==="cropSheet") $("cropCancel").click();
     else show($(id),false);
   }
   addEventListener("popstate",()=>{
