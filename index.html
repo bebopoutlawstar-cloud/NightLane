@@ -775,7 +775,7 @@ details.fgroup[open] > summary.fsec::after{content:" ▾"}
 
 /* ===== games ===== */
 .tray-tabs .ghost{font-size:11px;padding:8px 4px}
-.gamelist{display:grid;gap:8px}
+.gamelist{display:grid;gap:8px;max-height:min(52vh,440px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:2px}   /* scrolls inside the tray now that there are 7 games */
 #trayBlPane{display:grid;gap:8px}
 #trayBlPane.hidden{display:none!important}
 .traybllist{display:grid;gap:6px;max-height:240px;overflow-y:auto}
@@ -1641,6 +1641,8 @@ body.theme-gold .go,body.theme-gold .send{background:linear-gradient(135deg,#FFD
 .tabbadge{transform:rotate(6deg) skewX(10deg);text-shadow:none}
 .tray-tabs .ghost{font-family:var(--num);font-size:16px;letter-spacing:1px;text-transform:uppercase;border:none;color:var(--white);text-shadow:2px 2px 0 var(--night);transform:skewX(-8deg)}
 .tray-tabs .ghost[aria-pressed="true"]{background:var(--white);color:var(--night);text-shadow:none;box-shadow:3px 3px 0 var(--mag);clip-path:polygon(0 8%,100% 0,97% 100%,3% 92%)}
+.tray-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 6px!important}   /* 7 tabs: two neat rows instead of squished words */
+.tray-tabs .ghost{font-size:15px!important;padding:7px 2px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tabs .tab{font-family:var(--num);font-size:20px;letter-spacing:1px;text-transform:uppercase;border:none;background:transparent;color:var(--white);text-shadow:3px 3px 0 var(--night),4px 4px 0 var(--mag);transform:skewX(-8deg)}
 .tabs .tab[aria-selected="true"]{background:var(--white);color:var(--night);text-shadow:none;box-shadow:4px 4px 0 var(--mag);clip-path:polygon(0 8%,100% 0,97% 100%,3% 92%)}
 /* game sheet & big tiles keep their look inside the new panel */
@@ -12307,8 +12309,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.13b";
+const APP_VERSION="2026.10.13c";
 const CHANGELOG=[
+  {v:"2026.10.13c", title:"Games list fix 🎮", items:["🎮 The Games list in ＋ scrolls again, so you can reach every game on smaller phones (thanks hachiware!).","➕ The ＋ menu tabs sit in two tidy rows instead of squishing together."]},
   {v:"2026.10.13b", title:"New card art 🃏", items:["🃏 Crazy Eights and BS got a real pixel-art deck in NightLane colors, with a matching neon card back. Card art by art-bickles."]},
   {v:"2026.10.13a", title:"New game: Lucky 7 🍀", items:["🍀 Lucky 7 for 2–8 players: flip cards for points, but a repeat number busts you! Get 7 different numbers for LUCKY 7. Shields, Freezes and Doubles keep it wild. First to 150 wins (thanks temmie!). Tap ＋ → Games.","⚡ Crazy Eights Wild rematches now stay Wild."]},
   {v:"2026.10.12e", title:"Crazy Eights: Wild mode ⚡", items:["⚡ New Wild mode for Crazy Eights: Jacks skip, Queens reverse, 2s make the next player draw 2, and Wild +4 cards. Stack a 2 on a 2 (or a +4 on a +4) to pass it on!","☝️ Down to one card? Hit \"Last card!\" fast, or anyone can catch you for +2. The host picks Classic or Wild before dealing (thanks temmie!)."]},
