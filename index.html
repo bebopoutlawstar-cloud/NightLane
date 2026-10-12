@@ -160,6 +160,59 @@ body.july4 .stamp::before{content:"⭐"}
 .cb-chip{font:inherit;font-size:14px;font-weight:700;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:6px 10px}
 .cb-row{flex:none}
 .cb-links{width:100%}
+/* ===== Partners ===== */
+.pxsprite{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+.pt-plate{width:min(200px,60vw);aspect-ratio:1;display:grid;place-items:center;background:radial-gradient(circle at 50% 60%,#3b2d80,#1a1240 65%,transparent 72%);position:relative}
+.pt-plate .pt-big{width:80%;height:80%;animation:ptbob 2.4s ease-in-out infinite}
+.pt-plate.egg .pt-big{animation:ptwobble 3s ease-in-out infinite;transform-origin:50% 90%}
+.pt-plate.shiny::after{content:"✦";position:absolute;right:14%;top:10%;color:#FFD86B;font-size:22px;text-shadow:0 0 8px #FFD86B;animation:sxsparkle 1.6s ease-in-out infinite}
+@keyframes ptbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes ptwobble{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-8deg)}90%{transform:rotate(7deg)}95%{transform:rotate(-4deg)}}
+.pt-name{display:flex;align-items:center;gap:8px;justify-content:center;font-size:24px;font-family:var(--num);letter-spacing:1px}
+.pt-shinytag{font-family:var(--tech);font-size:10px;color:#07041A;background:#FFD86B;padding:2px 6px}
+.pt-sub{font-family:var(--tech);font-size:12px;color:var(--cyan);text-align:center}
+.pt-prog{width:100%;display:grid;gap:5px}
+.pt-proglabel{font-size:13px;color:var(--muted);text-align:center}
+.pt-bar{height:10px;border:2px solid var(--cyan);background:rgba(0,0,0,.3)}
+.pt-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mag),var(--volt))}
+.pt-stats{width:100%;display:grid;gap:6px}
+.pt-stat{display:grid;grid-template-columns:92px 1fr 40px;align-items:center;gap:8px;font-size:13px;text-align:left}
+.pt-sbar{height:8px;background:rgba(255,255,255,.1);overflow:hidden}
+.pt-sbar i{display:block;height:100%}
+.pt-snum{font-family:var(--tech);font-size:11px;color:var(--muted);text-align:right}
+.pt-line{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px;width:100%}
+.pt-form{width:44px;height:44px;display:grid;place-items:center;border:2px solid #3b2d80;background:rgba(0,0,0,.25)}
+.pt-form.now{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
+.pt-form .pt-mini{width:36px;height:36px}
+.pt-q{font-family:var(--num);font-size:20px;color:var(--muted)}
+.pt-arrow{color:var(--muted);font-size:14px}
+.pt-hint{width:100%;font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+.pt-dex{width:100%;display:grid;gap:8px}
+.pt-dex h3{margin:4px 0 0}
+.pt-dexgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pt-dexcell{display:grid;justify-items:center;gap:2px;border:2px solid #FFD86B;padding:8px 2px;background:rgba(255,216,107,.08)}
+.pt-dexcell.locked{border-color:#3b2d80;background:rgba(0,0,0,.25);opacity:.7}
+.pt-dexic{font-size:22px}.pt-dexlab{font-family:var(--tech);font-size:10px}.pt-dexn{font-size:12px;color:var(--muted)}
+.pt-how{width:100%;text-align:left;font-size:14px}
+.pt-how summary{cursor:pointer;color:var(--cyan);font-family:var(--tech);font-size:13px}
+.pt-how ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+.pt-btnimg{width:28px;height:28px;display:inline-block;vertical-align:middle;margin-right:4px}
+#openPartner{display:flex;align-items:center;justify-content:flex-start;gap:4px}
+#evoScene{position:fixed;inset:0;z-index:9000;background:radial-gradient(circle,#2a1b5a,#07041A 70%);display:grid;place-items:center;align-content:center;gap:18px;text-align:center;padding:24px;cursor:pointer}
+#evoScene.hidden{display:none}
+#evoStage{position:relative;width:min(240px,64vw);aspect-ratio:1}
+#evoStage .pxsprite{position:absolute;inset:0;width:100%;height:100%}
+#evoScene .evo-b{opacity:0}
+#evoScene:not(.done) .evo-a{animation:evoflash 2.6s steps(1,end) forwards}
+#evoScene:not(.done) .evo-b{animation:evoflashb 2.6s steps(1,end) forwards}
+@keyframes evoflash{0%{filter:none}15%{filter:brightness(0) invert(1)}30%{filter:none}42%{filter:brightness(0) invert(1)}52%{filter:none}60%{filter:brightness(0) invert(1);opacity:1}68%{opacity:0}76%{opacity:1}84%{opacity:0}90%{opacity:1}96%,100%{opacity:0}}
+@keyframes evoflashb{0%,64%{opacity:0}68%{opacity:1;filter:brightness(0) invert(1)}76%{opacity:0}84%{opacity:1;filter:brightness(0) invert(1)}90%{opacity:0}96%,100%{opacity:1;filter:brightness(0) invert(1)}}
+#evoScene.done .evo-a{opacity:0}
+#evoScene.done .evo-b{opacity:1;animation:evopop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes evopop{from{transform:scale(.6)}to{transform:scale(1)}}
+#evoTitle{font-family:var(--num);font-size:clamp(24px,7vw,40px);color:var(--volt);text-shadow:3px 3px 0 var(--mag);margin:0}
+#evoText{color:var(--white);font-size:16px;min-height:1.2em;margin:0}
+#evoClose{position:absolute;top:14px;right:14px}
 /* ===== Profile tabs ===== */
 .proftabs{position:sticky;top:-36px;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:calc(100% + 8px);margin:2px -4px 0;padding:8px 0;background:var(--night)}
 .proftabs button{font-family:var(--tech);font-size:12px;letter-spacing:.3px;color:var(--white);background:transparent;border:2px solid #3b2d80;padding:8px 2px 7px;transform:skewX(-8deg);white-space:nowrap;cursor:pointer}
@@ -3241,6 +3294,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="msgline" id="profMsg" role="status"></p>
 
     <div class="profpane" data-pane="me" role="tabpanel">
+    <button class="ghost" type="button" id="openPartner">🥚 My Partner</button>
     <button class="ghost" type="button" id="openBonds">💫 My Social Bonds</button>
     <button class="ghost" type="button" id="openCard">🪪 Profile card &amp; links</button>
     <button type="button" class="ghost" id="openBacklog">🎮 Media Backlog</button>
@@ -3606,12 +3660,28 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="friendtag hidden" id="personTag"></p>
     <div class="myarcana theirarcana hidden" id="personArcana"></div>
     <button type="button" class="personbond hidden" id="personBond"></button>
+    <button type="button" class="personbond hidden" id="personPartner"></button>
     <button type="button" class="personbond" id="personBacklog">🎮 See their backlog</button>
     <button class="go" type="button" id="personFriend">Add friend</button>
     <button class="ghost" type="button" id="personDm">Message privately</button>
     <p class="msgline" id="personMsg" role="status"></p>
     <button class="ghost" type="button" id="personClose">Close</button>
   </div></div>
+</div>
+
+<!-- ============ PARTNER ============ -->
+<div class="overlay hidden" id="partnerSheet" role="dialog" aria-modal="true" aria-labelledby="ptTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="ptTitle">🥚 Your Partner</h2>
+    <div id="ptStage" style="display:grid;gap:12px;justify-items:center;width:100%"></div>
+    <button class="ghost" type="button" id="ptClose">Close</button>
+  </div></div>
+</div>
+<div class="hidden" id="evoScene" role="dialog" aria-modal="true" aria-labelledby="evoTitle">
+  <button class="ib-x" type="button" id="evoClose" aria-label="Close">✕</button>
+  <div id="evoStage" aria-hidden="true"></div>
+  <h2 id="evoTitle"></h2>
+  <p id="evoText" role="status"></p>
 </div>
 
 <!-- ============ MY SOCIAL BONDS ============ -->
@@ -4547,6 +4617,9 @@ const live = {
   async createRecoveryCode(){ return must(await sb.rpc("create_recovery_code")); },
   async myRecoveryCodeDate(){ return must(await sb.rpc("my_recovery_code_date")); },
   async isAdmin(){ return !!must(await sb.rpc("is_app_admin")); },
+  async partner(uid){ const {data,error}=await sb.from("partners").select("*").eq("user_id",uid).maybeSingle(); if(error) throw error; return data; },
+  async shinies(uid){ const {data,error}=await sb.from("shinies").select("kind,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(500); if(error) throw error; return data||[]; },
+  async setPartnerName(n){ return must(await sb.rpc("set_partner_name",{p_name:n})); },
   async signOut(){ await sb.auth.signOut(); },
   async resetPassword(email){ must(await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname})); },
   async updatePassword(pw){ must(await sb.auth.updateUser({password:pw})); },
@@ -4924,6 +4997,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async createRecoveryCode(){ demoRcDate=new Date().toISOString(); return "NL-DEMO-7K3Q-M9XF"; },
     async myRecoveryCodeDate(){ return demoRcDate; },
     async isAdmin(){ return true; },
+    async partner(uid){ return uid==="me"?(window.demoPartner ||= {user_id:"me",stage:1,path:null,shiny:false,nickname:null,power:3,heart:6,spirit:4,shadow:1,total:40}):{user_id:uid,stage:3,path:"shadow",shiny:uid==="vee",nickname:null,power:80,heart:120,spirit:60,shadow:400,total:700}; },
+    async shinies(uid){ return uid==="me"?[{kind:"gold"},{kind:"gold"},{kind:"glitch"}]:[{kind:"prism"}]; },
+    async setPartnerName(n){ const v=String(n||"").trim().slice(0,16)||null; (window.demoPartner ||= {stage:1}).nickname=v; return v; },
     async deleteAccount(){ user=null; listeners.forEach(f=>f(null,"SIGNED_OUT")); },
     async profiles(ids){ return ids.map(i=>people[i]).filter(Boolean); },
     async upload(_b,_u,blob){ await new Promise(r=>setTimeout(r,300)); return URL.createObjectURL(blob); },
@@ -5267,7 +5343,7 @@ async function handleAuth(u){
   show($("authCard"),false); show($("roomCard"));
   try{ const last=LS.get("nl-room")||""; $("room").value=last.startsWith("dm-")?"":last; }catch(e){}
   $("front").classList.add("logged");
-  await Promise.all([ensureProfiles([...blocked]), loadContacts(), loadInbox()]); startPresence(); owlBack();
+  await Promise.all([ensureProfiles([...blocked]), loadContacts(), loadInbox()]); startPresence(); owlBack(); partnerSoon(2500);
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));   // let the real front screen actually paint first
   hideSplash();
   try{ LS.set("nl-welcomed-lane","1"); }catch(e){}
@@ -8094,6 +8170,7 @@ function paintPerson(){
   { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!(card&&(card.banner||card.fx||card.stk.length)));
     $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns);
     paintPersonLinks(card?.links); }
+  paintPersonPartner(uid);
   $("personName").textContent=nick||p.username;
   { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
   $("personSub").textContent=(nick&&nick!==p.username?`@${p.username} · `:"@"+p.username+" · ")+(isBirthdayToday(p.birthday)?"🎂 birthday today! · "+(presenceLine(uid)||""):(presenceLine(uid)||(roomName&&!isDm?`in ${roomName}`:"NightLane")));
@@ -9564,7 +9641,8 @@ async function afterMySend(m){
   if(isDm&&dmUser) bumpLink(dmUser);
   const now=Date.now(); myRecentSends=myRecentSends.filter(t=>now-t<10000); myRecentSends.push(now);
   if(myRecentSends.length>=5&&fxEnabled()){ PX.combo(myRecentSends.length); if(myRecentSends.length===5) discoverSecret("combo"); }
-  if(isShiny(m)) discoverSecret("shiny");
+  if(isShiny(m)){ discoverSecret("shiny"); const k=SHINY_KINDS.find(x=>x[0]===shinyKindOf(m)); toast(`✨ Shiny collected: ${k[1]} ${k[2]}!`,"Saved to your Shinydex, and your partner got a ⚡ Power boost. Tap to see.",()=>openPartner(user.id)); }
+  partnerSoon(Date.now()-ptLastCheck>30000?4000:30000);
   const h=new Date().getHours();
   if(h>=3&&h<5){ const key="nl-owl-"+new Date().toDateString(); let seen=false; try{ seen=!!LS.get(key); LS.set(key,"1"); }catch(e){} if(!seen){ if(fxEnabled()) PX.owl(); discoverSecret("lateowl"); } }
   try{ const n=await api.countMessages(m.room); if([100,500,1000,5000,10000].includes(n)&&fxEnabled()) PX.milestone(n); }catch(e){}
@@ -11869,8 +11947,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.11f";
+const APP_VERSION="2026.10.12a";
 const CHANGELOG=[
+  {v:"2026.10.12a", title:"Partners 🥚", items:["🥚 Everyone gets a pixel partner! It hatches from an egg and evolves as you chat: Egg → Baby → Rookie → Champion → Ultimate.","⚡💗✨🌙 How you chat decides what it becomes: games and shinies (Power), replies and reactions (Heart), photos and voice notes (Spirit), or late nights (Shadow).","💎 Shiny messages are collected in your Shinydex, and shiny partners exist… Profile → 🧑 Me → My Partner."]},
   {v:"2026.10.11f", title:"Creator frame, cleaner 👑", items:["👑 The Creator frame is calmer now: one corner icon that cycles through its four favorites."]},
   {v:"2026.10.11e", title:"Theme fix 🎨", items:["🎨 Theme & colors opens again (thanks kennie!)."]},
   {v:"2026.10.11d", title:"Creator frame 👑", items:["👑 The person who made NightLane now has his own one-of-a-kind frame. Spot it around the app."]},
@@ -12677,6 +12756,165 @@ function paintBlResults(type){
     row.append(mid,blAddToMineButton(item)); res.append(row);
   });
 }
+
+/* ================= NIGHTLANE PARTNERS 🥚 =================
+   Everyone raises a little pixel partner. The SERVER feeds it from how you chat (partners.sql), so it can't be cheated:
+   ⚡ Power: shiny messages, games and moves · 💗 Heart: replies and reactions · ✨ Spirit: photos, voice, video, stickers ·
+   🌙 Shadow: late-night messages. Egg → Baby → Rookie (path = what you fed it most) → Champion → Ultimate.
+   Shiny messages are also collected in the Shinydex. This file only draws things and shows the evolution scenes. */
+const PX_PAL={"k": "#07041A", "w": "#F4F7FF", "c": "#00F0FF", "y": "#F3FF3A", "o": "#FF8A1F", "p": "#FF6FB5", "b": "#6FA8FF", "d": "#3D5BD9", "m": "#B48CFF", "v": "#6A3FB5", "r": "#FF2E3F", "g": "#2EE66B", "s": "#9AA3C7", "h": "#FFD86B"};
+const PX_SHINY={"y": "#FFD86B", "o": "#FFF6C8", "c": "#FF6FB5", "v": "#2EE66B", "m": "#FFD86B", "b": "#FFB3D9", "d": "#FF8A1F", "r": "#00F0FF", "p": "#00F0FF", "g": "#FF6FB5"};
+const PX_SPRITES={"egg":["......kkkk......","....kkwwwwkk....","...kwwwwwwwwk...","..kwwcwwwwcwwk..","..kwccwwwwccwk..",".kwwwwwwwwwwwwk.",".kwwwwwwwwwwwwk.",".kwcwwwwwwwwcwk.",".kwccwwwwwwccwk.",".kwwwwwwwwwwwwk.",".kwwwwwwwwwwwwk.","..kwwwwwwwwwwk..","..kwwwwwwwwwwk..","...kkwwwwwwkk...",".....kkkkkk.....","................"],"pixi":["................","................",".......kk.......","......kyyk......",".......kk.......","....kkkkkkkk....","..kkmmmmmmmmkk..",".kmmmmmmmmmmmmk.",".kmmwkmmmmkwmmk.",".kmmkkmmmmkkmmk.","kmppmmmkkmmmppmk","kmmmmmmmmmmmmmmk",".kmmmmmmmmmmmmk.","..kkmmmmmmmmkk..","...kk.kkkk.kk...","................"],"voltkit":["................","..y..........y..","..yy........yy..","..kyk......kyk..",".kbbk.kkkk.kbbk.",".kbbbkbbbbkbbbk.","kbbbbbbbbbbbbbbk","kbbwkbbbbbbkwbby","kbbkkbbbbbbkkbyk","kbbbbbbbbbbbbyyk",".kbbbbbkkbbbbbyk","..kbbbbbbbbbbk.y",".kbbbwwwwwwbbbk.",".kbbbwwwwwwbbbk.","..kbk.kkkk.kbk..","..kk..kkkk..kk.."],"chirpi":[".......kk.......","......kppk......",".......kk.......","....kkkkkkkk....","...kbbbbbbbbk...","..kbbbbbbbbbbk..",".kbbwkbbbbkwbbk.",".kbbkkbbbbkkbbk.","kbbbbbboobbbbbbk","kdbbbbboobbbbbdk","kddbbbbbbbbbbddk","kddbwwwwwwwwbddk",".kbbwwwwwwwwbbk.","..kbbwwwwwwbbk..","...kkko..okkk...",".....o....o....."],"gloomp":["................","k..............k","kk............kk","kvk..........kvk","kvvkkkkkkkkkkvvk","kvvvvvvvvvvvvvvk",".kvvvvvvvvvvvvk.",".kvywkvvvvkwyvk.",".kvyykvvvvkyyvk.","kkvvvvvvvvvvvvkk","kvkvvvvkkvvvvkvk","kvvkvvwvvwvvkvvk",".kvvvvvvvvvvvvk.","..kkvvvvvvvvkk..","....kkvkkvkk....","......k..k......"],"thundrake":[".w............w.",".wk..........kw.","..wkkkkkkkkkkw..","..kooooooooook..",".kooooooooooook.",".koowkooookwook.","kkookkooookkookk","kdkooooooooookdk","kddkooooooookddk","kdddkyyyyyykdddk","kdddkyyyyyykdddk",".kddkyyyyyykddk.","..kkoyyyyyyokk..","..kooooooooook..","..kok.kkkk.kok..","..kk..kkkk..kk.."],"lyrabird":["..p....kk....p..","...p..kppk..p...","....pkpkkpkp....","....kkkkkkkk....","...kcccccccck...","..kcccccccccck..","..kcwkcccckwck..","..kckkcccckkck..",".kcccccyyccccck.","kpkccccyycccckpk","kppkcccccccckppk","kpppkwwwwwwkpppk","kpppkwwwwwwkpppk",".kppkcwwwwckppk.","..kk.kcccck.kk..",".....kk..kk....."],"nocturo":[".k............k.",".kk..........kk.",".kvk........kvk.",".kvvkkkkkkkkvvk.",".kvvvvvvvvvvvvk.","kvvvvvvvvvvvvvvk","kvrrrrrrrrrrrrvk","kvrywkrrrrkwyrvk","kvrykkrrrrkkyrvk","kvvvvvvvvvvvvvvk","kvvvvvykkyvvvvvk","kdvvvvvvvvvvvvdk","kddvvvwwwwvvvddk","kddvvvwwwwvvvddk",".kkvvkvvvvkvvkk.","..kk.kk..kk.kk.."],"stormwyrm":["w..w........w..w","wk.wk......kw.kw",".wkkwkkkkkkwkkw.","..kddddddddddk..",".kddddddddddddk.",".kddckddddkcddk.","kkddkkddddkkddkk","kykddddddddddkyk","kyykddddddddkyyk","kyyykwwwwwwkyyyk","kyyykwwwwwwkyyyk","kykyykwwwwkyykyk",".k.kdwwwwwwdk.k.","..kddddddddddk..","..kdk.kkkk.kdk..","..kk..kkkk..kk.."],"seraphon":[".....yyyyyy.....","....y......y....",".p...kkkkkk...p.","pwp.kcccccck.pwp","pwwkcccccccckwwp","pwkcwkcccckwckwp",".pkckkcccckkckp.","pwkccccyycccckwp","pwkccccyycccckwp","pwwkcccccccckwwp",".pwkkwwwwwwkkwp.","pwwpkwwwwwwkpwwp","pwwpkcwwwwckpwwp",".ppkkcccccckkpp.","...k.kcccck.k...","....kk....kk...."],"eclipsar":["y..............y","yy............yy",".yk..........ky.",".kvkkkkkkkkkkvk.","kvvvvvvvvvvvvvvk","kvrrrrrrrrrrrrvk","kvrywkrrrrkwyrvk","kvrykkrrrrkkyrvk","kvvvvvvvvvvvvvvk","kvvvvvykkyvvvvvk","rkvvvvvvvvvvvvkr","rrkvvvwwwwvvvkrr","rrrkvvwwwwvvkrrr","rrrkvvwwwwvvkrrr",".rrkvvkvvkvvkrr.","..kk.kk..kk.kk.."],"snapling":["..k..........k..","..kg........gk..","...k..kkkk..k...","....kkggggkk....","...kggggggggk...","..kggggggggggk..",".kggwkggggkwggk.",".kggkkggggkkggk.","kcckggggggggkcck","kccckggkkggkccck","kcccckggggkcccck",".kcccckggkcccck.","..kkkyyyyyykkk..","....kyyyyyyk....",".....kyyyyk.....","......kkkk......"],"mothlume":[".y............y.","..y..........y..","...yk.kkkk.ky...",".kk.kkwwwwkk.kk.","kgcgkwwwwwwkgcgk","kgggkwwwwwwkgggk","kgcgkwkwwkwkgcgk","kggggkkwwkkggggk","kgcggkwwwwkggcgk","kggggkwwwwkggggk",".kggkwwwwwwkggk.","kgcggkwwwwkggcgk","kgggggkwwkgggggk",".kgcgkkwwkkgcgk.","..kkk.kkkk.kkk..","................"],"aurorath":["......yyyy......",".....y....y.....","..kk.ykkkky.kk..",".kpk.kwwwwk.kpk.","kppckwwwwwwkcppk","kpcckwkwwkwkccpk","kccgkwkwwkwkgcck","kcggkwwwwwwkggck","kggckwwwwwwkcggk","kgcpkwwwwwwkpcgk","kcppkwywwywkppck",".kpppkwwwwkpppk.","..kppkwwwwkppk..","...kkkwwwwkkk...",".....kkkkkk.....","................"]};
+
+const PARTNER_STAGES=["Egg","Baby","Rookie","Champion","Ultimate"];
+const PARTNER_AT=[0,15,120,600,2000];
+const PARTNER_PATHS={power:{icon:"⚡",label:"Power",line:["voltkit","thundrake","stormwyrm"],color:"#F3FF3A"},
+  heart:{icon:"💗",label:"Heart",line:["chirpi","lyrabird","seraphon"],color:"#FF6FB5"},
+  spirit:{icon:"✨",label:"Spirit",line:["snapling","mothlume","aurorath"],color:"#2EE66B"},
+  shadow:{icon:"🌙",label:"Shadow",line:["gloomp","nocturo","eclipsar"],color:"#B48CFF"}};
+const PARTNER_NAMES={egg:"Data Egg",pixi:"Pixi",voltkit:"Sparkit",chirpi:"Chirpi",snapling:"Snapling",gloomp:"Gloomp",
+  thundrake:"Thundrake",lyrabird:"Lyrabird",mothlume:"Mothlume",nocturo:"Nocturo",stormwyrm:"Stormwyrm",seraphon:"Seraphon",aurorath:"Aurorath",eclipsar:"Eclipsar"};
+const SHINY_KINDS=[["gold","🟡","Gold"],["prism","🌈","Prism"],["glitch","👾","Glitch"],["holo","💠","Holo"]];
+const shinyKindOf=m=>{ const n=hashMsg(m,"shinytype")%100; return n<50?"gold":n<80?"prism":n<95?"glitch":"holo"; };   // same math as the server
+function partnerSpecies(p){
+  const st=Math.max(0,Math.min(4,+p?.stage||0));
+  if(st===0) return "egg"; if(st===1) return "pixi";
+  return (PARTNER_PATHS[p.path]||PARTNER_PATHS.heart).line[st-2];
+}
+const partnerName=p=>(p?.nickname&&String(p.nickname).trim())||PARTNER_NAMES[partnerSpecies(p)];
+const pxCache=new Map();
+function pxSpriteUrl(id,shiny,mode){   // mode: undefined | "shadow" (dark silhouette for not-yet-seen forms)
+  const k=id+(shiny?"*":"")+(mode||""); if(pxCache.has(k)) return pxCache.get(k);
+  const rows=PX_SPRITES[id]; if(!rows) return "";
+  const cv=document.createElement("canvas"); cv.width=cv.height=16; const g=cv.getContext("2d");
+  rows.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch===".") return;
+    g.fillStyle=mode==="shadow"?(ch==="k"?"#07041A":"#2a1b5a"):((shiny&&PX_SHINY[ch])||PX_PAL[ch]); g.fillRect(x,y,1,1); }));
+  const url=cv.toDataURL(); pxCache.set(k,url); return url;
+}
+function pxImg(id,shiny,cls,mode){ const i=document.createElement("img"); i.className="pxsprite"+(cls?" "+cls:""); i.alt=""; i.src=pxSpriteUrl(id,shiny,mode); i.draggable=false; return i; }
+
+let myPartner=null, partnerView=null, partnerShinies=null;
+async function loadPartner(uid){ try{ return await api.partner(uid); }catch(e){ return null; } }
+function partnerNext(p){ const st=+p?.stage||0; return st>=4?null:PARTNER_AT[st+1]; }
+
+/* ---------- the Partner sheet ---------- */
+async function openPartner(uid){
+  uid=uid||user.id; const mine=uid===user.id;
+  show($("profile"),false); show($("personSheet"),false);
+  partnerView={uid,mine,p:mine&&myPartner?myPartner:null}; partnerShinies=null;
+  paintPartner(); show($("partnerSheet"));
+  const [p,sh]=await Promise.all([loadPartner(uid),api.shinies(uid).catch(()=>[])]);
+  if(partnerView?.uid!==uid) return;
+  partnerView.p=p||{stage:0,total:0,power:0,heart:0,spirit:0,shadow:0}; partnerShinies=sh||[];
+  if(mine&&p){ myPartner=p; partnerSeenCheck(p); }
+  paintPartner();
+}
+function paintPartner(){
+  const v=partnerView; if(!v) return;
+  const p=v.p, who=v.mine?"Your":`${cache.get(v.uid)?.username||"Their"}'s`;
+  $("ptTitle").textContent=v.mine?"🥚 Your Partner":`🥚 ${cache.get(v.uid)?.username||"Friend"}'s Partner`;
+  const stage=$("ptStage"); stage.innerHTML="";
+  if(!p){ stage.append(el("p","note","Loading…")); return; }
+  const sp=partnerSpecies(p), st=+p.stage||0;
+  const plate=el("div","pt-plate"+(p.shiny?" shiny":"")+(st===0?" egg":"")); plate.append(pxImg(sp,p.shiny,"pt-big")); stage.append(plate);
+  const name=el("div","pt-name"); name.append(el("b","",partnerName(p)));
+  if(p.shiny) name.append(el("span","pt-shinytag","✦ SHINY"));
+  stage.append(name);
+  const path=PARTNER_PATHS[p.path];
+  stage.append(el("div","pt-sub",[PARTNER_STAGES[st], p.nickname?PARTNER_NAMES[sp]:null, path?`${path.icon} ${path.label} path`:null].filter(Boolean).join(" · ")));
+  if(v.mine){ const rn=el("button","linkbtn",p.nickname?"✏️ Rename":"✏️ Give it a name"); rn.type="button"; rn.onclick=renamePartner; stage.append(rn); }
+  // progress to the next stage
+  const nx=partnerNext(p), box=el("div","pt-prog");
+  if(nx){ const from=PARTNER_AT[st], pct=Math.max(0,Math.min(100,Math.round(100*((+p.total||0)-from)/(nx-from))));
+    const bar=el("div","pt-bar"), fill=el("i"); fill.style.width=pct+"%"; bar.append(fill);
+    box.append(el("div","pt-proglabel",st===0?`Hatching… ${Math.max(0,nx-(+p.total||0))} more data`:`${Math.max(0,nx-(+p.total||0))} more data to evolve`),bar); }
+  else box.append(el("div","pt-proglabel","🏆 Fully evolved. Legendary."));
+  stage.append(box);
+  // stats
+  const stats=el("div","pt-stats"), top=Math.max(1,+p.power||0,+p.heart||0,+p.spirit||0,+p.shadow||0);
+  Object.entries(PARTNER_PATHS).forEach(([k,d])=>{ const n=+p[k]||0, row=el("div","pt-stat");
+    const bar=el("span","pt-sbar"), f=el("i"); f.style.width=Math.round(100*n/top)+"%"; f.style.background=d.color; bar.append(f);
+    row.append(el("span","pt-slab",`${d.icon} ${d.label}`),bar,el("span","pt-snum",String(n))); stats.append(row); });
+  stage.append(stats);
+  // evolution line: forms it hasn't reached yet stay as dark silhouettes
+  const line=el("div","pt-line"); line.setAttribute("aria-label","Evolution line");
+  const forms=["egg","pixi",...(path?path.line:[null,null,null])];
+  forms.forEach((f,i)=>{ const c=el("span","pt-form"+(i===st?" now":""));
+    if(!f) c.append(el("span","pt-q","?")); else c.append(pxImg(f,p.shiny&&i<=st,"pt-mini",i>st?"shadow":undefined));
+    c.title=i<=st&&f?PARTNER_NAMES[f]:"???"; line.append(c); if(i<4) line.append(el("span","pt-arrow","›")); });
+  if(!path&&st<2) line.append(el("div","pt-hint","Its path is picked when it becomes a Rookie, by whatever you fed it most."));
+  stage.append(line);
+  // Shinydex
+  const dex=el("div","pt-dex"), counts={}; (partnerShinies||[]).forEach(s=>counts[s.kind]=(counts[s.kind]||0)+1);
+  dex.append(el("h3","",`💎 Shinydex · ${(partnerShinies||[]).length}`));
+  const grid=el("div","pt-dexgrid");
+  SHINY_KINDS.forEach(([k,ic,lab])=>{ const n=counts[k]||0, t=el("div","pt-dexcell"+(n?"":" locked"));
+    t.append(el("span","pt-dexic",n?ic:"❔"),el("span","pt-dexlab",n?lab:"???"),el("span","pt-dexn","×"+n)); grid.append(t); });
+  dex.append(grid);
+  dex.append(el("p","note",partnerShinies===null?"Loading…":v.mine?"About 1 in 500 messages you send is shiny ✨. Each one is collected here, feeds ⚡ Power, and makes a shiny partner more likely when your next egg hatches.":"Shiny messages they've found."));
+  stage.append(dex);
+  if(v.mine){ const how=el("details","pt-how"); how.append(el("summary","","How do I raise it?"));
+    const ul=el("ul"); ["Every message you send feeds it a little.","⚡ Power: shiny messages, starting games, and every game move.","💗 Heart: replying to messages and reacting to them.","✨ Spirit: photos, voice notes, videos, stickers and files.","🌙 Shadow: chatting late at night (10 PM to 5 AM).","It can eat up to 250 data a day, so chatting every day beats spamming."].forEach(t=>ul.append(el("li","",t)));
+    how.append(ul); stage.append(how); }
+}
+async function renamePartner(){
+  const cur=myPartner?.nickname||"";
+  const n=prompt("Name your partner (up to 16 letters). Leave it empty to use its species name.",cur); if(n===null) return;
+  try{ const saved=await api.setPartnerName(n); myPartner={...(myPartner||{}),nickname:saved}; if(partnerView?.mine) partnerView.p={...partnerView.p,nickname:saved}; paintPartner(); paintPartnerButton(); }
+  catch(err){ toast("Couldn't rename it",err.message); }
+}
+$("ptClose").onclick=()=>{ show($("partnerSheet"),false); partnerView=null; };
+$("openPartner").onclick=()=>openPartner(user.id);
+function paintPartnerButton(){
+  const b=$("openPartner"); if(!b) return; b.innerHTML="";
+  const p=myPartner; b.append(pxImg(partnerSpecies(p||{stage:0}),!!p?.shiny,"pt-btnimg"),document.createTextNode(p?` ${partnerName(p)} · ${PARTNER_STAGES[+p.stage||0]}`:" My Partner"));
+}
+/* friends' partners on their profile card */
+async function paintPersonPartner(uid){
+  const b=$("personPartner"); show(b,false); b.innerHTML="";
+  const p=await loadPartner(uid); if(personUid!==uid||!p) return;
+  b.append(pxImg(partnerSpecies(p),!!p.shiny,"pt-btnimg"),document.createTextNode(` ${partnerName(p)} · ${PARTNER_STAGES[+p.stage||0]}${p.shiny?" ✦":""}`));
+  b.onclick=()=>openPartner(uid); show(b,true);
+}
+
+/* ---------- hatching and evolving: the server changes it, this phone notices and plays the scene ---------- */
+const ptSeenKey=()=>"nl-partner-seen-"+(user?.id||"");
+function partnerSeenCheck(p){
+  if(!p) return; const now=`${+p.stage||0}|${p.path||""}|${p.shiny?1:0}`;
+  let seen=null; try{ seen=LS.get(ptSeenKey()); }catch(e){}
+  try{ LS.set(ptSeenKey(),now); }catch(e){}
+  const was=seen?+seen.split("|")[0]:0;
+  if((+p.stage||0)>was){
+    const before=seen?{stage:was,path:seen.split("|")[1]||null,shiny:seen.split("|")[2]==="1"}:{stage:Math.max(0,(+p.stage||0)-1),path:p.path,shiny:p.shiny};
+    if(!seen&&(+p.stage||0)>1) before.stage=+p.stage-1;
+    playEvolution(before,p);
+  }
+}
+let ptCheckTimer=null, ptLastCheck=0;
+function partnerSoon(ms=5000){ clearTimeout(ptCheckTimer); ptCheckTimer=setTimeout(refreshMyPartner,ms); }
+async function refreshMyPartner(){
+  if(!user) return; ptLastCheck=Date.now();
+  const p=await loadPartner(user.id); if(!p) return;
+  myPartner=p; paintPartnerButton(); partnerSeenCheck(p);
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&user&&Date.now()-ptLastCheck>60000) partnerSoon(3000); });
+function playEvolution(before,after){
+  const sc=$("evoScene"); if(!sc) return;
+  const from=partnerSpecies(before), to=partnerSpecies(after), hatch=(+before.stage||0)===0;
+  const a=pxImg(from,!!before.shiny,"evo-a"), b=pxImg(to,!!after.shiny,"evo-b");
+  const stage=$("evoStage"); stage.innerHTML=""; stage.append(a,b);
+  $("evoTitle").textContent=hatch?"Your egg is hatching…":`${PARTNER_NAMES[from]} is evolving…`;
+  $("evoText").textContent="";
+  sc.classList.remove("done"); show(sc,true);
+  const motion=fxEnabled()&&!reducedMotion();
+  setTimeout(()=>{ sc.classList.add("done");
+    $("evoTitle").textContent=hatch?`It hatched into ${PARTNER_NAMES[to]}!`:`${PARTNER_NAMES[from]} evolved into ${PARTNER_NAMES[to]}!`;
+    const path=PARTNER_PATHS[after.path];
+    $("evoText").textContent=(after.shiny&&hatch?"✦ It's a SHINY! ✦ ":"")+(path&&(+after.stage||0)===2?`${path.icon} It took the ${path.label} path.`:`${PARTNER_STAGES[+after.stage||0]} stage reached.`);
+    if(motion) FX.play("confetti"); if(navigator.vibrate) navigator.vibrate([30,60,30,60,120]); sfx?.("notify"); },motion?2600:200);
+}
+$("evoScene").onclick=()=>{ if($("evoScene").classList.contains("done")) show($("evoScene"),false); };
+$("evoClose").onclick=e=>{ e.stopPropagation(); show($("evoScene"),false); };
 
 /* ---------- grid view: a poster wall. Tap a cover to open its full card. ---------- */
 function blView(){ try{ return LS.get("nl-bl-view")==="grid"?"grid":"list"; }catch(e){ return "list"; } }
