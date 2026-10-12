@@ -2300,7 +2300,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .l7card.dup{outline:3px solid var(--red);animation:e8takepulse 1s ease-in-out infinite}
 .l7card.back{background:repeating-linear-gradient(45deg,#1fd17a 0 6px,#0b4d33 6px 12px);border-color:var(--cyan)}
 .l7table{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;width:100%;margin:6px 0}
-.l7deck{display:grid;justify-items:center;gap:4px}.l7deck small{font-family:var(--tech);font-size:10px;color:var(--muted)}
+.l7deck{display:grid;justify-items:center;gap:4px}.l7flip{display:grid;justify-items:center;gap:2px;margin-top:4px}.l7flip small{font-family:var(--tech);font-size:9px;color:var(--volt);max-width:64px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.l7flip .l7card.pop{animation:l7pop .45s cubic-bezier(.2,1.6,.4,1)}@keyframes l7pop{from{transform:translateY(-30px) rotate(-12deg) scale(.6);opacity:0}to{transform:none;opacity:1}}.l7sum .l7s .l7cards{display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle}.l7sum .l7s .l7card.sm{width:22px;height:30px}.l7sum .l7s .l7card.sm b{font-size:11px}.l7sum .l7s .l7card.sm i{display:none}.l7deck small{font-family:var(--tech);font-size:10px;color:var(--muted)}
 .l7rows{display:grid;gap:6px;min-width:0}
 .l7row{border:2px solid #3b2d80;background:rgba(0,0,0,.25);padding:6px 8px;display:grid;gap:5px;text-align:left}
 .l7row.up{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
@@ -3724,7 +3724,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <div class="e8-players" id="l7Players"></div>
       <p class="e8-last" id="l7Last"></p>
       <div class="l7table" id="l7Table">
-        <div class="l7deck"><span class="l7card back"><b>7</b><i>🍀</i></span><small id="l7DeckN"></small></div>
+        <div class="l7deck"><span class="l7card back"><b>7</b><i>🍀</i></span><small id="l7DeckN"></small><div class="l7flip" id="l7Flip"></div></div>
         <div class="l7rows" id="l7Rows"></div>
       </div>
       <div class="l7freeze hidden" id="l7Freeze"></div>
@@ -4979,7 +4979,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     if(!d.deck.length){ d.deck=d.discard.sort(()=>Math.random()-.5); d.discard=[]; }
     const c=d.deck.shift(); st.deck=d.deck.length; const last={by:who,card:c};
     if(c[0]==="n"){ const v=+c.slice(1); if(r.n.includes(v)){ if(r.sh){ r.sh=false; last.saved=true; } else { r.n.push(v); r.st="bust"; last.bust=true; } } else { r.n.push(v); if(new Set(r.n).size>=7){ r.st="lucky"; last.lucky=true; } } }
-    else if(c==="S"){ if(!r.sh) r.sh=true; }
+    else if(c==="S"){ if(!r.sh) r.sh=true; else { const n=st.rows.length; let o=null; for(let k=1;k<n;k++){ const i=(seat+k)%n; if(st.rows[i].st==="in"&&!st.rows[i].sh){ o=i; break; } } if(o!==null){ st.rows[o].sh=true; last.gave=P[o]; } else { d.discard.push(c); last.tossed=true; } } }
     else if(c==="F"){ if(!st.rows.some((x,i)=>x.st==="in"&&i!==seat)){ r.st="stay"; last.froze=who; l7DemoAfterMove(g,seat,last); e8DemoAfter(g); return c; } st.freezer=seat; st.last=last; e8DemoAfter(g); return c; }
     else r.m.push(c);
     l7DemoAfterMove(g,seat,last); e8DemoAfter(g); return c;
@@ -9103,6 +9103,8 @@ function l7LastText(g){
     if(l.bust) return `${who} flipped ${what}… BUST! 💥`;
     if(l.saved) return `${who} flipped another ${n}, but the 🛡️ Shield saved ${l.by===user.id?"you":"them"}!`;
     if(l.lucky) return `${who} flipped ${what}: LUCKY 7! 🍀 +15`;
+    if(l.gave) return `${who} flipped a 2nd Shield, so it went to ${l.gave===user.id?"you":nameOf(l.gave)} 🛡️`;
+    if(l.tossed) return `${who} flipped a 2nd Shield. You can only hold one, so it was tossed.`;
     if(l.froze) return `${who} flipped a Freeze with nobody left, so ${l.by===user.id?"you":"they"} stay.`;
     return `${who} flipped ${what}${l.card==="F"?" ❄️":""}`; }
   if(l.stayed) return `${who} stayed ✋`;
@@ -9152,6 +9154,10 @@ async function paintLucky(g,prev){
       line.append(head,cards); rows.append(line); });
   }
   $("l7DeckN").textContent=playing?`${s.deck??0} left`:"";
+  /* the card that was just flipped stays face up by the deck, even if it ended the round or got passed on */
+  const fl=$("l7Flip"); fl.innerHTML="";
+  if(playing&&s.last?.card){ const c=l7CardEl(s.last.card); if(prev&&prev.moves!==g.moves&&JSON.stringify(s.last)!==JSON.stringify(prev.state?.last)) c.classList.add("pop");
+    fl.append(c,el("small","",s.last.by===user.id?"you flipped":nameOf(s.last.by))); }
   // the big buttons
   show($("l7Act"),myTurn); $("l7Hit").disabled=e8Busy; $("l7Stay").disabled=e8Busy||!((s.rows?.[me]?.n||[]).length||(s.rows?.[me]?.m||[]).length);
   // freeze picker
@@ -9161,7 +9167,9 @@ async function paintLucky(g,prev){
   // round summary
   const lr=s.lastRound, sum=$("l7Round"); sum.innerHTML=""; show(sum,playing&&!!lr);
   if(lr){ sum.append(el("b","",`Round ${lr.round} results`)); const ul=el("div","l7sum");
-    (lr.sum||[]).forEach((x,i)=>ul.append(el("span","l7s "+x.st,`${P[i]===user.id?"You":nameOf(P[i])}: ${x.st==="bust"?"💥 0":"+"+x.pts}${x.st==="lucky"?" 🍀":""}`))); sum.append(ul); }
+    (lr.sum||[]).forEach((x,i)=>{ const it=el("span","l7s "+x.st,`${P[i]===user.id?"You":nameOf(P[i])}: ${x.st==="bust"?"💥 0":"+"+x.pts}${x.st==="lucky"?" 🍀":""}`);
+      const rr=lr.rows?.[i]; if(rr&&((rr.n||[]).length||(rr.m||[]).length)){ const cs=el("span","l7cards"); (rr.n||[]).forEach(n=>cs.append(l7CardEl(n,{small:true}))); (rr.m||[]).forEach(c=>cs.append(l7CardEl(c,{small:true}))); it.append(cs); }
+      ul.append(it); }); sum.append(ul); }
   // stamps for big moments
   if(prev&&prev.moves!==g.moves&&s.last?.card&&JSON.stringify(s.last)!==JSON.stringify(prev.state?.last)){
     if(s.last.bust){ l7Stamp("BUST!","bust"); if(s.last.by===user.id&&navigator.vibrate) navigator.vibrate([60,40,120]); }
@@ -12309,8 +12317,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.13c";
+const APP_VERSION="2026.10.13d";
 const CHANGELOG=[
+  {v:"2026.10.13d", title:"Lucky 7 fix 🍀", items:["🃏 The card you just flipped now stays face up next to the deck, so you always see what you got, even when it ends the round (thanks hachiware!).","🛡️ Flip a 2nd Shield? It now goes to the next player who doesn't have one, instead of quietly vanishing.","📋 Round results show everyone's cards from that round."]},
   {v:"2026.10.13c", title:"Games list fix 🎮", items:["🎮 The Games list in ＋ scrolls again, so you can reach every game on smaller phones (thanks hachiware!).","➕ The ＋ menu tabs sit in two tidy rows instead of squishing together."]},
   {v:"2026.10.13b", title:"New card art 🃏", items:["🃏 Crazy Eights and BS got a real pixel-art deck in NightLane colors, with a matching neon card back. Card art by art-bickles."]},
   {v:"2026.10.13a", title:"New game: Lucky 7 🍀", items:["🍀 Lucky 7 for 2–8 players: flip cards for points, but a repeat number busts you! Get 7 different numbers for LUCKY 7. Shields, Freezes and Doubles keep it wild. First to 150 wins (thanks temmie!). Tap ＋ → Games.","⚡ Crazy Eights Wild rematches now stay Wild."]},
