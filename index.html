@@ -2511,6 +2511,32 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .gp-icon.mc-icon i{display:block;aspect-ratio:1;border-radius:50%;background:#1d0f06;box-shadow:inset 0 0 0 3px var(--cyan)}
 .mcmini{display:flex;align-items:center;gap:4px;background:#4a2e1a;border-radius:10px;padding:4px 6px;font-family:var(--tech);font-size:9px;color:var(--white)}
 .mcmini-s{background:#1d0f06;border-radius:8px;padding:6px 4px;color:var(--volt)}.mcmini-row{white-space:pre;line-height:1.5;text-align:center}
+/* ===== Go (9×9) ===== */
+.goboard-wrap{width:100%;display:grid;gap:10px}
+.goboard{position:relative;display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;width:100%;box-sizing:border-box;padding:2.5%;background:linear-gradient(150deg,#e6bf78,#c9954c 75%);border:3px solid #07041a;border-radius:10px;box-shadow:6px 6px 0 var(--mag)}
+.gogrid{position:absolute;inset:2.5%;width:95%;height:95%;pointer-events:none}
+.gopt{position:relative;border:none;background:none;padding:0;margin:0;aspect-ratio:1;display:grid;place-items:center;cursor:default;min-width:0}
+.gopt.can{cursor:pointer}.gopt:disabled{opacity:1;cursor:default}
+.gost{width:88%;aspect-ratio:1;border-radius:50%;display:block;position:relative;z-index:1}
+.gost.x{background:radial-gradient(circle at 35% 30%,#6b6b86,#14121f 55%,#05040a);box-shadow:1px 2px 0 rgba(0,0,0,.45)}
+.gost.o{background:radial-gradient(circle at 35% 30%,#fff,#e9ecf7 45%,#b7bdd3);box-shadow:1px 2px 0 rgba(0,0,0,.35)}
+.gost.new{animation:gopop .28s ease-out}
+@keyframes gopop{from{transform:scale(1.5);opacity:.3}}
+.gost.last::after{content:"";position:absolute;inset:32%;border-radius:50%;border:2px solid var(--mag)}
+.gost.ghost{opacity:.5;outline:2px dashed var(--mag);outline-offset:2px}
+.gost.dying{position:absolute;inset:6%;width:auto;animation:godie .5s ease-in forwards}
+@keyframes godie{to{transform:scale(1.6) rotate(20deg);opacity:0}}
+.goterr{width:34%;aspect-ratio:1;display:block;z-index:1}.goterr.x{background:#14121f}.goterr.o{background:#f4f7ff;border:1px solid #888}
+.gobar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.gobar button{font-family:var(--tech);font-size:12px;letter-spacing:1px;padding:10px 16px;background:var(--night);color:var(--cyan);border:2px solid var(--cyan)}
+.gobar button.warn{color:var(--volt);border-color:var(--volt)}
+.gocaps{text-align:center;font-family:var(--tech);font-size:11px;letter-spacing:1px;color:var(--muted)}
+.gp-icon.go-icon{position:relative;display:block;width:50px;height:50px;padding:0;box-sizing:border-box;border:2px solid #07041a;background:#d8aa60;border-radius:8px;background-image:linear-gradient(#07041a55 1px,transparent 1px),linear-gradient(90deg,#07041a55 1px,transparent 1px);background-size:33% 33%;background-position:-1px -1px}
+.gp-icon.go-icon i{position:absolute;width:40%;height:40%;border-radius:50%}
+.gp-icon.go-icon i:nth-child(1){left:12%;top:12%;background:radial-gradient(circle at 35% 30%,#6b6b86,#14121f 60%)}
+.gp-icon.go-icon i:nth-child(2){right:12%;bottom:12%;background:radial-gradient(circle at 35% 30%,#fff,#b7bdd3)}
+.gomini{display:grid;grid-template-columns:repeat(9,6px);grid-auto-rows:6px;padding:4px;background-color:#d8aa60;background-image:linear-gradient(#3a241455 1px,transparent 1px),linear-gradient(90deg,#3a241455 1px,transparent 1px);background-size:6px 6px;background-position:4px 6.5px,6.5px 4px;border-radius:6px;border:2px solid #07041a}
+.gomini i{display:block;border-radius:50%;margin:.5px}.gomini i.x{background:#14121f}.gomini i.o{background:#f4f7ff}
 /* ===== BS ===== */
 .bsgame{width:100%;display:grid;gap:10px;position:relative}
 #bsHand{gap:4px;row-gap:12px}
@@ -3427,6 +3453,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
           <span class="gp-icon mc-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
           <span class="gp-text"><b>Mancala</b><small class="gp-hint">Sow stones, capture, fill your store</small></span>
         </button>
+        <button type="button" class="gamepick" data-game="go">
+          <span class="gp-icon go-icon" aria-hidden="true"><i></i><i></i></span>
+          <span class="gp-text"><b>Go</b><small class="gp-hint">2 players · 9×9 · surround the most territory</small></span>
+        </button>
         <button type="button" class="gamepick" data-game="bs">
           <span class="gp-icon bs-icon" aria-hidden="true"><span class="e8card sm back"></span><span class="e8card sm back"></span><b>BS!</b></span>
           <span class="gp-text"><b>BS</b><small class="gp-hint">2–8 players · bluff your cards, call BS!</small></span>
@@ -3439,7 +3469,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
           <span class="gp-icon l7-icon" aria-hidden="true"><b>7</b><i>🍀</i></span>
           <span class="gp-text"><b>Lucky 7</b><small class="gp-hint">2–8 players · push your luck, don't bust!</small></span>
         </button>
-        <p class="rulelinks">📖 Rules: <button type="button" data-rules="mahjong">Mahjong</button> · <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="bs">BS</button></p>
+        <p class="rulelinks">📖 Rules: <button type="button" data-rules="mahjong">Mahjong</button> · <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="go">Go</button> · <button type="button" data-rules="bs">BS</button></p>
         <p class="note">More games coming soon 👀</p>
       </div>
     </div>
@@ -4629,6 +4659,71 @@ function mcAnimate(g,prev){
   if(l.extra){ const st=cellOf(l.by==="x"?6:13); if(st) setTimeout(()=>{ const pop=el("span","mcpop","Extra turn!"); st.append(pop);
     pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1200}).onfinish=()=>pop.remove(); },end); }
 }
+/* ===== Go board: tap a spot to preview, tap it again to place ===== */
+let goPick=null, goResignArm=0;
+function goBoardEl(g,prev){
+  const s=g.state, me=myMark(g), can=g.status==="active"&&me&&s.turn===me, done=g.status==="done";
+  const wrap=el("div","goboard-wrap"), board=el("div","goboard"); board.setAttribute("role","grid"); board.setAttribute("aria-label","Go board, 9 by 9");
+  const NS="http://www.w3.org/2000/svg", svg=document.createElementNS(NS,"svg"); svg.setAttribute("class","gogrid"); svg.setAttribute("viewBox","0 0 9 9"); svg.setAttribute("aria-hidden","true");
+  for(let k=0;k<9;k++){ [[.5,k+.5,8.5,k+.5],[k+.5,.5,k+.5,8.5]].forEach(([a,b2,c,d])=>{ const ln=document.createElementNS(NS,"line"); ln.setAttribute("x1",a); ln.setAttribute("y1",b2); ln.setAttribute("x2",c); ln.setAttribute("y2",d); ln.setAttribute("stroke","#3a2414"); ln.setAttribute("stroke-width",".04"); svg.append(ln); }); }
+  GO_STARS.forEach(p=>{ const c=document.createElementNS(NS,"circle"); c.setAttribute("cx",p%9+.5); c.setAttribute("cy",((p/9)|0)+.5); c.setAttribute("r",".09"); c.setAttribute("fill","#3a2414"); svg.append(c); });
+  board.append(svg);
+  const own=done&&s.how==="score"?goScore(s.board).own:null, lastAt=s.last?.at, pb=prev?.state?.board;
+  s.board.forEach((v,i)=>{
+    const pt=el("button","gopt"+(can&&!v?" can":"")); pt.type="button"; pt.dataset.i=i; pt.setAttribute("role","gridcell");
+    pt.setAttribute("aria-label",`Row ${((i/9)|0)+1}, column ${i%9+1}: ${v==="x"?"black stone":v==="o"?"white stone":"empty"}`);
+    if(v){ const st=el("span","gost "+v+(i===lastAt?" last":"")+(pb&&pb[i]!==v&&i===lastAt?" new":"")); pt.append(st); }
+    else if(can&&goPick===i){ pt.append(el("span","gost ghost "+me)); }
+    else if(own&&own[i]) pt.append(el("span","goterr "+own[i]));
+    if(pb&&pb[i]&&!v){ const gh=el("span","gost dying "+pb[i]); pt.append(gh); setTimeout(()=>gh.remove(),600); }   // captured: pop away
+    pt.disabled=!can||!!v; pt.onclick=()=>goTap(g,i);
+    board.append(pt);
+  });
+  wrap.append(board);
+  const c=s.caps||{x:0,o:0}; wrap.append(el("div","gocaps",`CAPTURED · ⚫ Black ${c.x||0} · ⚪ White ${c.o||0}`));
+  if(g.status==="active"&&me){
+    const bar=el("div","gobar"), pass=el("button","",s.turn===me?"Pass":"Pass (wait for your turn)"), res=el("button","warn",goResignArm>Date.now()?"Tap again to resign":"Resign");
+    pass.type=res.type="button"; pass.disabled=s.turn!==me;
+    pass.onclick=()=>goSend(g,-1);
+    res.onclick=()=>{ if(goResignArm>Date.now()){ goResignArm=0; goSend(g,-2); } else { goResignArm=Date.now()+3000; paintGame(); setTimeout(()=>{ if(goResignArm&&goResignArm<=Date.now()){ goResignArm=0; paintGame(); } },3100); } };
+    bar.append(pass,res); wrap.append(bar);
+  }
+  return wrap;
+}
+function goMini(g){
+  const b=g?.state?.board||Array(81).fill(""), box=el("div","gomini"); box.setAttribute("aria-hidden","true");
+  b.forEach(v=>box.append(el("i",v||""))); return box;
+}
+function goStatus(g){
+  const s=g.state, me=myMark(g), st=gameStatusText(g), col=m=>m==="x"?"Black":"White";
+  if(g.status==="done"){
+    if(s.how==="resign"){ const loser=s.winner==="x"?g.player_o:g.player_x; return (loser===user.id?"You resigned":`${nameOf(loser)} resigned`)+" · "+st.text; }
+    if(s.score) return `⚫ ${s.score.x} – ⚪ ${s.score.o} · ${st.text}`;
+    return st.text;
+  }
+  if(g.status!=="active") return st.text;
+  const theyPassed=s.last?.at===-1&&s.last.by!==me;
+  if(st.turn){
+    if(theyPassed) return "They passed. Pass too to end and count, or keep playing.";
+    if(goPick!=null) return "Tap the same spot again to place it";
+    return `Your turn! (you're ${col(me)})`;
+  }
+  if(s.last?.at===-1&&s.last.by===me) return `You passed. ${st.text}`;
+  return st.text;
+}
+function goTap(g,i){
+  const me=myMark(g); if(g.status!=="active"||g.state.turn!==me||g.state.board[i]) return;
+  if(goPick!==i){ goPick=i; paintGame(); return; }
+  goPick=null; goSend(g,i);
+}
+async function goSend(g,move){
+  const me=myMark(g); if(!me) return;
+  const before=JSON.parse(JSON.stringify(g));
+  try{ const r=goApply(g.state,me,move); g.state=r.state; g.status=r.done?"done":"active"; }catch(err){ say("gameMsg",err.message,true); goPick=null; paintGame(); return; }
+  goPick=null; say("gameMsg",""); paintGame(before); refreshMsg(g.message_id);
+  try{ await api.playGo(g.message_id,move); }
+  catch(err){ gamesById.set(g.message_id,before); paintGame(); refreshMsg(g.message_id); say("gameMsg",isNetworkError(err)?"You're offline. Try again when you're back.":"Move didn't go through: "+err.message,true); }
+}
 function kcTap(g,i){
   const s=g.state, me=myMark(g), board=kcPreview||s.board;
   if(kcChaining){
@@ -4657,6 +4752,66 @@ async function kcFinish(g){
   g.status=applied.done?"done":"active"; paintGame(before); refreshMsg(g.message_id);
   try{ await api.playKingsCourt(g.message_id,path); if(!sb) setTimeout(()=>kcBotTurn(g.message_id),900); }
   catch(err){ gamesById.set(g.message_id,before); paintGame(); refreshMsg(g.message_id); say("gameMsg","Move didn't go through: "+err.message,true); }
+}
+/* ===== Go rules (mirrors play_go() in go.sql exactly) =====
+   81 points, index = row*9 + col. "x" = Black (goes first), "o" = White. Pass = -1, resign = -2.
+   Capture enemy groups with no liberties; no suicide; simple ko; two passes in a row = count it up (area scoring, White +6.5). */
+const GO_KOMI=6.5, GO_STARS=[20,24,40,56,60];
+function goStart(){ return {board:Array(81).fill(""),turn:"x",winner:null,line:[],last:null,ko:null,passes:0,caps:{x:0,o:0},score:null}; }
+function goNbrs(p){ const r=[]; if(p>=9) r.push(p-9); if(p<72) r.push(p+9); if(p%9>0) r.push(p-1); if(p%9<8) r.push(p+1); return r; }
+function goGroup(b,start){   // the connected group a stone is in, and how many liberties (empty neighbours) it has
+  const col=b[start], stones=[start], seen=new Set(stones), libs=new Set();
+  for(let k=0;k<stones.length;k++) for(const q of goNbrs(stones[k])){ if(b[q]==="") libs.add(q); else if(b[q]===col&&!seen.has(q)){ seen.add(q); stones.push(q); } }
+  return {stones,libs:libs.size};
+}
+function goScore(b){   // stones + empty areas that touch only one colour
+  const own=Array(81).fill(""), seen=new Set(); let x=0,o=0;
+  for(let p=0;p<81;p++){
+    if(b[p]==="x"){ x++; continue; } if(b[p]==="o"){ o++; continue; } if(seen.has(p)) continue;
+    const region=[p]; seen.add(p); let tx=false,to=false;
+    for(let k=0;k<region.length;k++) for(const r of goNbrs(region[k])){ if(b[r]==="x") tx=true; else if(b[r]==="o") to=true; else if(!seen.has(r)){ seen.add(r); region.push(r); } }
+    const who=tx&&!to?"x":to&&!tx?"o":""; if(who){ region.forEach(q=>own[q]=who); if(who==="x") x+=region.length; else o+=region.length; }
+  }
+  return {x,o,own};
+}
+function goApply(state,mark,move){
+  const opp=mark==="x"?"o":"x", caps={x:0,o:0,...(state.caps||{})};
+  if(move===-2) return {state:{...state,winner:opp,how:"resign",last:{by:mark,at:-2}},done:true};
+  if(state.turn!==mark) throw new Error("It's not your turn.");
+  if(move===-1){
+    const passes=(state.passes||0)+1;
+    if(passes>=2){ const sc=goScore(state.board), xs=sc.x, os=sc.o+GO_KOMI;
+      return {state:{...state,winner:xs>os?"x":"o",how:"score",passes,ko:null,score:{x:xs,o:os},last:{by:mark,at:-1}},done:true}; }
+    return {state:{...state,turn:opp,passes,ko:null,last:{by:mark,at:-1}},done:false};
+  }
+  if(!(move>=0&&move<=80)) throw new Error("That's not a spot on the board.");
+  const b=state.board.slice();
+  if(b[move]) throw new Error("There's already a stone there.");
+  if(state.ko!=null&&state.ko===move) throw new Error("Ko! You can't take back right away. Play somewhere else first.");
+  b[move]=mark; const dead=[];
+  for(const q of goNbrs(move)) if(b[q]===opp){ const gr=goGroup(b,q); if(!gr.libs) gr.stones.forEach(d=>{ if(!dead.includes(d)) dead.push(d); }); }
+  dead.forEach(d=>b[d]="");
+  const mine=goGroup(b,move);
+  if(!mine.libs) throw new Error("You can't play there: your stones would have no liberties.");
+  const ko=dead.length===1&&mine.stones.length===1&&mine.libs===1?dead[0]:null;
+  caps[mark]=(caps[mark]||0)+dead.length;
+  return {state:{...state,board:b,turn:opp,passes:0,ko,caps,last:{by:mark,at:move,dead}},done:false};
+}
+function goBotMove(state,mark){   // demo bot: capture > put them in atari > stay safe > near the action; never fills its own eyes
+  const opp=mark==="x"?"o":"x", b=state.board; let best=-1, score=-1e9;
+  if(state.passes&&b.filter(Boolean).length>40) return -1;
+  for(let p=0;p<81;p++){
+    if(b[p]) continue;
+    const ns=goNbrs(p); if(ns.every(q=>b[q]===mark)) continue;   // its own eye
+    let r; try{ r=goApply(state,mark,p); }catch(e){ continue; }
+    const nb=r.state.board, me2=goGroup(nb,p);
+    let v=r.state.last.dead.length*20+Math.random()*3;
+    ns.forEach(q=>{ if(nb[q]===opp){ const g2=goGroup(nb,q); if(g2.libs===1) v+=6; v+=1; } });
+    if(me2.libs===1) v-=15;
+    const rr=(p/9)|0, cc=p%9; if(rr===0||rr===8||cc===0||cc===8) v-=2;
+    if(v>score){ score=v; best=p; }
+  }
+  return best<0||score<-5?-1:best;
 }
 /* ===== Mancala rules (mirrors play_mancala() in Postgres exactly) =====
    Spots 0–5: X's pits · 6: X's store · 7–12: O's pits · 13: O's store. Sowing goes up the numbers (counter-clockwise). */
@@ -4984,6 +5139,7 @@ const live = {
   async playTicTacToe(id,cell){ must(await sb.rpc("play_tictactoe",{p_message:id,p_cell:cell})); },
   async playKingsCourt(id,path){ must(await sb.rpc("play_kingscourt",{p_message:id,p_path:path})); },
   async playMancala(id,pit){ must(await sb.rpc("play_mancala",{p_message:id,p_pit:pit})); },
+  async playGo(id,move){ must(await sb.rpc("play_go",{p_message:id,p_move:move})); },
   async rematch(id){ return must(await sb.rpc("rematch_game",{p_message:id})); },
   async eightsHand(id){ const r=must(await sb.from("game_hands").select("cards").eq("message_id",id).eq("user_id",user.id).maybeSingle()); return r?.cards||[]; },
   async eightsStart(id,mode){ must(await sb.rpc("eights_start_mode",{p_message:id,p_mode:mode||"classic"})); },
@@ -5277,6 +5433,11 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     if(q>total){ ldDemoMove(g,who,{call:true}); return; }
     ldDemoMove(g,who,{bid:[q,f]});
   }
+  function goDemoBot(g){   // Go practice bot
+    const human=g.player_x==="me"?"x":"o"; if(g.status!=="active"||g.state.turn===human) return;
+    const bm=g.state.turn, r=goApply(g.state,bm,goBotMove(g.state,bm)); g.state=r.state; g.status=r.done?"done":"active"; g.moves=(g.moves||0)+1;
+    fire("game",JSON.parse(JSON.stringify(g)));
+  }
   function mcDemoBot(g,human){   // Mancala practice bot: keeps going while it earns extra turns
     if(g.status!=="active"||g.state.turn===human) return; const bm=g.state.turn, rr=mcApply(g.state,bm,mcBotPit(g.state,bm));
     g.state=rr.state; g.status=rr.done?"done":"active"; g.moves=(g.moves||0)+1; fire("game",JSON.parse(JSON.stringify(g)));
@@ -5391,9 +5552,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
         ["vee","rook"].forEach((b,i)=>setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting"||g.state.players.includes(b)) return; g.state.players.push(b); g.moves++; fire("game",JSON.parse(JSON.stringify(g))); },700+i*700));
         return m;
       }
-      const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="kingscourt"?"King's Court":type==="mancala"?"Mancala":"Tic-tac-toe",created_at:iso()}; r.msgs.push(m);
+      const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="kingscourt"?"King's Court":type==="mancala"?"Mancala":type==="go"?"Go":"Tic-tac-toe",created_at:iso()}; r.msgs.push(m);
       const other=r.is_dm?Object.keys(r.members).find(u=>u!=="me"):null;
-      const st0 = type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
+      const st0 = type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
       games[m.id]={message_id:m.id,room,type,player_x:"me",player_o:other,status:other?"active":"waiting",state:st0,moves:0};
       if(!other) setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting") return; g.player_o=Object.keys(r.members).find(u=>u!=="me")||"rook"; g.status="active"; fire("game",JSON.parse(JSON.stringify(g))); if(type==="kingscourt"&&g.player_x!=="me") setTimeout(()=>kcBotTurn(m.id),900); },1500);
       return m;
@@ -5411,6 +5572,13 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       const r=mcApply(g.state,mark,pit); g.state=r.state; g.status=r.done?"done":"active"; g.moves=(g.moves||0)+1;
       setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30);
       setTimeout(()=>mcDemoBot(g,mark),1700);
+    },
+    async playGo(id,move){
+      const g=games[id], mark=g.player_x==="me"?"x":"o";
+      if(g.status!=="active") throw new Error("This game isn't being played right now.");
+      const r=goApply(g.state,mark,move); g.state=r.state; g.status=r.done?"done":"active"; g.moves=(g.moves||0)+1;
+      setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30);
+      if(!r.done) setTimeout(()=>goDemoBot(g),1100);
     },
     async playKingsCourt(id,path){
       const g=games[id], mark=g.player_x==="me"?"x":"o";
@@ -5452,11 +5620,11 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       if(games[id].type==="eights"||games[id].type==="liarsdice"||games[id].type==="bs"||games[id].type==="lucky7"||games[id].type==="mahjong"){ const old=games[id], r=rooms[old.room]; const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:old.type==="eights"?"Crazy Eights":old.type==="bs"?"BS":old.type==="lucky7"?"Lucky 7":old.type==="mahjong"?"Mahjong":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
         games[m.id]={message_id:m.id,room:old.room,type:old.type,player_x:"me",player_o:null,status:"waiting",state:{players:[...old.state.players],host:"me"},moves:0,updated_at:iso()};
         if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else if(old.type==="mahjong") mjDemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
-      const old=games[id], r=rooms[old.room], label=old.type==="kingscourt"?"King's Court":old.type==="mancala"?"Mancala":"Tic-tac-toe";
+      const old=games[id], r=rooms[old.room], label=old.type==="kingscourt"?"King's Court":old.type==="mancala"?"Mancala":old.type==="go"?"Go":"Tic-tac-toe";
       const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:label,created_at:iso()}; r.msgs.push(m);
-      const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
+      const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : old.type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
       games[m.id]={message_id:m.id,room:old.room,type:old.type,player_x:old.player_o,player_o:old.player_x,status:"active",state:st0,moves:0};
-      if(games[m.id].player_x!=="me") setTimeout(()=>old.type==="kingscourt"?kcBotTurn(m.id):old.type==="mancala"?mcDemoBot(games[m.id],"o"):demoBot(m.id),900);
+      if(games[m.id].player_x!=="me") setTimeout(()=>old.type==="kingscourt"?kcBotTurn(m.id):old.type==="mancala"?mcDemoBot(games[m.id],"o"):old.type==="go"?goDemoBot(games[m.id]):demoBot(m.id),900);
       return m;
     },
     async polls(ids){ return {polls:ids.map(i=>polls[i]).filter(Boolean),votes:votes.filter(v=>ids.includes(v.message_id))}; },
@@ -6163,7 +6331,7 @@ function openGamesTray(pick){
 
 /* --- 🎲 surprise me: something fun to try right now --- */
 const SURPRISE_WORDS=[["let's go","🏆"],["boom","💥"],["congrats","🎉"],["good night","🌠"],["lol","😂"],["lit","🔥"],["mwah","💋"],["love you","💖"]];
-const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7",mahjong:"Mahjong"};
+const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7",mahjong:"Mahjong",go:"Go"};
 let lastSurprise=-1;
 function surpriseMe(){
   if(!room) return;
@@ -8917,9 +9085,9 @@ function gameCard(m){
   if(g?.type==="lucky7"||(!g&&m.text==="Lucky 7")) return l7GameCard(m,g);
   if(g?.type==="mahjong"||(!g&&m.text==="Mahjong")) return mjGameCard(m,g);
   const card=el("div","gamecard");
-  const isMC=g?.type==="mancala"||(!g&&m.text==="Mancala");
-  const top=el("div","gc-top"); top.append(isMC?mcMini(g):g?.type==="kingscourt"?kcMiniBoard(g):miniGrid(g));
-  const info=el("div"); info.append(el("div","gc-title",isMC?"🟤 MANCALA":g?.type==="kingscourt"?"👑 KING'S COURT":"🎮 TIC-TAC-TOE"));
+  const isMC=g?.type==="mancala"||(!g&&m.text==="Mancala"), isGO=g?.type==="go"||(!g&&m.text==="Go");
+  const top=el("div","gc-top"); top.append(isMC?mcMini(g):isGO?goMini(g):g?.type==="kingscourt"?kcMiniBoard(g):miniGrid(g));
+  const info=el("div"); info.append(el("div","gc-title",isMC?"🟤 MANCALA":isGO?"⚫ GO":g?.type==="kingscourt"?"👑 KING'S COURT":"🎮 TIC-TAC-TOE"));
   if(!g){ info.append(el("div","gc-status","Loading…")); top.append(info); card.append(top); return card; }
   const st=gameStatusText(g); info.append(el("div","gc-status"+(st.turn?" turn":""),st.text));
   top.append(info); card.append(top);
@@ -8950,13 +9118,16 @@ function paintGame(prev){
   if(e8){ paintEights(g,prev); return; }
   if(bs){ paintBS(g,prev); return; }
   if(ld){ paintDice(g,prev); return; }
-  const isKC=g.type==="kingscourt", isMC=g.type==="mancala";
-  $("gameTitle").textContent=isKC?"King's Court":isMC?"Mancala":"Tic-tac-toe"; show($("gameSub"),isKC||isMC);
+  const isKC=g.type==="kingscourt", isMC=g.type==="mancala", isGO=g.type==="go";
+  if(!isGO) goPick=null;
+  $("gameTitle").textContent=isKC?"King's Court":isMC?"Mancala":isGO?"Go":"Tic-tac-toe"; show($("gameSub"),isKC||isMC||isGO);
   $("gameSub").textContent=isKC?"Pieces move one square up, down, left, or right. Get into the glowing Court and always keep a piece there."
+    :isGO?"Black goes first. Tap a spot, then tap it again to place your stone. Surround empty points and capture stones."
     :"Tap a pit on your side to sow its stones counter-clockwise. Most stones in your store wins.";
   const s=g.state, st=gameStatusText(g), me=myMark(g);
   playerTile($("gpX"),g.player_x,"x",g.status==="active"&&s.turn==="x");
   playerTile($("gpO"),g.player_o,"o",g.status==="active"&&s.turn==="o");
+  if(isGO){ $("gpX").querySelector(".mark").textContent="⚫"; $("gpO").querySelector(".mark").textContent="⚪"; }
   let statusText=st.text;
   if(isKC&&g.status==="active"){
     const wasFirst=me&&!s["first_"+me];
@@ -8966,7 +9137,10 @@ function paintGame(prev){
   }
   $("gameStatus").textContent=statusText; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
   const board=$("board"); board.innerHTML="";
-  if(isMC){
+  if(isGO){
+    board.className="goboard-host"; board.removeAttribute("role"); board.removeAttribute("aria-label"); board.append(goBoardEl(g,prev));
+    show($("kcChainBar"),false); $("gameStatus").textContent=goStatus(g);
+  } else if(isMC){
     board.className="mcboard-wrap"; board.removeAttribute("role"); board.setAttribute("aria-label","Mancala board"); board.append(mcBoardEl(g));
     show($("kcChainBar"),false);
     if(prev&&JSON.stringify(prev.state?.last)!==JSON.stringify(g.state.last)&&g.state.last) mcAnimate(g,prev);
@@ -9076,6 +9250,16 @@ const GAME_RULES={
            "When someone plays their <b>last cards</b>, everyone gets a chance to call BS. If they lied, they pick up the pile and play on. If nobody calls, or they were honest, <b>they win</b>.",
            "Someone gone quiet for 2 minutes on their turn? Anyone can <b>skip</b> them."],
     tip:"If you're holding three 7s and someone claims to play two 7s… somebody's lying. 😏"},
+  go:{name:"Go",emoji:"⚫",players:"2 players",goal:"Own more of the board than your opponent: your stones plus the empty points you've surrounded.",
+    steps:["Play on the <b>9×9 board</b>. <b>Black goes first</b>, then you take turns putting one stone on any empty point where the lines cross. Stones never move.",
+           "Tap a spot to <b>preview</b> your stone, then tap it <b>again</b> to place it.",
+           "Stones of the same colour that touch (up, down, left, right) are a <b>group</b>. The empty points next to a group are its <b>liberties</b>.",
+           "Fill in a group's <b>last liberty</b> and you <b>capture</b> it: those stones come off the board.",
+           "You <b>can't</b> play where your own stones would have no liberties, unless that move captures something.",
+           "<b>Ko:</b> if a stone just captured one of yours, you can't capture it straight back. Play somewhere else first.",
+           "Nothing good left to play? Tap <b>Pass</b>. When <b>both players pass in a row</b>, the game ends and gets counted.",
+           "<b>Score</b> = your stones on the board + the empty points only you surround. <b>White gets 6.5 extra</b> for going second, so there are no ties. You can also <b>Resign</b> any time."],
+    tip:"Before you both pass, capture any enemy stones that are trapped inside your area. Stones left on the board count for whoever owns them!"},
   mancala:{name:"Mancala",emoji:"🟤",players:"2 players",goal:"Have the most stones in your store when the game ends.",
     steps:["Each side has <b>6 pits</b> with 4 stones in each. Your pits are the bottom row, and <b>your store</b> is the big pit on your right.",
            "On your turn, tap one of <b>your pits</b>. Its stones are picked up and dropped <b>one at a time</b> into the next pits, counter-clockwise.",
@@ -12873,8 +13057,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16f";
+const APP_VERSION="2026.10.16g";
 const CHANGELOG=[
+  {v:"2026.10.16g", title:"New game: Go ⚫", items:["⚫ Play Go on a 9×9 board: ＋ → Games → Go. Surround territory, capture stones, and pass when you're done.","👆 Tap a spot to preview your stone, then tap again to place it, so no more misplaced stones.","📖 Full rules are under How to play."]},
   {v:"2026.10.16f", title:"No more surprise zoom", items:["🔍 Double-tapping on iPhone no longer zooms the screen (in chats, menus or calls). Pinch zoom still works."]},
   {v:"2026.10.16e", title:"Call controls 🔊", items:["🔊 Video calls are now LOUD: your mic gets a boost so quiet talkers come through. When both cameras are off it switches to QUIET mode, for holding the phone up to your ear. Tap the speaker button to switch it yourself.","🔄 Flip between your front and back camera.","👾 Privacy glitch: stay on video, but they only see you as moving neon blocks, never your face.","🎵 New sounds for accepting, declining and hanging up, and the connect chime now plays when you pick up too."]},
   {v:"2026.10.16d", title:"Voice calls 🎧", items:["🎧 Tap 📞 in a DM and pick Voice call or Video call. Voice calls keep both cameras off and show their picture instead.","👆 Bigger call buttons (thanks Freddy!)."]},
