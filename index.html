@@ -3177,6 +3177,44 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .rvacts .ghost{width:auto!important;flex:1 1 auto;font-size:15px!important;padding:6px 8px!important}
 .rvacts .danger{color:#ff6b6b}
 #openReports.alert{color:var(--volt)}
+/* ===== call screen: HUD look (NULLSIGNAL UI kit, recolored for NightLane) ===== */
+.callscreen{position:fixed;inset:0;z-index:9500;background:radial-gradient(circle at 50% 38%,#1a1048,#07041a 70%);display:grid;place-items:center;overflow:hidden;color:var(--cyan)}
+.callscreen::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,240,255,.05) 0 1px,transparent 1px 4px)}   /* faint scanlines */
+#remoteVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent}
+.callhud{position:absolute;inset:0;pointer-events:none;z-index:1}
+.cbr{position:absolute;width:min(26vw,120px);height:min(26vw,120px);color:var(--cyan)}
+.cbr.tl{left:6px;top:calc(env(safe-area-inset-top) + 6px)}.cbr.tr{right:6px;top:calc(env(safe-area-inset-top) + 6px);transform:scaleX(-1)}
+.cbr.bl{left:6px;bottom:calc(env(safe-area-inset-bottom) + 6px);transform:scaleY(-1)}.cbr.br{right:6px;bottom:calc(env(safe-area-inset-bottom) + 6px);transform:scale(-1)}
+#localVideo{position:absolute;z-index:2;right:22px;top:calc(env(safe-area-inset-top) + 34px);width:104px;aspect-ratio:3/4;object-fit:cover;border:2px solid var(--cyan);box-shadow:4px 4px 0 #ff4fd8;transform:scaleX(-1);clip-path:polygon(0 8%,12% 0,100% 0,100% 92%,88% 100%,0 100%)}
+.callinfo{position:relative;z-index:2;display:grid;justify-items:center;gap:10px;text-align:center;margin-top:-12vh}
+.calltarget{position:relative;width:200px;height:200px;display:grid;place-items:center}
+.callreticle{position:absolute;inset:0;width:100%;height:100%;color:var(--cyan);animation:callspin 6s linear infinite}
+.callface{width:96px!important;height:96px!important;font-size:38px}
+@keyframes callspin{to{transform:rotate(360deg)}}
+.callinfo b{font-family:var(--num);font-size:34px;color:var(--white);text-shadow:3px 3px 0 #ff4fd8;letter-spacing:1px}
+.callchip{display:inline-flex;align-items:center;gap:10px;padding:8px 18px 8px 14px;background:var(--cyan);color:var(--white);font-family:var(--tech);font-size:12px;letter-spacing:3px;text-transform:uppercase;position:relative;clip-path:polygon(0 30%,12px 0,100% 0,100% 70%,calc(100% - 12px) 100%,0 100%)}
+.callchip::before{content:"";position:absolute;inset:2px;background:rgba(10,20,34,.95);clip-path:inherit;z-index:-1}
+.callchip{isolation:isolate}
+.callchip i{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px rgba(0,240,255,.25);animation:callblink 1s steps(2) infinite}
+@keyframes callblink{50%{opacity:.2}}
+/* once connected, add class "live" to #callScreen: the chip goes magenta, the target fades so their video shows */
+.callscreen.live .callchip{background:#ff4fd8}.callscreen.live .callchip i{background:#ff4fd8;box-shadow:0 0 0 4px rgba(255,79,216,.3);animation:none}
+.callscreen.live .calltarget{display:none}.callscreen.live .callinfo{position:absolute;top:calc(env(safe-area-inset-top) + 40px);left:24px;margin:0;justify-items:start}
+.callscreen.live .callinfo b{font-size:22px}
+.callbar{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 40px);display:flex;gap:18px}
+.hudbtn{width:66px;height:58px;display:grid;place-items:center;border:none;background:var(--cyan);position:relative;isolation:isolate;cursor:pointer;clip-path:polygon(0 25%,14px 0,100% 0,100% 75%,calc(100% - 14px) 100%,0 100%)}
+.hudbtn::before{content:"";position:absolute;inset:2px;background:rgba(10,20,34,.95);clip-path:inherit;z-index:-1}
+.hudbtn svg{width:28px;height:28px;fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hudbtn.off svg{stroke:var(--muted)}.hudbtn.off{background:var(--muted)}
+.hudbtn.end{background:#ff4fd8}.hudbtn.end::before{background:#ff4fd8}.hudbtn.end svg{fill:#07041a;stroke:#07041a}
+.hudbtn:active{transform:translateY(2px)}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .callreticle,html:not(.motion-always) .callchip i{animation:none}}
+#callBtn img{display:block;width:24px;height:24px;image-rendering:pixelated}
+#localVideo.camoff{opacity:.15}
+.calllog{display:flex;align-items:center;gap:10px;min-width:180px}.calllog img{image-rendering:pixelated;flex:none}
+.calllog .cltext{font-family:var(--tech);font-size:13px;letter-spacing:.5px;flex:1}.calllog.missed .cltext{color:#ff4fd8}
+.calllog .clback{flex:none;background:var(--cyan);color:#07041a;border:none;font-family:var(--tech);font-size:10px;padding:6px 9px;clip-path:polygon(0 25%,8px 0,100% 0,100% 75%,calc(100% - 8px) 100%,0 100%)}
+.hudbtn.accept{background:var(--volt)}.hudbtn.accept::before{background:var(--volt)}.hudbtn.accept svg{fill:#07041a;stroke:#07041a}
 </style>
 </head>
 <body>
@@ -3304,6 +3342,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="roombox"><div class="roomname" id="roomLabel"></div><div class="status" id="status"></div><div class="dmpresence hidden" id="dmPresence"></div></div>
     <button class="srch" id="searchBtn" type="button" aria-label="Search this chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
     <button class="ghost taskcount" id="taskCount" type="button" aria-label="Room checklist"></button>
+    <button class="ghost hidden" id="callBtn" type="button" aria-label="Call"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAALlJREFUOI3tkyEOwkAQRV9JVU0lCGRVZbcSg+gtOATH4AxoBOEIILgAu7KKBIPA1jS4RZCSdmcSAli+mv0787I/mY0IlGeVD72iMK96s1tF/bs4HK63+3CeGjDJs16A70Ni0Q3cptJLU5hdpD/SAJqaBmz7A6CTc3ZwViMAjO9zxT0KRwVMrnqzpo8j/AFvAP2d//oFJgG/jkTjyUhPAJyz2BbKpfiQlFZ6AAKbZ5XvooRrC1CfD4OZB9rZKoiZOiC6AAAAAElFTkSuQmCC" alt=""></button>
     <button class="ghost" id="roomBtn" type="button">Room</button>
     <button class="ghost" id="back" type="button">Back</button>
   </div>
@@ -3718,6 +3757,29 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="installClose">Close</button>
   </div></div>
 </div>
+
+<!-- ============ CALL SCREEN (HUD look: NULLSIGNAL UI, recolored for NightLane) ============ -->
+<div class="callscreen hidden" id="callScreen" role="dialog" aria-label="Call">
+  <video id="remoteVideo" autoplay playsinline></video>
+  <div class="callhud" aria-hidden="true"><svg class="cbr tl" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr tr" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr bl" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr br" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg></div>
+  <video id="localVideo" autoplay playsinline muted></video>
+  <div class="callinfo">
+    <div class="calltarget"><svg class="callreticle" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="74" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/><path d="M120 30 A90 90 0 0 1 210 120 M120 210 A90 90 0 0 1 30 120" fill="none" stroke="currentColor" stroke-width="3"/><path d="M120 12 V26 M120 214 V228 M12 120 H26 M214 120 H228" stroke="currentColor" stroke-width="2" opacity=".7"/></svg><span class="face callface" id="callFace"></span></div>
+    <b id="callName"></b>
+    <span class="callchip" id="callChip"><i></i><span id="callState">Calling…</span></span>
+  </div>
+    <div class="callbar hidden" id="callRingBar">
+    <button type="button" class="hudbtn end" id="callDecline" aria-label="Decline"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1v-3c-2-.6-4-.6-6 0v3l-4 1z"/></svg></button>
+    <button type="button" class="hudbtn accept" id="callAccept" aria-label="Accept"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
+  </div>
+    <div class="callbar" id="callMainBar">
+    <button type="button" class="hudbtn" id="callMute" aria-label="Mute"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
+    <button type="button" class="hudbtn" id="callCam" aria-label="Camera off"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg></button>
+    <button type="button" class="hudbtn end" id="callEnd" aria-label="Hang up"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1v-3c-2-.6-4-.6-6 0v3l-4 1z"/></svg></button>
+  </div>
+</div>
+
+
 
 <!-- ============ GAME SCREEN ============ -->
 <div class="overlay hidden" id="gameSheet" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
@@ -4943,6 +5005,7 @@ const live = {
   },
   async deleteMessage(id){ must(await sb.from("messages").delete().eq("id",id)); },
   async editMessage(id,text){ return must(await sb.rpc("edit_message",{p_id:id,p_text:text})); },
+  async callLog(id,text){ return must(await sb.rpc("call_log",{p_id:id,p_text:text})); },
   async countMessages(room){ const {count,error}=await sb.from("messages").select("id",{count:"exact",head:true}).eq("room",room); if(error) throw error; return count; },
   async reactions(ids){ return ids.length ? must(await sb.from("message_reactions").select("message_id,user_id,emoji").in("message_id",ids)) : []; },
   async react(message_id,room,emoji){ must(await sb.from("message_reactions").insert({message_id,room,emoji})); },
@@ -5441,6 +5504,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       setTimeout(()=>{ const r={id:nextId++,room,user_id:who,text:lines[Math.floor(Math.random()*lines.length)],reply_to:null,created_at:iso()}; rooms[room].msgs.push(r); fire("msg",r); },3000);
       return m; },
     async countMessages(room){ return (rooms[room]?.msgs||[]).length; },
+    async callLog(id,text){ for(const r of Object.values(rooms)){ const m=r.msgs.find(x=>x.id===id); if(m){ m.text=text; setTimeout(()=>fire("msgEdited",{...m}),30); return; } } },
     async editMessage(id,text){ for(const r of Object.values(rooms)){ const m=r.msgs.find(x=>x.id===id); if(m){ m.text=text; m.edited_at=iso(); setTimeout(()=>fire("msgEdited",{...m}),30); return {...m}; } } throw new Error("Message not found"); },
     async deleteMessage(id){ for(const r of Object.values(rooms)) r.msgs=r.msgs.filter(m=>m.id!==id); setTimeout(()=>fire("msgGone",id),50); },
     async reactions(ids){ return reacts.filter(r=>ids.includes(r.message_id)); },
@@ -6566,6 +6630,7 @@ async function enterRoom(code,token){
     const [latest,mem,info,pinRows]=await Promise.all([api.loadLatest(room),api.members(room).catch(()=>[]),api.roomInfo(room).catch(()=>null),api.pins(room).catch(()=>[])]);
     if(seq!==enterSeq) return;
     roomOwner=info?.owner||null; isDm=!!info?.is_dm; dmUser=null; disappear=+info?.disappear_seconds||0; delete $("catchUp").dataset.dismissed; show($("catchUp"),false); translations.clear(); showOriginal.clear(); loadTasks();
+    show($("callBtn"), isDm);
     if(isDm){ dmUser=(mem.find(x=>x.user_id!==user.id)||{}).user_id||null; await ensureProfiles([dmUser].filter(Boolean)); if(seq!==enterSeq) return; }
     myNotify=(mem.find(x=>x.user_id===user.id)||{}).notify||"all";
     if(info&&!info.is_dm){ if(info.icon_url) roomIcons.set(room,info.icon_url); else roomIcons.delete(room); }
@@ -6617,6 +6682,7 @@ function exitRoom(){
   clearPending(); clearReply();
   ["chat","roomSheet","msgMenu"].forEach(id=>show($(id),false)); show($("front")); show($("roomCard"));
   room=""; isDm=false; dmUser=null; clearDmStyle(); loadInbox(); if(typeof paintTermBar==="function") paintTermBar();
+  show($("callBtn"), false);
 }
 $("back").onclick=exitRoom;
 
@@ -6765,6 +6831,7 @@ function buildMsg(m,index,noAnim){
   else if(isEcard(m)) bub.append(ecardMsgCard(m));
   else if(m.kind==="poll") bub.append(pollEl(m));
   else if(m.kind==="game") bub.append(gameCard(m));
+  else if(m.kind==="call") bub.append(callLogEl(m));
   else if(m.text){ const t=el("div"); renderTextWithDates(t,m.text,m.mentions,m); annotateTimes(t,m); bub.append(t);
     const pm=m.text.trim().match(/[?!]+$/); if(pm&&(m.kind||"text")==="text"){ const cluster=pm[0]; const marks=cluster.includes("?")&&cluster.includes("!")?"?!":(cluster.includes("?")?"?":"!"); const hasBang=cluster.includes("!"); const p=el("span","punct"+(cluster.length>2?" loud":"")+(hasBang?" bang":""),marks); p.setAttribute("aria-hidden","true"); bub.append(p); } const trb=translationBlock(m); if(trb) bub.append(trb); if(!noAnim||!node.querySelector(".lpcard")) setTimeout(()=>attachPreview(bub,m),0);
     if(/el psy (k|c)ongroo|(^|[^a-z])world ?line([^a-z]|$)/i.test(m.text)&&typeof m.id==="number") bub.append(el("div","d20chip wlchip",`⚗️ world line ${worldLineFor(m)}`));
@@ -8690,6 +8757,7 @@ const toastSeen=new Set();
 async function onAnyMessage(m){
   if(!user||!m||m.user_id===user.id||blocked.has(m.user_id)||toastSeen.has(m.id)) return;
   toastSeen.add(m.id);
+  if(m.kind==="call" && Date.now() - new Date(m.created_at).getTime() < 30000){ showIncomingCall(m); return; }   // a fresh call rings
   if(String(m.room).startsWith("dm-")) bondCheckSoon();
   const viewingIt = m.room===room && !$("chat").classList.contains("hidden") && !document.hidden;
   if(!$("front").classList.contains("hidden")) loadInboxSoon();
@@ -12775,8 +12843,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.15c";
+const APP_VERSION="2026.10.16a";
 const CHANGELOG=[
+  {v:"2026.10.16a", title:"Video calls 📞", items:["📞 You can now video call your friends! Open a DM and tap the 📞 at the top. Your friend's phone rings with Accept and Decline.","🎤 Mute and 📷 camera off during a call, with a LIVE timer.","📝 Every call leaves a note in the chat: how long it was, or a missed call with a Call back button.","Coded by Cole 🛠️"]},
   {v:"2026.10.15c", title:"Crop your profile pic ✂️", items:["✂️ Changing your profile photo now lets you crop it first: drag to move, pinch or slide to zoom, and the circle shows exactly how it'll look (thanks hachiware!)."]},
   {v:"2026.10.15a", title:"New game: Mahjong 🀄", items:["🀄 Mahjong Lite for 2–4 players: draw a tile, throw one away, and be the first to collect 4 sets and a pair. Tap ＋ → Games.","🧠 Never played? Your hand sorts itself into sets, ★ marks good tiles to throw away, and it tells you when you're one tile from winning (and which tiles you need).","🀄 Someone throws away the tile you need? Hit MAHJONG! to grab it and win.","Tile art by natonato, recolored for NightLane."]},
   {v:"2026.10.14c", title:"Tidier chat lists 🧹", items:["🧹 Rooms and DMs got the Friends tab treatment: chats quiet for 2+ weeks fold into a 💤 Quiet section at the bottom (a new message brings them right back up).","🔍 Got 8+ chats? A search box shows up to find one fast.","📬 Tap Unread to see only the chats waiting on you."]},
@@ -14331,6 +14400,183 @@ function syncAuth(u){
   const u=await api.session().catch(()=>null); done=true; clearTimeout(slow);
   syncAuth(u);
 })();
+let callStream=null;   // your camera + mic while a call is open
+
+/* ===== Step 4 polish: call log, ring timeout, ringing buzz, LIVE timer ===== */
+let callMsgId=null, callOutcome=null, callStartAt=0, callTimer=null, ringTimer=null, ringBuzz=null;
+const callClock=ms=>{ const s=Math.floor(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
+function stopRinging(){ clearTimeout(ringTimer); ringTimer=null; clearInterval(ringBuzz); ringBuzz=null; try{ navigator.vibrate&&navigator.vibrate(0); }catch(e){} }
+
+async function openCall(){
+  if(callStream) return;   // already in a call
+  try{
+    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
+    $("localVideo").srcObject=callStream;          // show yourself in the little box
+    $("callName").textContent=nameOf(dmUser);      // their name
+    paintFace($("callFace"), cache.get(dmUser));   // their picture in the middle
+    $("callState").textContent="Calling…";
+    show($("callScreen"));
+    callRoom=room; callOutcome=null; prefetchIce();
+    await joinCallLine(room);   // join the private call channel for this DM
+    const m=await sendFields({kind:"call", text:"📞 Call"});
+    callMsgId=m?.id??null;
+    ringTimer=setTimeout(()=>{ if(!pc){ callOutcome="missed"; $("callState").textContent="No answer"; setTimeout(endCall,1500); } },45000);   // give up after 45 seconds
+  }catch(err){
+    $("status").textContent="Couldn't use your camera or mic: "+err.message;
+    endCall();
+  }
+}
+
+const CALL_ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAALlJREFUOI3tkyEOwkAQRV9JVU0lCGRVZbcSg+gtOATH4AxoBOEIILgAu7KKBIPA1jS4RZCSdmcSAli+mv0787I/mY0IlGeVD72iMK96s1tF/bs4HK63+3CeGjDJs16A70Ni0Q3cptJLU5hdpD/SAJqaBmz7A6CTc3ZwViMAjO9zxT0KRwVMrnqzpo8j/AFvAP2d//oFJgG/jkTjyUhPAJyz2BbKpfiQlFZ6AAKbZ5XvooRrC1CfD4OZB9rZKoiZOiC6AAAAAElFTkSuQmCC", CALL_ICON_MISSED="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAOpJREFUOI2NkzEOgjAUhn+MA4kHYCdMTAauIKMLM1zFVUfvUCYHDqDRybUsGifDzmAii3HDwVDbR6n9p/a1//de+1oHRGGQdDQWRbEYF7uNI68pkzBIutN5Dy/jAIDZawsAqEuGxeo7nj8bBTKh2fw0R1P8MtYlg5/mqK+cbtUDZEhvFjANRAuoSyaOQVVVatxYgY2muuw9BNIdjEl7ibLBT3MBtQLoZIJYAUyyBoxV8RdgOv8AEEWxYqAd0HVj0EYv43gcGdpWbzACqorjfVnDXXK45EX2H4vKoYEwSLr++9JnCwC3+0HxfADT2Fw6GG1bZAAAAABJRU5ErkJggg==";
+/* the call note in the chat: a pixel phone (broken if it was missed), the result, and a Call back button */
+function callLogEl(m){
+  const missed=/missed|declined/i.test(m.text||""), box=el("div","calllog"+(missed?" missed":""));
+  const ic=document.createElement("img"); ic.src=missed?CALL_ICON_MISSED:CALL_ICON; ic.alt=""; ic.width=ic.height=32; box.append(ic);
+  box.append(el("span","cltext",(m.text||"📞 Call").replace(/^📞\s*/,"")));
+  if(isDm&&m.room===room){ const b=el("button","clback","Call back"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openCall(); }; box.append(b); }
+  return box;
+}
+/* the "call line": a private live channel only the 2 people in this DM can use (set up by calls.sql) */
+let callLine=null;
+function joinCallLine(code){
+  leaveCallLine();   // never be on two lines at once
+  if(!sb) return Promise.resolve();   // demo mode has no server
+  return new Promise(resolve=>{
+    callLine=sb.channel("call:"+code,{config:{private:true,broadcast:{self:false}}})
+      .on("broadcast",{event:"signal"},({payload})=>onCallSignal(payload))
+      .subscribe(s=>{ if(s==="SUBSCRIBED") resolve(); });
+  });
+}
+function sendSignal(type,data={}){ callLine?.send({type:"broadcast",event:"signal",payload:{type,...data}}); }
+function leaveCallLine(){ if(callLine){ sb.removeChannel(callLine); callLine=null; } }
+
+/* ===== network routes: STUN finds your address; TURN relays the call when a network blocks direct links =====
+   The TURN password comes from our "turn-credentials" server function (Cloudflare), so it's never in this file.
+   If that isn't set up yet, calls still work on most Wi-Fi using the free STUN servers. */
+const STUN_ONLY={iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun.cloudflare.com:3478"]}]};
+let iceCache=null, iceAt=0;
+async function getIceServers(){
+  if(iceCache&&Date.now()-iceAt<50*60*1000) return iceCache;
+  try{
+    if(!sb) throw 0;
+    const {data,error}=await sb.functions.invoke("turn-credentials");
+    if(error||!data?.iceServers?.length) throw error||0;
+    iceCache={iceServers:data.iceServers}; iceAt=Date.now(); return iceCache;
+  }catch(e){ return STUN_ONLY; }
+}
+function prefetchIce(){ getIceServers().catch(()=>{}); }
+
+/* ===== the video link (WebRTC) =====
+   Each phone makes a "peer connection", plugs its camera + mic into it, and they swap 3 kinds of notes over
+   the call line: an OFFER (caller: "here's what I can send"), an ANSWER (callee: "ok, here's mine"), and
+   ICE notes (possible network routes to reach each phone). Once a route works, video flows phone to phone. */
+let pc=null, pendingIce=[];
+async function startPeer(){
+  const servers=await getIceServers(); if(!callStream) return;
+  pc=new RTCPeerConnection(servers); pendingIce=[];
+  callStream.getTracks().forEach(t=>pc.addTrack(t,callStream));                  // send my camera + mic
+  pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; $("callScreen").classList.add("live");   // their video arrived
+    if(!callStartAt){ callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
+  pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
+  pc.onconnectionstatechange=()=>{ if(pc?.connectionState==="failed"){ $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } };
+}
+async function flushIce(){ for(const c of pendingIce.splice(0)){ try{ await pc.addIceCandidate(c); }catch(e){} } }
+async function sendOffer(){ if(!pc) return; const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }
+async function onOffer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); const a=await pc.createAnswer(); await pc.setLocalDescription(a); sendSignal("answer",{sdp:pc.localDescription.toJSON()}); }
+async function onAnswer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); }
+async function onIce(c){ if(!pc||!pc.remoteDescription){ pendingIce.push(c); return; } try{ await pc.addIceCandidate(c); }catch(e){} }
+function stopPeer(){ if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("callScreen").classList.remove("live"); }
+
+function endCall(){
+  sendSignal("end");   // tell the other phone we hung up
+  leaveCallLine();
+  stopPeer(); stopRinging();
+  // the caller updates the call note in the chat: "📞 Call · 2:31", "📞 Missed call" or "📞 Call declined"
+  if(callMsgId!=null){
+    const text=callStartAt?`📞 Call · ${callClock(Date.now()-callStartAt)}`:callOutcome==="declined"?"📞 Call declined":"📞 Missed call";
+    api.callLog(callMsgId,text).catch(()=>{});
+  }
+  callMsgId=null; callOutcome=null; callStartAt=0; clearInterval(callTimer); callTimer=null;
+  if(callStream){
+    callStream.getTracks().forEach(track => track.stop());
+  }
+  callStream=null;
+  $("localVideo").srcObject=null;
+  ["callMute","callCam"].forEach(id=>{ $(id).classList.remove("off"); $(id).setAttribute("aria-pressed","false"); });
+  $("localVideo").classList.remove("camoff");
+  show($("callRingBar"), false);
+  show($("callMainBar"), true);
+  show($("callScreen"),false);
+}
+
+let callRoom=null;   // which DM the call is in
+
+async function showIncomingCall(m){
+  if(callStream||pc||!$("callScreen").classList.contains("hidden")) return;   // already on a call: ignore
+  callRoom=m.room; callMsgId=null;
+  $("callName").textContent=nameOf(m.user_id);        // who's calling
+  paintFace($("callFace"), cache.get(m.user_id));     // their picture in the middle
+  $("callState").textContent="Incoming call…";
+  show($("callRingBar"), true);
+  show($("callMainBar"), false);
+  show($("callScreen"), true);
+  // ring: buzz + chime every 2 seconds, and stop after 45 seconds like the caller does
+  const ring=()=>{ try{ navigator.vibrate&&navigator.vibrate([400,200,400]); }catch(e){} if(typeof sfx==="function") sfx("notify"); };
+  ring(); ringBuzz=setInterval(ring,2000);
+  ringTimer=setTimeout(()=>{ $("callState").textContent="Missed call"; setTimeout(endCall,1200); },45000);
+  prefetchIce();
+  await joinCallLine(callRoom);   // listen right away, so if they hang up first, the ringing stops
+}
+
+async function declineCall(){
+  stopRinging();
+  if(!callLine) await joinCallLine(callRoom);
+  sendSignal("decline");
+  leaveCallLine();   // leave first, so endCall doesn't also send "end"
+  endCall();
+}
+$("callDecline").onclick=declineCall;
+
+function onCallSignal(s){
+  if(s.type==="decline"){ callOutcome="declined"; stopRinging(); $("callState").textContent="Declined"; setTimeout(endCall,1500); }
+  if(s.type==="end"){ leaveCallLine(); endCall(); }   // they hung up (leave first so we don't say "end" back)
+  if(s.type==="offer") onOffer(s.sdp);     // video link notes (handled by the helpers above)
+  if(s.type==="answer") onAnswer(s.sdp);
+  if(s.type==="ice") onIce(s.c);
+  if(s.type==="accept"){ stopRinging(); $("callState").textContent="Connecting…"; startPeer().then(sendOffer); }   // they picked up: start the video link
+}
+
+async function acceptCall(){
+  stopRinging();
+  try{
+    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
+    $("localVideo").srcObject=callStream;          // show yourself in the little box
+    show($("callRingBar"), false);
+    show($("callMainBar"), true);
+    $("callState").textContent="Connecting…";
+    if(!callLine) await joinCallLine(callRoom);   // join the private call channel for this DM
+    await startPeer();              // get the video link ready...
+    sendSignal("accept");           // ...then tell the caller to send the offer
+  }catch(err){
+    $("callState").textContent="Couldn't use your camera or mic";
+    setTimeout(endCall,1500);
+  }
+}
+$("callAccept").onclick=acceptCall;
+
+/* mute + camera off: the tracks stay connected, they just send silence / black until you turn them back on */
+function toggleTrack(kind,btn,offLabel,onLabel){
+  if(!callStream) return;
+  const tracks=kind==="audio"?callStream.getAudioTracks():callStream.getVideoTracks();
+  const off=tracks.some(t=>t.enabled); tracks.forEach(t=>t.enabled=!off);
+  btn.classList.toggle("off",off); btn.setAttribute("aria-pressed",String(off)); btn.setAttribute("aria-label",off?onLabel:offLabel);
+  if(kind==="video") $("localVideo").classList.toggle("camoff",off);
+}
+$("callMute").onclick=()=>toggleTrack("audio",$("callMute"),"Mute","Unmute");
+$("callCam").onclick=()=>toggleTrack("video",$("callCam"),"Camera off","Camera on");
+
+$("callBtn").onclick=openCall;
+$("callEnd").onclick=endCall;
 </script>
 </body>
 </html>
