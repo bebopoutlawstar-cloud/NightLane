@@ -5136,6 +5136,7 @@ const live = {
     return data;
   },
   async setNotify(room,mode){ must(await sb.from("room_members").update({notify:mode}).eq("room",room).eq("user_id",user.id)); },
+  async setHere(room,active){ const {error}=await sb.rpc("set_here",{p_room:room,p_active:active}); if(error){ if(/set_here|schema cache|does not exist/i.test(error.message)) return "old"; throw error; } },
   async setViewing(room,on){ const {error}=await sb.rpc("set_viewing",{p_room:room,p_on:on}); if(error&&!/set_viewing|schema cache|does not exist/i.test(error.message)) throw error; },
   async ai(body){ const {data,error}=await sb.functions.invoke("ai",{body}); if(error){ let msg=error.message; try{ const j=await error.context?.json(); if(j?.error) msg=j.error; }catch(e){} throw new Error(msg); } if(data?.error) throw new Error(data.error); return data; },
   async tasks(room){ return must(await sb.from("room_tasks").select("*").eq("room",room).order("created_at")); },
@@ -5688,7 +5689,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       return code;
     },
     async setNotify(room,mode){ rooms[room].members.me.notify=mode; },
-    async setViewing(){},
+    async setViewing(){}, async setHere(){},
     async ai(body){
       await new Promise(r=>setTimeout(r,500));
       if(body.action==="summarize") return {headline:"Demo summary: the crew is planning an arcade night.",points:["Rook asked who's up for the arcade later; Vee and you are in.","A poll is running: Arcade vs Movies vs Both.","Someone is bringing snacks (Vee volunteered)."],todo:["Vote in the poll","Reply about tonight's time"]};
@@ -9023,19 +9024,24 @@ $("notifyModes").querySelectorAll("button").forEach(b=>b.onclick=async()=>{
 /* 👀 "reading this chat right now": tells the server which chat is on your screen, so it doesn't send you
    phone notifications for it (needs viewing.sql + notify v24). Refreshed every 20 seconds; the server
    forgets it 45 seconds after the app closes or goes to the background. */
-let viewingRoom=null, viewingAt=0;
+let viewingKey=null, viewingRoom=null, viewingAt=0, hereOld=false;
 function viewingNow(){ return (sb&&user&&room&&!document.hidden&&!$("chat").classList.contains("hidden"))?room:null; }
+/* 16q: also "NightLane is on my screen" (any page), so the server skips message pushes while you're in the app:
+   the app's own pop-up already shows them. Not sent if you turned on "Phone notifications while NightLane is open". */
+function appActiveNow(){ return !!(sb&&user&&!document.hidden&&!(typeof dupOn==="function"&&dupOn())); }
+function sendHere(r,active){
+  if(hereOld){ if(viewingRoom&&viewingRoom!==r) api.setViewing(viewingRoom,false).catch(()=>{}); if(r) api.setViewing(r,true).catch(()=>{}); return; }
+  api.setHere(r,active).then(x=>{ if(x==="old"){ hereOld=true; sendHere(r,active); } }).catch(()=>{ viewingAt=0; });
+}
 function viewTick(force){
-  const now=viewingNow();
-  if(now!==viewingRoom){
-    if(viewingRoom) api.setViewing(viewingRoom,false).catch(()=>{});
-    viewingRoom=now; viewingAt=0;
-  }
-  if(now&&(force||Date.now()-viewingAt>20000)){ viewingAt=Date.now(); api.setViewing(now,true).catch(()=>{ viewingAt=0; }); }
+  if(!sb||!user) return;
+  const r=viewingNow(), active=appActiveNow(), key=(r||"")+"|"+active;
+  if(key!==viewingKey){ sendHere(r,active); viewingKey=key; viewingRoom=r; viewingAt=Date.now(); return; }
+  if((r||active)&&(force||Date.now()-viewingAt>20000)){ viewingAt=Date.now(); sendHere(r,active); }
 }
 setInterval(()=>viewTick(false),3000);
 document.addEventListener("visibilitychange",()=>viewTick(true));
-addEventListener("pagehide",()=>{ if(viewingRoom){ api.setViewing(viewingRoom,false).catch(()=>{}); viewingRoom=null; } });
+addEventListener("pagehide",()=>{ if(viewingKey&&viewingKey!=="|false"){ sendHere(null,false); viewingKey="|false"; viewingRoom=null; } });
 
 // in-app banners for chats you're not looking at
 const toastSeen=new Set();
@@ -13148,8 +13154,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16p";
+const APP_VERSION="2026.10.16q";
 const CHANGELOG=[
+  {v:"2026.10.16q", title:"No double pop-ups 🔕", items:["🔕 While NightLane is open, new messages only show NightLane's own pop-up, not a phone notification on top of it (thanks jimmylikespie21!). Want both anyway? Turn on Phone notifications while NightLane is open in Profile."]},
   {v:"2026.10.16p", title:"Smarter notifications 👀", items:["👀 NightLane now knows which chat you have open, so it never sends your phone a notification for the chat you're reading. Close the app or switch chats and they come back right away."]},
   {v:"2026.10.16o", title:"Quieter notifications 🔕", items:["🔕 No more notification pop-ups for the chat you're already reading (thanks jimmylikespie21!)."]},
   {v:"2026.10.16n", title:"Mahjong fix 🀄", items:["🀄 Your hand no longer shows up twice for a moment after a move (thanks Kenny!)."]},
