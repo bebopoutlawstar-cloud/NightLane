@@ -2185,6 +2185,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .updatebar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translateX(-50%) rotate(-1deg);z-index:35;max-width:calc(100% - 24px);
   background:var(--volt);color:var(--night);border:3px solid var(--night);box-shadow:5px 5px 0 var(--mag);font-family:var(--tech);font-size:13px;padding:10px 16px;white-space:nowrap;animation:toastin .35s cubic-bezier(.2,1.5,.4,1) both}
 .updatebar b{text-decoration:underline}
+.updatebar.pushnudge{bottom:calc(env(safe-area-inset-bottom) + 140px)}
 /* ===== media backlog ===== */
 .bltabs{width:100%}
 .bltabs button{white-space:nowrap;font-size:clamp(14px,4.4vw,18px)}
@@ -4026,6 +4027,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<button type="button" class="updatebar pushnudge hidden" id="pushNudge">🔔 Notifications are off · <b>Tap to turn on</b></button>
 <button type="button" class="updatebar hidden" id="updateBar">✨ New update ready · <b>Tap to refresh</b></button>
 <!-- ============ HABITS & STATS ============ -->
 <!-- ============ WHAT'S NEW ============ -->
@@ -8413,13 +8415,14 @@ if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostn
   navigator.serviceWorker.addEventListener("message",e=>{ if(e.data?.room==="@reports"){ if(user&&isAdmin) openReviews(); else pendingOpenReports=true; return; } if(e.data?.room && user){ ["profile","roomSheet","msgMenu"].forEach(id=>show($(id),false)); enterRoom(e.data.room); } });
 }
 function b64ToBytes(b){ const p="=".repeat((4-b.length%4)%4), s=atob((b+p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from(s,c=>c.charCodeAt(0)); }
-async function currentSub(){ return swReg ? swReg.pushManager.getSubscription() : null; }
+async function currentSub(){ const r=await swReady(); return r ? r.pushManager.getSubscription() : null; }
 async function paintNotif(){
   const btn=$("notifBtn");
   if(!sb||!VAPID_PUBLIC_KEY){ btn.disabled=true; btn.textContent="Notifications: not set up yet"; return; }
   if(isIOS&&!installed){ btn.disabled=false; btn.textContent="📲 Install the app to get notifications"; btn.dataset.install="1"; return; }
   delete btn.dataset.install;
-  if(!swReg||!("PushManager" in window)||BROWSER.name==="opera"){ btn.disabled=true;
+  const reg=await swReady();
+  if(!reg||!("PushManager" in window)||BROWSER.name==="opera"){ btn.disabled=true;
     btn.textContent=BROWSER.ios?"Open NightLane from your home screen icon for notifications":BROWSER.android?"No notifications in this browser: open NightLane in Chrome or get the Play Store app":"Notifications don't work in this browser: try Chrome or Edge"; return; }
   if(Notification.permission==="denied"){ btn.disabled=true; btn.textContent="Notifications blocked in settings"; return; }
   const subbed=!!(await currentSub());
@@ -8427,27 +8430,62 @@ async function paintNotif(){
 }
 async function pushOn(){
   if(await Notification.requestPermission()!=="granted") throw new Error("Permission wasn't given.");
-  const sub=await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
+  const reg=await swReady(); if(!reg) throw new Error("The app is still starting up. Try again in a second.");
+  const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
   await api.savePush(sub.toJSON());
+  try{ LS.set("nl-push-on","1"); LS.set("nl-push-off",""); }catch(e){}
+  show($("pushNudge"),false);
 }
-// iOS in particular can silently invalidate a push subscription (OS update, long idle, etc.) without
-// telling the page. Browsers hand back the SAME subscription if it's still good, so re-subscribing on
-// every app open is a safe, cheap way to catch a dead one and quietly re-save a fresh one.
+/* the service worker can still be starting when the app opens: wait for it (up to 5 seconds) */
+async function swReady(){
+  if(swReg) return swReg;
+  if(!("serviceWorker" in navigator)) return null;
+  try{ const r=await Promise.race([navigator.serviceWorker.ready,new Promise(res=>setTimeout(()=>res(null),5000))]); if(r) swReg=r; }catch(e){}
+  return swReg;
+}
+// Phones can quietly drop a push subscription (iPhone does it after a few "silent" pushes, OS updates,
+// long idle...) without telling the app. So every time the app opens (and when you come back to it):
+//  - still subscribed? re-save it, so the server always has the current one
+//  - lost it, but you never turned notifications off yourself? quietly sign back up
+//  - the phone won't let us do that without a tap (iPhone)? show a one-tap "turn them back on" bar
+let pushCheckAt=0;
 async function refreshPushSubscription(){
   try{
-    if(!sb||!VAPID_PUBLIC_KEY||!swReg||!("PushManager" in window)) return;
-    if(Notification.permission!=="granted") return;
-    const had=await currentSub(); if(!had) return;   // only refresh if notifications were actually turned on
-    const sub=await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
-    await api.savePush(sub.toJSON());
-  }catch(e){ /* best-effort; the manual toggle in profile still works as a fallback */ }
+    if(!sb||!VAPID_PUBLIC_KEY||!user||!("PushManager" in window)||!("Notification" in window)) return;
+    if(isIOS&&!installed) return;
+    pushCheckAt=Date.now();
+    let off=false, wasOn=false; try{ off=LS.get("nl-push-off")==="1"; wasOn=LS.get("nl-push-on")==="1"; }catch(e){}
+    if(off) return;   // you turned them off on purpose
+    const reg=await swReady(); if(!reg) return;
+    const had=await reg.pushManager.getSubscription();
+    const perm=Notification.permission;
+    if(perm==="denied") return;
+    if(!had&&!wasOn&&perm!=="granted") return;   // never turned on here
+    if(perm==="granted"){
+      try{
+        const sub=had||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
+        await api.savePush(sub.toJSON());
+        try{ LS.set("nl-push-on","1"); }catch(e){}
+        show($("pushNudge"),false); return;
+      }catch(e){ if(had) return; }   // couldn't sign back up without a tap: fall through to the bar
+    }
+    show($("pushNudge"),true);
+  }catch(e){ /* best-effort; the toggle in Profile still works */ }
 }
+$("pushNudge").onclick=async()=>{
+  $("pushNudge").disabled=true;
+  try{ await pushOn(); $("status").textContent="🔔 Notifications are back on."; }
+  catch(err){ show($("pushNudge"),false); $("status").textContent="Couldn't turn notifications on: "+err.message; }
+  $("pushNudge").disabled=false; paintNotif().catch(()=>{});
+};
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&user&&Date.now()-pushCheckAt>10*60*1000) refreshPushSubscription(); });
 async function pushOff(){ const sub=await currentSub(); if(!sub) return; await api.deletePush(sub.endpoint); await sub.unsubscribe(); }
+function pushOffOnPurpose(){ try{ LS.set("nl-push-off","1"); LS.set("nl-push-on",""); }catch(e){} show($("pushNudge"),false); }
 $("notifBtn").onclick=async()=>{
   if($("notifBtn").dataset.install){ show($("profile"),false); openInstallSheet(); return; }
   $("notifBtn").disabled=true;
   try{
-    if(await currentSub()){ await pushOff(); say("profMsg","Notifications off."); }
+    if(await currentSub()){ await pushOff(); pushOffOnPurpose(); say("profMsg","Notifications off."); }
     else { await pushOn(); say("profMsg","Notifications on for rooms you've joined."); }
   }catch(err){ say("profMsg",err.message,true); }
   paintNotif();
@@ -13057,8 +13095,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16g";
+const APP_VERSION="2026.10.16h";
 const CHANGELOG=[
+  {v:"2026.10.16h", title:"Notifications stay on 🔔", items:["🔔 Fixed notifications switching themselves off after updates (thanks Isaiah and Freddy!). If your phone ever drops them anyway, NightLane turns them back on by itself, or shows a one-tap bar to do it."]},
   {v:"2026.10.16g", title:"New game: Go ⚫", items:["⚫ Play Go on a 9×9 board: ＋ → Games → Go. Surround territory, capture stones, and pass when you're done.","👆 Tap a spot to preview your stone, then tap again to place it, so no more misplaced stones.","📖 Full rules are under How to play."]},
   {v:"2026.10.16f", title:"No more surprise zoom", items:["🔍 Double-tapping on iPhone no longer zooms the screen (in chats, menus or calls). Pinch zoom still works."]},
   {v:"2026.10.16e", title:"Call controls 🔊", items:["🔊 Video calls are now LOUD: your mic gets a boost so quiet talkers come through. When both cameras are off it switches to QUIET mode, for holding the phone up to your ear. Tap the speaker button to switch it yourself.","🔄 Flip between your front and back camera.","👾 Privacy glitch: stay on video, but they only see you as moving neon blocks, never your face.","🎵 New sounds for accepting, declining and hanging up, and the connect chime now plays when you pick up too."]},
