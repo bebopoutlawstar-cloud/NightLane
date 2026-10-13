@@ -1,5 +1,5 @@
-// NightLane service worker (v19): push notifications + fast repeat loads.
-const CACHE="nightlane-v19";
+// NightLane service worker (v20): push notifications + fast repeat loads.
+const CACHE="nightlane-v20";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
@@ -109,12 +109,17 @@ async function unreadIn(room) {
   finally { clearTimeout(tm); }
 }
 
-// iPhone (and Chrome) expect EVERY push to show a notification. Skipping it (because you're already looking at the chat)
-// counts as a "silent push", and after a few of those iPhone quietly switches NightLane's notifications off.
-// So when we don't want to bother you, show an invisible one and close it straight away.
-async function quietPush() {
+// iPhone / iPad / Mac Safari expect EVERY push to show a notification. Skipping one (because you're already in the app)
+// counts as a "silent push", and after a few of those Apple quietly switches NightLane's notifications off.
+// So on Apple only: show the real message with no sound, then tidy it away so it doesn't pile up.
+// (Chrome and Android don't need this while NightLane is on screen, so they stay quiet.)
+const UA = (self.navigator && self.navigator.userAgent) || "";
+const APPLE_PUSH = /iPhone|iPad|iPod|Macintosh/.test(UA) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|Android/.test(UA);
+async function quietPush(data) {
+  if (!APPLE_PUSH) return;
   try {
-    await self.registration.showNotification("NightLane", { tag: "nl-quiet", silent: true, body: "" });
+    await self.registration.showNotification(data.title || "NightLane", { body: data.body || "New message", tag: "nl-quiet", silent: true, icon: data.icon || "icon-192.png", badge: "badge-96.png", data: { room: data.room || "" } });
+    await new Promise(r => setTimeout(r, 4000));
     (await self.registration.getNotifications({ tag: "nl-quiet" })).forEach(n => n.close());
   } catch (e) {}
 }
@@ -130,12 +135,12 @@ self.addEventListener("push", event => {
     const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const visible = wins.filter(w => w.visibilityState === "visible");
     const rooms = await Promise.all(visible.map(askWhichRoom));
-    if (room && rooms.includes(room)) return quietPush();
+    if (room && rooms.includes(room)) return quietPush(data);
     // NightLane is the app you're using (any page): its own in-app pop-up already shows this, so skip the phone one
     // unless you turned on "Phone notifications while NightLane is open".
     if (visible.some(w => w.focused)) {   // focused = it's the app you're using right now (not just a window behind others)
       let both = false; try { const r = await caches.match("__nl_prefs"); if (r) both = !!(await r.json()).bothWhileOpen; } catch (e) {}
-      if (!both) return quietPush();
+      if (!both) return quietPush(data);
     }
 
     // Stack messages from the same chat into one notification with a running count.
@@ -143,7 +148,7 @@ self.addEventListener("push", event => {
     const prev = existing[0];
     // Ask the server what's actually unread, so messages you already read on another device drop off
     const unread = await unreadIn(room);
-    if (unread === 0) { existing.forEach(n => n.close()); return quietPush(); }   // you've already read everything here (e.g. on your PC)
+    if (unread === 0) { existing.forEach(n => n.close()); return quietPush(data); }   // you've already read everything here (e.g. on your PC)
     const count = unread != null ? unread : (prev?.data?.count || 0) + 1;
     const lines = [...(prev?.data?.lines || []), data.body || "New message"].slice(-Math.max(1, Math.min(4, count)));
     const mention = !!data.mention || !!prev?.data?.mention;

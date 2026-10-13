@@ -2373,6 +2373,10 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .mjend{width:100%;border:2px dashed var(--volt);padding:10px;display:grid;gap:8px;text-align:center}.mjendhead{font-size:15px}.mjflush{font-family:var(--tech);color:var(--volt);font-size:12px}
 .mjother{display:grid;gap:3px;text-align:left}.mjother small{color:var(--muted);font-size:11px}
 .rulebox .mjt{--z:1}
+/* phones: the hand never runs off the screen (14 tiles wrap onto 2 rows, tiles shrink a little on narrow phones) */
+.mjgame,.mjhandwrap,.mjtable,#mjHand{min-width:0;max-width:100%;box-sizing:border-box}
+.mjset{max-width:100%;flex-wrap:wrap;justify-content:center;row-gap:6px}
+@media (max-width:440px){ #mjHand .mjt{--z:1.65} .mjgroups{gap:6px} }
 .e8card.wild4{background:conic-gradient(from 30deg,#FF2E3F,#F3FF3A,#2EE66B,#00F0FF,#7A4BD6,#FF2E3F)!important;color:#fff;text-shadow:2px 2px 0 #07041a}
 .e8card.wild4 b{font-family:var(--num);font-size:24px}.e8card.wild4.sm b{font-size:13px}
 .e8card.act{position:relative}
@@ -3207,7 +3211,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .rvacts .danger{color:#ff6b6b}
 #openReports.alert{color:var(--volt)}
 /* ===== call screen: HUD look (NULLSIGNAL UI kit, recolored for NightLane) ===== */
-.callscreen{position:fixed;inset:0;z-index:9500;background:radial-gradient(circle at 50% 38%,#1a1048,#07041a 70%);display:grid;place-items:center;overflow:hidden;color:var(--cyan)}
+.callscreen{position:fixed;inset:0;z-index:9500;overflow:clip;background:radial-gradient(circle at 50% 38%,#1a1048,#07041a 70%);display:grid;place-items:center;overflow:hidden;color:var(--cyan)}
 .callscreen::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,240,255,.05) 0 1px,transparent 1px 4px)}   /* faint scanlines */
 #remoteVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent}
 .callhud{position:absolute;inset:0;pointer-events:none;z-index:1}
@@ -3241,13 +3245,28 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .callscreen.callvoice.live .callinfo b,.callscreen.theyoff.live .callinfo b{font-size:34px}
 .callscreen.callvoice.live .callreticle,.callscreen.theyoff.live .callreticle{animation-duration:12s}
 /* second row: flip camera, privacy glitch, loud/quiet (hidden while it's ringing) */
-.callbar.sub{bottom:calc(env(safe-area-inset-bottom) + 154px);gap:14px}
+.callbar.sub{bottom:calc(env(safe-area-inset-bottom) + 150px);gap:12px}
 #callRingBar:not(.hidden)~#callSubBar{display:none}
-.hudbtn.mini{width:auto;height:48px;padding:0 16px 0 14px;display:flex;align-items:center;gap:8px;clip-path:polygon(0 25%,10px 0,100% 0,100% 75%,calc(100% - 10px) 100%,0 100%)}.hudbtn.mini svg{width:24px;height:24px}
-.hudbtn.mini span{text-shadow:none!important;animation:none!important;font-family:var(--tech);font-size:11px;letter-spacing:2px;color:var(--cyan)}.hudbtn.mini.on span{color:#ff4fd8}
+.hudbtn.mini{width:68px;height:58px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;clip-path:polygon(0 22%,10px 0,100% 0,100% 78%,calc(100% - 10px) 100%,0 100%)}.hudbtn.mini svg{width:24px;height:24px}
+.hudbtn.mini span{text-shadow:none!important;animation:none!important;font-family:var(--tech);font-size:9px;letter-spacing:1.5px;color:var(--cyan)}.hudbtn.mini.on span{color:#ff4fd8}
 .hudbtn.on{background:#ff4fd8}.hudbtn.on svg{stroke:#ff4fd8}
 #callVol:not(.on) .wave2{display:none}
 #localVideo.back{transform:none}
+/* hide the buttons (tap anywhere to bring them back), like FaceTime */
+.callscreen .callbar,.callscreen .callhud,.callscreen .callinfo{transition:opacity .25s}
+.callscreen.uihidden .callbar,.callscreen.uihidden .callhud,.callscreen.uihidden .callinfo{opacity:0;pointer-events:none}
+.callscreen.uihidden.callvoice .callinfo,.callscreen.uihidden.theyoff .callinfo{opacity:1}   /* no video to look at: keep their picture */
+/* the little LOUD / QUIET / "tap to show" pop */
+.callflash{position:absolute;left:50%;top:42%;z-index:4;transform:translate(-50%,-50%);padding:10px 16px;background:rgba(10,20,34,.92);border:2px solid var(--volt);color:var(--volt);font-family:var(--tech);font-size:13px;letter-spacing:1px;text-align:center;pointer-events:none;opacity:0;transition:opacity .2s;max-width:80%}
+.callflash.on{opacity:1}
+/* drag your own video to any corner */
+#localVideo{touch-action:none;cursor:grab;transition:none}
+#localVideo.dragging{cursor:grabbing;box-shadow:6px 6px 0 #ff4fd8,0 0 0 3px var(--volt)}
+.callscreen[data-lv="tl"] #localVideo{left:22px;right:auto}
+.callscreen[data-lv="bl"] #localVideo,.callscreen[data-lv="br"] #localVideo{top:auto;bottom:calc(env(safe-area-inset-bottom) + 228px)}
+.callscreen[data-lv="bl"] #localVideo{left:22px;right:auto}
+.callscreen.uihidden[data-lv="bl"] #localVideo,.callscreen.uihidden[data-lv="br"] #localVideo{bottom:calc(env(safe-area-inset-bottom) + 28px)}
+.callscreen.live[data-lv="tl"] .callinfo{left:auto;right:24px;justify-items:end}   /* your box is top-left: their name moves right */
 .hudbtn{width:84px;height:74px;display:grid;place-items:center;border:none;background:var(--cyan);position:relative;isolation:isolate;cursor:pointer;clip-path:polygon(0 25%,14px 0,100% 0,100% 75%,calc(100% - 14px) 100%,0 100%)}
 .hudbtn::before{content:"";position:absolute;inset:2px;background:rgba(10,20,34,.95);clip-path:inherit;z-index:-1}
 .hudbtn svg{width:36px;height:36px;fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -3842,7 +3861,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="hudbtn mini" id="callFlip" aria-label="Flip camera"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/></svg><span>FLIP</span></button>
     <button type="button" class="hudbtn mini" id="callGlitch" aria-label="Privacy glitch: hide your face" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 5h7M14 5h7M3 9h4M10 9h11M3 13h10M16 13h5M3 17h6M12 17h9"/><path d="M5 21h4M14 21h5"/></svg><span>MASK</span></button>
     <button type="button" class="hudbtn mini on" id="callVol" aria-label="Volume: loud (tap for quiet)" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave2" d="M18.5 7a7 7 0 0 1 0 10"/></svg><span id="callVolTxt">LOUD</span></button>
+    <button type="button" class="hudbtn mini" id="callHide" aria-label="Hide the buttons (tap the screen to bring them back)"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 21L21 3"/></svg><span>HIDE</span></button>
   </div>
+  <div class="callflash" id="callFlash" aria-live="polite"></div>
 </div>
 
 
@@ -13105,8 +13126,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16j";
+const APP_VERSION="2026.10.16l";
 const CHANGELOG=[
+  {v:"2026.10.16l", title:"Fixes 🀄", items:["🀄 Mahjong: your hand no longer runs off the side of the screen on phones. Tiles wrap onto two rows (thanks Kenny!).","🔔 iPhone: no more blank \"NightLane\" notifications while you're in the app. If one shows, it's the real message, with no sound."]},
+  {v:"2026.10.16k", title:"Call upgrades 📹", items:["🔊 LOUD and QUIET actually sound different now: LOUD is about 3× louder, and quiet talkers get a real boost. You'll see a pop-up on both phones when it switches.","👁 Tap HIDE, or tap the video, to hide all the buttons. Tap anywhere to bring them back.","↔️ Drag your own video box to any corner, like FaceTime. It remembers where you put it.","🙌 Thanks to hachiware and Babygirl Fried Rice Legend for the ideas!"]},
   {v:"2026.10.16j", title:"Mic help 🎤", items:["🎤 If your phone won't let NightLane use the mic or camera for a call, you now get clear steps for your phone (iPhone, Android or computer) instead of an error code."]},
   {v:"2026.10.16i", title:"Small fix 📞", items:["📞 The Voice/Video call menu no longer hides behind a pinned message (thanks hachiware!)."]},
   {v:"2026.10.16h", title:"Notifications stay on 🔔", items:["🔔 Fixed notifications switching themselves off after updates (thanks Isaiah and Freddy!). If your phone ever drops them anyway, NightLane turns them back on by itself, or shows a one-tap bar to do it."]},
@@ -14768,7 +14791,7 @@ function setCallVoice(v){ callVoice=!!v; show($("callCam"),!callVoice); show($("
    The 🔊 button flips it by hand, for both phones. */
 let camTrack=null, micRaw=null, camFacing="user", callCtx=null, micGain=null, audioSender=null, videoSender=null;
 let myCam=true, theirCam=true, loudPick=null, glitch=null;
-const LOUD_GAIN=2.2, QUIET_GAIN=1;
+const LOUD_GAIN=3.5, QUIET_GAIN=1;   // after the leveler: LOUD is about 3.5× louder than QUIET (+11 dB)
 function callLoud(){ const both=callVoice||(!myCam&&!theirCam); return loudPick!=null?loudPick:!both; }
 function updateCallLook(){
   const cs=$("callScreen"), both=callVoice||(!myCam&&!theirCam);
@@ -14789,9 +14812,12 @@ async function getCallMedia(){
     if(callCtx.state!=="running") await Promise.race([callCtx.resume(),new Promise(r=>setTimeout(r,800))]);
     if(callCtx.state!=="running") throw 0;   // no boost is better than no sound
     const src=callCtx.createMediaStreamSource(new MediaStream([micRaw]));
-    const g=callCtx.createGain(), lim=callCtx.createDynamicsCompressor(), out=callCtx.createMediaStreamDestination();
-    lim.threshold.value=-18; lim.knee.value=10; lim.ratio.value=6; lim.attack.value=.004; lim.release.value=.2;
-    src.connect(g).connect(lim).connect(out); micGain=g; mic=out.stream.getAudioTracks()[0];
+    // mic -> leveler (evens out soft and loud talking) -> volume knob (LOUD / QUIET) -> limiter (stops crackle) -> the call
+    const lev=callCtx.createDynamicsCompressor(), g=callCtx.createGain(), lim=callCtx.createDynamicsCompressor(), out=callCtx.createMediaStreamDestination();
+    lev.threshold.value=-34; lev.knee.value=8; lev.ratio.value=3; lev.attack.value=.006; lev.release.value=.25;
+    lim.threshold.value=-2; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=.002; lim.release.value=.08;
+    g.gain.value=callLoud()?LOUD_GAIN:QUIET_GAIN;
+    src.connect(lev).connect(g).connect(lim).connect(out); micGain=g; mic=out.stream.getAudioTracks()[0];
     callCtx.onstatechange=()=>{   // iPhone can pause audio (another call, Siri): fall back to the plain mic
       if(!callCtx||callCtx.state==="running"||!micRaw) return;
       callCtx.resume().catch(()=>{}).finally(()=>setTimeout(()=>{ if(callCtx&&callCtx.state!=="running"&&micRaw) useRawMic(); },1000));
@@ -14971,7 +14997,7 @@ function endCall(){
   if(callCtx){ callCtx.onstatechange=null; callCtx.close().catch(()=>{}); }
   camTrack=micRaw=callCtx=micGain=audioSender=videoSender=null; camFacing="user"; myCam=theirCam=true; loudPick=null;
   $("callGlitch").classList.remove("on"); $("callGlitch").setAttribute("aria-pressed","false");
-  $("localVideo").classList.remove("back"); $("callScreen").classList.remove("theyoff");
+  $("localVideo").classList.remove("back"); $("callScreen").classList.remove("theyoff","uihidden");
   callStream=null; audioForCapture(false); updateCallLook();
   $("localVideo").srcObject=null;
   ["callMute","callCam"].forEach(id=>{ $(id).classList.remove("off"); $(id).setAttribute("aria-pressed","false"); });
@@ -15016,7 +15042,7 @@ function onCallSignal(s){
   if(s.type==="answer") onAnswer(s.sdp);
   if(s.type==="ice") onIce(s.c);
   if(s.type==="cam"){ theirCam=!!s.on; loudPick=null; updateCallLook(); }   // they turned their camera on/off
-  if(s.type==="vol"){ loudPick=!!s.loud; updateCallLook(); }                 // they tapped 🔊
+  if(s.type==="vol"){ loudPick=!!s.loud; updateCallLook(); flashVol(); }     // they tapped 🔊
   if(s.type==="accept"){ stopRinging(); $("callState").textContent="Connecting…"; startPeer().then(sendOffer); }   // they picked up: start the video link
 }
 
@@ -15050,7 +15076,36 @@ $("callMute").onclick=()=>toggleTrack("audio",$("callMute"),"Mute","Unmute");
 $("callCam").onclick=()=>setMyCam(!myCam);
 $("callFlip").onclick=flipCam;
 $("callGlitch").onclick=toggleGlitch;
-$("callVol").onclick=()=>{ loudPick=!callLoud(); sendSignal("vol",{loud:loudPick}); updateCallLook(); };
+$("callVol").onclick=()=>{ loudPick=!callLoud(); sendSignal("vol",{loud:loudPick}); updateCallLook(); flashVol(); };
+function flashVol(){ callFlash(callLoud()?"🔊 LOUD · you both sound louder":"👂 QUIET · normal volume, good for your ear"); }
+let flashT=0;
+function callFlash(text,ms=1800){ const f=$("callFlash"); f.textContent=text; f.classList.add("on"); clearTimeout(flashT); flashT=setTimeout(()=>f.classList.remove("on"),ms); }
+/* 👁 hide the buttons: tap HIDE, or tap the video. Tap anywhere to bring them back */
+function setCallUi(hidden){ $("callScreen").classList.toggle("uihidden",!!hidden); if(hidden) callFlash("Tap anywhere to bring the buttons back",1600); }
+$("callHide").onclick=e=>{ e.stopPropagation(); setCallUi(true); };
+$("callScreen").addEventListener("click",e=>{
+  const cs=$("callScreen"); if(!cs.classList.contains("live")) return;
+  if(cs.classList.contains("uihidden")){ e.preventDefault(); e.stopPropagation(); setCallUi(false); return; }
+  if(e.target.closest("button,#localVideo,.callbar")) return;
+  setCallUi(true);
+},true);
+/* drag your own video box to any corner; it snaps to the closest one and remembers it */
+(()=>{
+  const lv=$("localVideo"), cs=$("callScreen");
+  try{ const c=LS.get("nl-lv-corner"); if(["tl","tr","bl","br"].includes(c)) cs.dataset.lv=c; }catch(e){}
+  let start=null;
+  lv.addEventListener("pointerdown",e=>{ if(cs.classList.contains("uihidden")) return; start={x:e.clientX,y:e.clientY,moved:false}; lv.setPointerCapture(e.pointerId); });
+  lv.addEventListener("pointermove",e=>{ if(!start) return; const dx=e.clientX-start.x, dy=e.clientY-start.y;
+    if(!start.moved&&Math.hypot(dx,dy)<6) return; start.moved=true; lv.classList.add("dragging");
+    lv.style.translate=`${dx}px ${dy}px`; });
+  const end=e=>{ if(!start) return; const s0=start; start=null; lv.classList.remove("dragging"); if(!s0.moved){ lv.style.translate=""; return; }
+    const r=lv.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    const corner=(cy<innerHeight/2?"t":"b")+(cx<innerWidth/2?"l":"r");
+    const before=lv.getBoundingClientRect(); lv.style.translate=""; cs.dataset.lv=corner; const after=lv.getBoundingClientRect();
+    lv.animate([{translate:`${before.left-after.left}px ${before.top-after.top}px`},{translate:"0 0"}],{duration:220,easing:"cubic-bezier(.2,.9,.3,1.2)"});
+    try{ LS.set("nl-lv-corner",corner); }catch(e){} };
+  lv.addEventListener("pointerup",end); lv.addEventListener("pointercancel",end);
+})();
 
 /* 📞 opens a small picker: 🎧 voice call or 📹 video call */
 $("callBtn").onclick=e=>{ e.stopPropagation(); const open=$("callPick").classList.contains("hidden"); show($("callPick"),open); $("callBtn").setAttribute("aria-expanded",String(open)); };
