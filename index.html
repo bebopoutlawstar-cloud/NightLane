@@ -1404,6 +1404,41 @@ body.theme-pipboy .compose,body.theme-pipboy .top{background:rgba(6,16,8,.92)!im
 .hg-bubble.on{opacity:1;transform:none}
 .hg-paw{display:inline-block;width:14px;height:12px;margin-left:6px;vertical-align:-1px;color:#ff4fd8;animation:hgpaw .5s steps(3) both}
 @keyframes hgpaw{from{transform:scale(0) rotate(-20deg)}to{transform:none}}
+/* 🦈 Jaws scenes */
+.jw-water{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(rgba(29,111,168,.82),rgba(6,35,63,.95));animation:jwrise .9s ease-out forwards}
+.jw-water::before{content:"";position:absolute;left:0;right:0;top:-10px;height:12px;background:radial-gradient(circle at 12px 12px,rgba(29,111,168,.82) 10px,transparent 11px) 0 0/24px 12px repeat-x;animation:jwwave 1.6s linear infinite}
+@keyframes jwrise{to{height:34%}}
+@keyframes jwwave{to{background-position:24px 0}}
+.jw-fin{position:absolute;bottom:calc(34% - 8px);left:-90px;width:70px;height:58px;background:linear-gradient(90deg,#3e4a58,#7a8898);clip-path:polygon(0 100%,56% 0,68% 6%,100% 100%);filter:drop-shadow(0 2px 0 #bff1ff)}
+.jw-fin.go{animation:jwfin 3.4s cubic-bezier(.55,0,.85,1) forwards}
+@keyframes jwfin{0%{left:-90px}75%{left:68%}100%{left:115%}}
+.jw-cap{top:18%}
+.jw-boat{position:absolute;left:50%;bottom:calc(34% - 6px);width:96px;height:56px;margin-left:-48px;animation:jwbob 1.2s ease-in-out infinite}
+@keyframes jwbob{50%{transform:translateY(4px) rotate(-3deg)}}
+.jw-boat.sunk{animation:jwsink .5s ease-in forwards}
+@keyframes jwsink{to{transform:translateY(120px) rotate(30deg);opacity:0}}
+.jw-mouth{position:absolute;left:50%;bottom:-75%;width:min(92vw,560px);height:58%;transform:translateX(-50%);transition:bottom .9s cubic-bezier(.2,.9,.3,1)}
+.jw-mouth.up{bottom:-6%}
+.jw-in{position:absolute;inset:14% 6% 10%;border-radius:50%;background:radial-gradient(ellipse at 50% 60%,#120208,#4a0c18 70%,#2a0610)}
+.jw-jaw{position:absolute;left:0;right:0;height:46%;background:#5a6878;transition:transform .35s cubic-bezier(.6,0,.4,1)}
+.jw-jaw.top{top:0;border-radius:50% 50% 10% 10%/80% 80% 20% 20%;transform:translateY(-62%)}
+.jw-jaw.bot{bottom:0;border-radius:10% 10% 50% 50%/20% 20% 80% 80%;transform:translateY(62%);background:#d9dee6}
+.jw-mouth.shut .jw-jaw{transform:none}
+.jw-teeth{position:absolute;left:6%;right:6%;height:30px;background:#f4f1ff}
+.jw-jaw.top .jw-teeth{bottom:-28px}
+.jw-jaw.bot .jw-teeth{top:-28px;transform:scaleY(-1)}
+.jw-sign{position:absolute;left:50%;top:22%;transform:translateX(-50%) rotate(-2deg);width:min(86vw,420px);padding:16px 18px 64px;background:linear-gradient(#bfe9ff,#7cc8f0 60%,#e9d39a 61%);border:6px solid #f4f1ff;box-shadow:0 0 0 4px #07041a,8px 8px 0 4px #ff4fd8;color:#0d3b66;text-align:center;font-family:var(--num);overflow:hidden;animation:sxcapin .5s ease-out both}
+.jw-sign b{display:block;font-size:clamp(22px,7vw,36px);line-height:1;color:#c21f3a;text-shadow:2px 2px 0 #f4f1ff}
+.jw-sign small{display:block;font-size:14px;margin-top:6px}
+.jw-sign .jw-fin{position:absolute;bottom:4px;left:auto;right:18%;width:54px;height:44px;filter:none;clip-path:polygon(0 100%,56% 0,68% 6%,100% 100%);background:#07041a}
+.jw-sign i{position:absolute;bottom:8px;left:24%;width:12px;height:12px;border-radius:50%;background:#ffcf9e;box-shadow:16px 0 0 #c21f3a}
+.jw-tank{position:absolute;left:50%;top:50%;width:26px;height:58px;margin:-29px 0 0 -13px;border-radius:8px;background:linear-gradient(90deg,#ffcf3d,#ffef9a 40%,#e0a800);border:3px solid #07041a}
+.jw-cross{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border:3px solid #ff3d5a;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,61,90,.3);animation:jwaim 1.3s ease-in-out both}
+.jw-cross::before,.jw-cross::after{content:"";position:absolute;background:#ff3d5a;left:50%;top:-14px;bottom:-14px;width:2px;margin-left:-1px}
+.jw-cross::after{top:50%;bottom:auto;left:-14px;right:-14px;width:auto;height:2px;margin:-1px 0 0}
+@keyframes jwaim{0%{transform:translate(-40px,30px) scale(1.4);opacity:0}30%{opacity:1}70%{transform:translate(6px,-4px)}100%{transform:none}}
+.jw-boom{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#fff 0 6%,#ffe27a 14%,#ff7a2a 30%,rgba(255,61,90,0) 60%);animation:jwboom .9s ease-out forwards}
+@keyframes jwboom{0%{opacity:0;transform:scale(.2)}15%{opacity:1}100%{opacity:0;transform:scale(1.6)}}
 .dg-scene{position:absolute;inset:0;background:#000;opacity:0;animation:dgin .6s ease forwards;transition:opacity .8s}
 .dg-scene.out{opacity:0!important}
 @keyframes dgin{to{opacity:1}}
@@ -2929,6 +2964,11 @@ body.theme-mochi .send{background:#ff8fb8!important}
 .face.frame-heartbeat{--fr:linear-gradient(135deg,#ff5a78,#d81b3c);animation:frbeat2 1.1s ease-in-out infinite}
 .face.frame-heartbeat>.frx::after{content:"💓";position:absolute;left:-.3em;top:-.4em;font-size:max(11px,.45em);animation:frbeat 1.1s ease-in-out infinite}
 @keyframes frbeat2{0%,100%{filter:drop-shadow(0 0 3px #ff3d5a)}15%{filter:drop-shadow(0 0 10px #ff3d5a)}30%{filter:drop-shadow(0 0 3px #ff3d5a)}45%{filter:drop-shadow(0 0 8px #ff3d5a)}}
+/* 🦈 Shark frame (find 2 of the Jaws secrets): deep water ring, a fin patrolling the bottom edge */
+.face.frame-shark{--fr:linear-gradient(165deg,#bff1ff 0 14%,#2a8ac4 30%,#0d3b66 68%,#06233f);filter:drop-shadow(0 0 6px rgba(42,138,196,.85))}
+.face.frame-shark>.frx::after{content:"";position:absolute;bottom:calc(-1 * max(3px,7%));left:0;width:max(14px,.42em);height:max(12px,.38em);background:linear-gradient(90deg,#3e4a58,#7a8898);clip-path:polygon(0 100%,58% 0,70% 6%,100% 100%);filter:drop-shadow(0 1px 0 #bff1ff);animation:frfin 5s linear infinite}
+@keyframes frfin{0%{left:-6%;transform:scaleX(1);opacity:0}8%{opacity:1}44%{left:78%;transform:scaleX(1)}50%{left:78%;transform:scaleX(-1)}92%{opacity:1}94%{left:-6%;transform:scaleX(-1);opacity:0}100%{left:-6%;opacity:0}}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .face.frame-shark>.frx::after{animation:none;left:60%}}
 /* ===== new online-status shapes ===== */
 .face.shape-moon::after{width:15px!important;height:15px!important;right:-5px!important;bottom:-5px!important;border-radius:50%;background:none!important;box-shadow:inset -5px -2px 0 0 currentColor!important;border:none!important;transform:rotate(-20deg);filter:drop-shadow(0 0 3px currentColor)}
 .face.shape-moon.status-online::after{color:#2ee66b}.face.shape-moon.status-idle::after{color:#ffcf3d}.face.shape-moon.status-dnd::after{color:#ff3d3d}
@@ -11360,6 +11400,57 @@ QX.hagrid=function(m){
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
   {id:"hagrid", name:"Hagrid", re:/(^|[^a-z])(?:p+s+[\s.!~]*){3,}(?=$|[^a-z])/i, play:m=>QX.hagrid(m)}
 );
+/* 🦈 Jaws: four secrets; find any two for the Shark frame */
+const jwSound=(fn)=>{ try{ if(typeof uiSoundOn==="function"&&!uiSoundOn()) return; const ac=sfxCtx(); if(ac.state==="suspended") ac.resume(); fn(ac,ac.currentTime); }catch(e){} };
+const jwNote=(ac,t,f,d,vol=.22)=>{ const o=ac.createOscillator(), lp=ac.createBiquadFilter(), g=ac.createGain(); o.type="sawtooth"; o.frequency.value=f; lp.type="lowpass"; lp.frequency.value=420;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.03); g.gain.exponentialRampToValueAtTime(.001,t+d); o.connect(lp).connect(g).connect(ac.destination); o.start(t); o.stop(t+d+.05); };
+const jwTheme=(n=14)=>jwSound((ac,t)=>{ let gap=.62; for(let i=0;i<n;i++){ jwNote(ac,t,i%2?87.3:82.4,Math.min(.5,gap*.9)); t+=gap; gap=Math.max(.13,gap*.84); } });   // E2, F2… faster and faster
+const jwWater=L=>{ const w=el("div","jw-water"); L.append(w); return w; };
+const jwTeeth=()=>{ const t=el("div","jw-teeth"); const n=14, pts=[]; for(let i=0;i<=n;i++){ pts.push(`${i/n*100}% 0`); if(i<n) pts.push(`${(i+.5)/n*100}% 100%`); } t.style.clipPath=`polygon(${pts.join(",")})`; return t; };
+const jwMouth=L=>{ const m=el("div","jw-mouth"); const top=el("div","jw-jaw top"), bot=el("div","jw-jaw bot"); top.append(jwTeeth()); bot.append(jwTeeth()); m.append(el("div","jw-in"),top,bot); L.append(m); return m; };
+const JW_BOAT='<svg viewBox="0 0 24 14" shape-rendering="crispEdges" aria-hidden="true"><rect x="9" y="2" width="6" height="5" fill="#f4f1ff"/><rect x="10" y="3" width="2" height="2" fill="#4aa8d8"/><rect x="11" y="0" width="1" height="2" fill="#07041a"/><path d="M1 7h22l-3 6H4z" fill="#8a4b2a"/><rect x="1" y="7" width="22" height="1" fill="#c9773f"/></svg>';
+QX.jawstheme=function(){
+  const L=sxLayer("sxJaws",5600); jwWater(L);
+  const fin=el("div","jw-fin"); L.append(fin); setTimeout(()=>fin.classList.add("go"),700);
+  const cap=sxCap(L,"duun-nuh…","jw-cap"); setTimeout(()=>cap.textContent="duun-nuh… duun-nuh…",1700); setTimeout(()=>cap.textContent="DUN-NUH DUN-NUH DUN-NUH",3000);
+  jwTheme(16); if(navigator.vibrate) setTimeout(()=>navigator.vibrate([60,90,60,70,60,50,60]),2600);
+};
+QX.biggerboat=function(){
+  const L=sxLayer("sxJaws",5600); jwWater(L);
+  const boat=el("div","jw-boat"); boat.innerHTML=JW_BOAT; L.append(boat);
+  const m=jwMouth(L); jwTheme(8);
+  setTimeout(()=>m.classList.add("up"),1500);
+  setTimeout(()=>{ m.classList.add("shut"); boat.classList.add("sunk"); if(navigator.vibrate) navigator.vibrate(120); jwSound((ac,t)=>jwNote(ac,t,55,.5,.35)); },2500);
+  setTimeout(()=>sxCap(L,"You're gonna need a bigger boat.","jw-cap"),3000);
+};
+QX.amity=function(){
+  const L=sxLayer("sxJaws",5000);
+  const s2=el("div","jw-sign"); s2.innerHTML='<b>WELCOME TO AMITY ISLAND</b><small>the beaches are open ☀</small><i></i><div class="jw-fin"></div>'; L.append(s2);
+  setTimeout(()=>{ const c=sxCap(L,"…it's a beautiful day for a swim.","jw-cap"); c.style.top="68%"; c.style.fontSize="clamp(20px,6vw,34px)"; },1600);
+  jwSound((ac,t)=>{ [523,659,784].forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(.08,t+i*.12); g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.25); o.connect(g).connect(ac.destination); o.start(t+i*.12); o.stop(t+i*.12+.3); }); });
+  setTimeout(()=>jwTheme(4),2600);
+};
+QX.smile=function(){
+  const L=sxLayer("sxJaws",5400); jwWater(L);
+  const m=jwMouth(L); setTimeout(()=>m.classList.add("up"),300);
+  const tank=el("div","jw-tank"); tank.style.top="66%"; L.append(tank);
+  setTimeout(()=>{ const c=el("div","jw-cross"); c.style.top="66%"; L.append(c); },900);
+  const cap=sxCap(L,"Smile, you son of a—","jw-cap");
+  setTimeout(()=>{ L.append(el("div","jw-boom")); m.remove(); tank.remove(); L.querySelector(".jw-cross")?.remove(); cap.textContent="BOOM 💥";
+    if(navigator.vibrate) navigator.vibrate([200,60,120]);
+    jwSound((ac,t)=>{ const b=ac.createBuffer(1,ac.sampleRate*.8,ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.5);
+      const src=ac.createBufferSource(), lp=ac.createBiquadFilter(), g=ac.createGain(); src.buffer=b; lp.type="lowpass"; lp.frequency.value=900; g.gain.value=.5; src.connect(lp).connect(g).connect(ac.destination); src.start(t); }); },2300);
+};
+SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"jawstheme",  name:"Duun-nuh",           re:/(^|[^a-z])(duh+[- ]?nuh+|du+n+[- ]?nu+n*h*|da+[- ]?du+m)(?:[\s.,!…-]+(duh+[- ]?nuh+|du+n+[- ]?nu+n*h*|da+[- ]?du+m)){1,}/i, play:()=>QX.jawstheme()},
+  {id:"biggerboat", name:"A bigger boat",      re:/(gonna|going to) need a bigger boat/i, play:()=>QX.biggerboat()},
+  {id:"amity",      name:"Amity Island",       re:/amity island/i, play:()=>QX.amity()},
+  {id:"smileyou",   name:"Smile, you…",        re:/smile,? you son of a/i, play:()=>QX.smile()}
+);
+Object.assign(HINTS,{jawstheme:"Hum the two low notes that mean something's in the water. Twice.",
+  biggerboat:"What the police chief says the first time he sees the shark.",
+  amity:"The island town that kept its beaches open.",
+  smileyou:"The chief's last words to the shark, right before he hits the tank."});
 Object.assign(HINTS,{hagrid:"The Creator's cat comes when you call him the way you call any cat. Three times."});
 Object.assign(HINTS,{onepiece:"The treasure at the end of the Grand Line. Say its name."});
 HINTS.dragon="A winged silhouette crosses the moon when you say it.";
@@ -11608,10 +11699,11 @@ const UNLOCKS=[
   {id:"frame:spiral",   type:"frame", label:"Spiral frame",          by:{secret:"gigadrill"}},
   {id:"frame:shadow",   type:"frame", label:"Shadow frame",          by:{secret:"johnny"}},
   {id:"frame:heartbeat",type:"frame", label:"Heartbeat frame",       by:{linkRank:8}},
+  {id:"frame:shark",    type:"frame", label:"Shark frame 🦈",        by:{secrets:["jawstheme","biggerboat","amity","smileyou"],n:2}},
 ];
-const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Lovers 💞",crew:"Ride or Die 🤜🤛",creator:"Creator 👑",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat"};
+const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Lovers 💞",crew:"Ride or Die 🤜🤛",creator:"Creator 👑",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat",shark:"Shark 🦈"};
 const myLevel=()=>xpLevel(xpData().xp).lvl;
-function unlockMet(u){ return u.by.secret?hasSecret(u.by.secret):u.by.level?myLevel()>=u.by.level:u.by.stat?statCount(u.by.stat)>=u.by.stat_n:u.by.linkRank?[...socialLinks.values()].some(r=>rankFromXp(r.xp).rank>=u.by.linkRank):true; }
+function unlockMet(u){ return u.by.secrets?u.by.secrets.filter(hasSecret).length>=(u.by.n||u.by.secrets.length):u.by.secret?hasSecret(u.by.secret):u.by.level?myLevel()>=u.by.level:u.by.stat?statCount(u.by.stat)>=u.by.stat_n:u.by.linkRank?[...socialLinks.values()].some(r=>rankFromXp(r.xp).rank>=u.by.linkRank):true; }
 const unlockOk=(type,key)=>{ const u=UNLOCKS.find(x=>x.id===type+":"+key); return !u||unlockMet(u); };
 const UNLOCK_KEY="nl-unlocked";
 const seenUnlocks=()=>{ try{ return JSON.parse(LS.get(UNLOCK_KEY)||"[]"); }catch(e){ return []; } };
@@ -11637,7 +11729,7 @@ function paintUnlocks(){
   const groups={theme:"Themes",frame:"Profile frames",bg:"Chat backgrounds",sticker:"Stickers"};
   Object.entries(groups).forEach(([type,title])=>{
     const h=el("div","unlockgroup"); h.append(pxIcon({theme:"potion",frame:"ring",bg:"gem",sticker:"scroll"}[type],16,""),title); box.append(h);
-    UNLOCKS.filter(u=>u.type===type).forEach(u=>{ const ok=unlockMet(u); const chip=el("span","sx-chip"+(ok?" got":""), ok?u.label:(u.by.level?`reach level ${u.by.level}`:"???")); if(!ok) chip.prepend(pxIcon("key",16,"locked")); if(!ok&&u.by.secret) chip.title="Find a secret to unlock"; box.append(chip); });
+    UNLOCKS.filter(u=>u.type===type).forEach(u=>{ const ok=unlockMet(u); const chip=el("span","sx-chip"+(ok?" got":""), ok?u.label:(u.by.level?`reach level ${u.by.level}`:u.by.secrets?`${u.by.secrets.filter(hasSecret).length}/${u.by.n||u.by.secrets.length} 🦈 secrets`:"???")); if(!ok) chip.prepend(pxIcon("key",16,"locked")); if(!ok&&(u.by.secret||u.by.secrets)) chip.title="Find a secret to unlock"; box.append(chip); });
   });
 }
 /* frames: everyone sees them (saved inside your profile theme) */
@@ -13201,8 +13293,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16s";
+const APP_VERSION="2026.10.16t";
 const CHANGELOG=[
+  {v:"2026.10.16t", title:"Something's in the water 🦈", items:["🦈 Four new secrets from a certain 1975 summer movie are hiding in the chat.","🌊 Find any two of them to unlock the new Shark frame."]},
   {v:"2026.10.16s", title:"He's real now 🐈‍⬛", items:["🐈‍⬛ The secret cat got redrawn from real life: fluffy, smoky and judging you slightly."]},
   {v:"2026.10.16r", title:"A new secret 🐈", items:["🐈 Someone very important to the Creator is hiding in the chat. Call him the way you'd call any cat…"]},
   {v:"2026.10.16q", title:"No double pop-ups 🔕", items:["🔕 While NightLane is open, new messages only show NightLane's own pop-up, not a phone notification on top of it (thanks jimmylikespie21!). Want both anyway? Turn on Phone notifications while NightLane is open in Profile."]},
