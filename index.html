@@ -6430,6 +6430,9 @@ function sfx(name){
 }
 // iOS: follow the ring/silent switch like a normal app; decode + unlock audio on the very first touch
 try{ if(navigator.audioSession) navigator.audioSession.type="ambient"; }catch(e){}
+/* iPhone: "ambient" (follow the silent switch) also blocks the mic ("AudioSession category is not compatible with
+   audio capture"). So switch to "auto" while a call or voice recording needs the mic, and back to ambient after. */
+function audioForCapture(on){ try{ if(navigator.audioSession) navigator.audioSession.type=on?"auto":"ambient"; }catch(e){} }
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>{ try{ loadSfx(); const ac=sfxCtx(); if(ac.state==="suspended") ac.resume(); }catch(e){} },{once:true,passive:true,capture:true}));
 // switches and home tabs get a small tactile click
 document.addEventListener("click",e=>{
@@ -6794,7 +6797,7 @@ function buildMsg(m,index,noAnim){
   const tag=el("div","tag");
   if(fresh&&!noAnim) tag.append(el("b","","NEW"));
   if(pins.has(m.id)) tag.append("📌 ");
-  tag.append(`${nameOf(m.user_id)} · ${timeOf(at)}`); if(m.edited_at){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
+  tag.append(`${nameOf(m.user_id)} · ${timeOf(at)}`); if(m.edited_at&&m.kind!=="call"){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
   const exp=expiryTag(m); if(exp) tag.append(exp);
   const bub=el("div","bubble"); bub.tabIndex=0; bub.setAttribute("role","button"); bub.setAttribute("aria-label",`Message from ${nameOf(m.user_id)}. Open options`);
   if(m.reply_to){
@@ -6841,7 +6844,7 @@ function buildMsg(m,index,noAnim){
   bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
   bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
-  if(m.edited_at&&m.kind!=="sticker"){ const en=el("span","ednote",`✏️ ${m.user_id===user?.id?"You":nameOf(m.user_id)} edited this`); en.title="Edited "+new Date(m.edited_at).toLocaleString(); bub.append(en); }
+  if(m.edited_at&&m.kind!=="sticker"&&m.kind!=="call"){ const en=el("span","ednote",`✏️ ${m.user_id===user?.id?"You":nameOf(m.user_id)} edited this`); en.title="Edited "+new Date(m.edited_at).toLocaleString(); bub.append(en); }
   col.append(tag,bub);
   const map=reactionsById.get(m.id);
   if(map&&map.size){
@@ -7767,6 +7770,7 @@ $("micBtn").onclick=async()=>{
   /* voice-message quality: one clean mono track at full rate. Echo cancellation is for calls, not voice notes,
      and it's what makes voices cut in and out ("choppy"), so it's off. Noise suppression + auto volume stay on. */
   const VOICE_MIC={channelCount:1,sampleRate:{ideal:48000},echoCancellation:false,noiseSuppression:true,autoGainControl:true};
+  audioForCapture(true);
   try{ stream=await navigator.mediaDevices.getUserMedia({audio:VOICE_MIC}); }
   catch(e){
     if(e?.name==="NotAllowedError"||e?.name==="SecurityError"){ $("status").textContent="Microphone permission was blocked. Allow it in your browser settings to record."; return; }
@@ -7790,7 +7794,7 @@ function finishRecording(send){
   clearInterval(r.timer); show($("recBar"),false); show($("composeRow"));
   const seconds=(Date.now()-r.start)/1000;
   r.mr.onstop=async()=>{
-    r.stream.getTracks().forEach(t=>t.stop());
+    r.stream.getTracks().forEach(t=>t.stop()); audioForCapture(false);
     if(!send) { $("status").textContent="Recording discarded."; return; }
     if(seconds<0.8){ $("status").textContent="That was too short to send."; return; }
     const blob=new Blob(r.chunks,{type:(r.mr.mimeType||"audio/webm").split(";")[0]});
@@ -12844,8 +12848,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16b";
+const APP_VERSION="2026.10.16c";
 const CHANGELOG=[
+  {v:"2026.10.16c", title:"iPhone call fix 📞", items:["📞 Calls now work on iPhone: the \"couldn't use your camera or mic\" error is fixed (thanks jimmy!). Voice messages on iPhone got the same fix.","📝 Call notes in the chat no longer say \"edited\"."]},
   {v:"2026.10.16b", title:"Call sounds 🎵", items:["🎵 Calling someone now plays a cyberpunk connecting tune while it rings, and an \"access granted\" chime when the call connects.","⬆ The LEVEL UP effect is now NightLane yellow."]},
   {v:"2026.10.16a", title:"Video calls 📞", items:["📞 You can now video call your friends! Open a DM and tap the 📞 at the top. Your friend's phone rings with Accept and Decline.","🎤 Mute and 📷 camera off during a call, with a LIVE timer.","📝 Every call leaves a note in the chat: how long it was, or a missed call with a Call back button.","Coded by Cole 🛠️"]},
   {v:"2026.10.15c", title:"Crop your profile pic ✂️", items:["✂️ Changing your profile photo now lets you crop it first: drag to move, pinch or slide to zoom, and the circle shows exactly how it'll look (thanks hachiware!)."]},
@@ -14439,6 +14444,7 @@ async function playConnectChime(){
 
 async function openCall(){
   if(callStream) return;   // already in a call
+  audioForCapture(true);   // iPhone: let the mic work during the call
   startCallTune();         // start it right on the tap (phones only allow sound that starts from a tap)
   try{
     callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
@@ -14531,7 +14537,7 @@ function endCall(){
   if(callStream){
     callStream.getTracks().forEach(track => track.stop());
   }
-  callStream=null;
+  callStream=null; audioForCapture(false);
   $("localVideo").srcObject=null;
   ["callMute","callCam"].forEach(id=>{ $(id).classList.remove("off"); $(id).setAttribute("aria-pressed","false"); });
   $("localVideo").classList.remove("camoff");
@@ -14578,7 +14584,7 @@ function onCallSignal(s){
 }
 
 async function acceptCall(){
-  stopRinging();
+  stopRinging(); audioForCapture(true);
   try{
     callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
     $("localVideo").srcObject=callStream;          // show yourself in the little box
