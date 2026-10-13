@@ -3201,10 +3201,17 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .callscreen.live .callchip{background:#ff4fd8}.callscreen.live .callchip i{background:#ff4fd8;box-shadow:0 0 0 4px rgba(255,79,216,.3);animation:none}
 .callscreen.live .calltarget{display:none}.callscreen.live .callinfo{position:absolute;top:calc(env(safe-area-inset-top) + 40px);left:24px;margin:0;justify-items:start}
 .callscreen.live .callinfo b{font-size:22px}
-.callbar{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 40px);display:flex;gap:18px}
-.hudbtn{width:66px;height:58px;display:grid;place-items:center;border:none;background:var(--cyan);position:relative;isolation:isolate;cursor:pointer;clip-path:polygon(0 25%,14px 0,100% 0,100% 75%,calc(100% - 14px) 100%,0 100%)}
+.callbar{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 56px);display:flex;gap:30px}
+.callpick{position:absolute;right:14px;top:100%;margin-top:6px;z-index:30;display:grid;gap:6px;padding:8px;background:#0d0826;border:2px solid var(--cyan);box-shadow:4px 4px 0 #ff4fd8}
+.callpick button{background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);font-size:13px;padding:12px 16px;text-align:left;white-space:nowrap}.callpick button:active{background:var(--cyan);color:#07041a}
+.top{position:relative;z-index:3}
+/* voice calls: no video boxes, their picture stays in the target ring, and the camera button hides */
+.callscreen.callvoice #localVideo,.callscreen.callvoice #remoteVideo{opacity:0;pointer-events:none}
+.callscreen.callvoice.live .calltarget{display:grid}.callscreen.callvoice.live .callinfo{position:relative;top:auto;left:auto;margin-top:-12vh;justify-items:center}.callscreen.callvoice.live .callinfo b{font-size:34px}
+.callscreen.callvoice.live .callreticle{animation-duration:12s}
+.hudbtn{width:84px;height:74px;display:grid;place-items:center;border:none;background:var(--cyan);position:relative;isolation:isolate;cursor:pointer;clip-path:polygon(0 25%,14px 0,100% 0,100% 75%,calc(100% - 14px) 100%,0 100%)}
 .hudbtn::before{content:"";position:absolute;inset:2px;background:rgba(10,20,34,.95);clip-path:inherit;z-index:-1}
-.hudbtn svg{width:28px;height:28px;fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hudbtn svg{width:36px;height:36px;fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hudbtn.off svg{stroke:var(--muted)}.hudbtn.off{background:var(--muted)}
 .hudbtn.end{background:#ff4fd8}.hudbtn.end::before{background:#ff4fd8}.hudbtn.end svg{fill:#07041a;stroke:#07041a}
 .hudbtn:active{transform:translateY(2px)}
@@ -3342,7 +3349,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="roombox"><div class="roomname" id="roomLabel"></div><div class="status" id="status"></div><div class="dmpresence hidden" id="dmPresence"></div></div>
     <button class="srch" id="searchBtn" type="button" aria-label="Search this chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
     <button class="ghost taskcount" id="taskCount" type="button" aria-label="Room checklist"></button>
-    <button class="ghost hidden" id="callBtn" type="button" aria-label="Call"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAALlJREFUOI3tkyEOwkAQRV9JVU0lCGRVZbcSg+gtOATH4AxoBOEIILgAu7KKBIPA1jS4RZCSdmcSAli+mv0787I/mY0IlGeVD72iMK96s1tF/bs4HK63+3CeGjDJs16A70Ni0Q3cptJLU5hdpD/SAJqaBmz7A6CTc3ZwViMAjO9zxT0KRwVMrnqzpo8j/AFvAP2d//oFJgG/jkTjyUhPAJyz2BbKpfiQlFZ6AAKbZ5XvooRrC1CfD4OZB9rZKoiZOiC6AAAAAElFTkSuQmCC" alt=""></button>
+    <div class="callpick hidden" id="callPick" role="menu"><button type="button" role="menuitem" id="callPickVoice">🎧 Voice call</button><button type="button" role="menuitem" id="callPickVideo">📹 Video call</button></div>
+    <button class="ghost hidden" id="callBtn" type="button" aria-label="Call" aria-haspopup="true" aria-expanded="false"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAALlJREFUOI3tkyEOwkAQRV9JVU0lCGRVZbcSg+gtOATH4AxoBOEIILgAu7KKBIPA1jS4RZCSdmcSAli+mv0787I/mY0IlGeVD72iMK96s1tF/bs4HK63+3CeGjDJs16A70Ni0Q3cptJLU5hdpD/SAJqaBmz7A6CTc3ZwViMAjO9zxT0KRwVMrnqzpo8j/AFvAP2d//oFJgG/jkTjyUhPAJyz2BbKpfiQlFZ6AAKbZ5XvooRrC1CfD4OZB9rZKoiZOiC6AAAAAElFTkSuQmCC" alt=""></button>
     <button class="ghost" id="roomBtn" type="button">Room</button>
     <button class="ghost" id="back" type="button">Back</button>
   </div>
@@ -12848,8 +12856,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16c";
+const APP_VERSION="2026.10.16d";
 const CHANGELOG=[
+  {v:"2026.10.16d", title:"Voice calls 🎧", items:["🎧 Tap 📞 in a DM and pick Voice call or Video call. Voice calls keep both cameras off and show their picture instead.","👆 Bigger call buttons (thanks Freddy!)."]},
   {v:"2026.10.16c", title:"iPhone call fix 📞", items:["📞 Calls now work on iPhone: the \"couldn't use your camera or mic\" error is fixed (thanks jimmy!). Voice messages on iPhone got the same fix.","📝 Call notes in the chat no longer say \"edited\"."]},
   {v:"2026.10.16b", title:"Call sounds 🎵", items:["🎵 Calling someone now plays a cyberpunk connecting tune while it rings, and an \"access granted\" chime when the call connects.","⬆ The LEVEL UP effect is now NightLane yellow."]},
   {v:"2026.10.16a", title:"Video calls 📞", items:["📞 You can now video call your friends! Open a DM and tap the 📞 at the top. Your friend's phone rings with Accept and Decline.","🎤 Mute and 📷 camera off during a call, with a LIVE timer.","📝 Every call leaves a note in the chat: how long it was, or a missed call with a Call back button.","Coded by Cole 🛠️"]},
@@ -14442,12 +14451,15 @@ async function playConnectChime(){
     const s=ctx.createBufferSource(), g=ctx.createGain(); s.buffer=chimeBuf; g.gain.value=.5; s.connect(g).connect(ctx.destination); s.start(); }catch(e){}
 }
 
-async function openCall(){
+let callVoice=false;   // true = voice-only call (no cameras)
+function setCallVoice(v){ callVoice=!!v; $("callScreen").classList.toggle("callvoice",callVoice); show($("callCam"),!callVoice); }
+async function openCall(voice=false){
   if(callStream) return;   // already in a call
+  setCallVoice(voice===true);
   audioForCapture(true);   // iPhone: let the mic work during the call
   startCallTune();         // start it right on the tap (phones only allow sound that starts from a tap)
   try{
-    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
+    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:!callVoice});
     $("localVideo").srcObject=callStream;          // show yourself in the little box
     $("callName").textContent=nameOf(dmUser);      // their name
     paintFace($("callFace"), cache.get(dmUser));   // their picture in the middle
@@ -14455,7 +14467,7 @@ async function openCall(){
     show($("callScreen"));
     callRoom=room; callOutcome=null; prefetchIce();
     await joinCallLine(room);   // join the private call channel for this DM
-    const m=await sendFields({kind:"call", text:"📞 Call"});
+    const m=await sendFields({kind:"call", text:callVoice?"📞 Voice call":"📞 Call"});
     callMsgId=m?.id??null;
     ringTimer=setTimeout(()=>{ if(!pc){ callOutcome="missed"; $("callState").textContent="No answer"; setTimeout(endCall,1500); } },45000);   // give up after 45 seconds
   }catch(err){
@@ -14470,7 +14482,7 @@ function callLogEl(m){
   const missed=/missed|declined/i.test(m.text||""), box=el("div","calllog"+(missed?" missed":""));
   const ic=document.createElement("img"); ic.src=missed?CALL_ICON_MISSED:CALL_ICON; ic.alt=""; ic.width=ic.height=32; box.append(ic);
   box.append(el("span","cltext",(m.text||"📞 Call").replace(/^📞\s*/,"")));
-  if(isDm&&m.room===room){ const b=el("button","clback","Call back"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openCall(); }; box.append(b); }
+  if(isDm&&m.room===room){ const b=el("button","clback","Call back"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openCall(/voice/i.test(m.text||"")); }; box.append(b); }
   return box;
 }
 /* the "call line": a private live channel only the 2 people in this DM can use (set up by calls.sql) */
@@ -14530,10 +14542,11 @@ function endCall(){
   stopPeer(); stopRinging();
   // the caller updates the call note in the chat: "📞 Call · 2:31", "📞 Missed call" or "📞 Call declined"
   if(callMsgId!=null){
-    const text=callStartAt?`📞 Call · ${callClock(Date.now()-callStartAt)}`:callOutcome==="declined"?"📞 Call declined":"📞 Missed call";
+    const kind=callVoice?"Voice call":"Call";
+    const text=callStartAt?`📞 ${kind} · ${callClock(Date.now()-callStartAt)}`:callOutcome==="declined"?`📞 ${kind} declined`:callVoice?"📞 Missed voice call":"📞 Missed call";
     api.callLog(callMsgId,text).catch(()=>{});
   }
-  callMsgId=null; callOutcome=null; callStartAt=0; clearInterval(callTimer); callTimer=null;
+  callMsgId=null; callOutcome=null; callStartAt=0; clearInterval(callTimer); callTimer=null; setCallVoice(false);
   if(callStream){
     callStream.getTracks().forEach(track => track.stop());
   }
@@ -14550,10 +14563,10 @@ let callRoom=null;   // which DM the call is in
 
 async function showIncomingCall(m){
   if(callStream||pc||!$("callScreen").classList.contains("hidden")) return;   // already on a call: ignore
-  callRoom=m.room; callMsgId=null;
+  callRoom=m.room; callMsgId=null; setCallVoice(/voice/i.test(m.text||""));
   $("callName").textContent=nameOf(m.user_id);        // who's calling
   paintFace($("callFace"), cache.get(m.user_id));     // their picture in the middle
-  $("callState").textContent="Incoming call…";
+  $("callState").textContent=callVoice?"Incoming voice call…":"Incoming call…";
   show($("callRingBar"), true);
   show($("callMainBar"), false);
   show($("callScreen"), true);
@@ -14586,7 +14599,7 @@ function onCallSignal(s){
 async function acceptCall(){
   stopRinging(); audioForCapture(true);
   try{
-    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:true});
+    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:!callVoice});
     $("localVideo").srcObject=callStream;          // show yourself in the little box
     show($("callRingBar"), false);
     show($("callMainBar"), true);
@@ -14612,7 +14625,11 @@ function toggleTrack(kind,btn,offLabel,onLabel){
 $("callMute").onclick=()=>toggleTrack("audio",$("callMute"),"Mute","Unmute");
 $("callCam").onclick=()=>toggleTrack("video",$("callCam"),"Camera off","Camera on");
 
-$("callBtn").onclick=openCall;
+/* 📞 opens a small picker: 🎧 voice call or 📹 video call */
+$("callBtn").onclick=e=>{ e.stopPropagation(); const open=$("callPick").classList.contains("hidden"); show($("callPick"),open); $("callBtn").setAttribute("aria-expanded",String(open)); };
+$("callPickVoice").onclick=()=>{ show($("callPick"),false); openCall(true); };
+$("callPickVideo").onclick=()=>{ show($("callPick"),false); openCall(false); };
+document.addEventListener("click",e=>{ if(!$("callPick").classList.contains("hidden")&&!e.target.closest("#callPick,#callBtn")) show($("callPick"),false); });
 $("callEnd").onclick=endCall;
 </script>
 </body>
