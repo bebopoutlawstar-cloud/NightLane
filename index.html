@@ -9625,8 +9625,9 @@ async function paintDice(g,prev){
       const w=el("span","ld-dice"); ds.forEach(x=>w.append(dieEl(x,{small:true,hot:x===face||x==="1",skin:diceSkinOf(u)}))); r.append(w); rbox.append(r); });
   }
   // your dice
-  const mine=$("ldMine"); mine.innerHTML=""; show($("ldMineWrap"),g.status==="active"&&me>=0&&s.counts[me]>0);
-  if(g.status==="active"&&me>=0&&s.counts[me]>0){ const dice=await e8Hand(g); if(openGameId!==g.message_id) return; [...dice].sort().forEach(x=>mine.append(dieEl(x,{skin:diceSkinOf(user.id)})));
+  const mine=$("ldMine"); show($("ldMineWrap"),g.status==="active"&&me>=0&&s.counts[me]>0);
+  if(!(g.status==="active"&&me>=0&&s.counts[me]>0)) mine.innerHTML="";
+  if(g.status==="active"&&me>=0&&s.counts[me]>0){ const dice=await e8Hand(g); if(openGameId!==g.message_id) return; mine.innerHTML="";   /* cleared after the wait, so dice never show twice */ [...dice].sort().forEach(x=>mine.append(dieEl(x,{skin:diceSkinOf(user.id)})));
     if(prev&&e8Motion()&&(prev.status==="waiting"||prev.state?.round!==s.round)) ldTumble(mine); }
   // controls
   show($("ldControls"),myTurn);
@@ -9910,7 +9911,7 @@ function mjGameCard(m,g){
   const btn=el("button","play"+(st.turn?" big":""),label); btn.type="button"; btn.onclick=e=>{ e.stopPropagation(); openGame(m.id); };
   card.append(btn); return card;
 }
-let mjPick=null, mjClaimBuzz=null;
+let mjPick=null, mjClaimBuzz=null, mjPaintTok=0;
 function mjGroupRow(h,{z=2,pick=false,good=null}={}){
   const r=mjGroups(h), row=el("div","mjgroups");
   r.groups.forEach(gr=>{ const b=el("span","mjset "+gr.type); gr.tiles.forEach(t=>b.append(mjTileBtn(t,z,pick,good))); row.append(b); });
@@ -9945,9 +9946,12 @@ async function paintMahjong(g,prev){
     r.forEach((t,k)=>tiles.append(mjTileEl(t,{z:1,cls:pend&&pend.seat===i&&k===r.length-1?"hot":""})));
     line.append(tiles); rv.append(line); });
   // your hand
-  const handBox=$("mjHand"), hint=$("mjHint"); handBox.innerHTML=""; hint.innerHTML="";
+  // two updates can arrive at once (your move + the server's echo). Only the newest paint gets to draw the hand,
+  // and the old tiles are cleared AFTER the wait, so the hand can never be drawn twice.
+  const tok=++mjPaintTok;
   let hand=[];
-  if(g.status==="active"&&me>=0){ hand=await e8Hand(g); if(openGameId!==g.message_id) return; }
+  if(g.status==="active"&&me>=0){ hand=await e8Hand(g); if(openGameId!==g.message_id||tok!==mjPaintTok) return; }
+  const handBox=$("mjHand"), hint=$("mjHint"); handBox.innerHTML=""; hint.innerHTML="";
   const myTurn=g.status==="active"&&P[s.turn]===user.id, throwing=myTurn&&s.phase==="discard"&&hand.length===14;
   const pend=g.status==="active"&&me>=0?mjPend(g):null, canClaim=!!(pend&&pend.seat!==me&&hand.length===13&&mjIsWin([...hand,pend.tile]));
   const canSelf=throwing&&mjIsWin(hand);
@@ -13125,8 +13129,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16m";
+const APP_VERSION="2026.10.16n";
 const CHANGELOG=[
+  {v:"2026.10.16n", title:"Mahjong fix 🀄", items:["🀄 Your hand no longer shows up twice for a moment after a move (thanks Kenny!)."]},
   {v:"2026.10.16m", title:"Small tweak 👁", items:["👁 HIDE on calls now only hides the buttons. The neon HUD, their name and the LIVE timer stay on screen."]},
   {v:"2026.10.16l", title:"Fixes 🀄", items:["🀄 Mahjong: your hand no longer runs off the side of the screen on phones. Tiles wrap onto two rows (thanks Kenny!).","🔔 iPhone: no more blank \"NightLane\" notifications while you're in the app. If one shows, it's the real message, with no sound."]},
   {v:"2026.10.16k", title:"Call upgrades 📹", items:["🔊 LOUD and QUIET actually sound different now: LOUD is about 3× louder, and quiet talkers get a real boost. You'll see a pop-up on both phones when it switches.","👁 Tap HIDE, or tap the video, to hide all the buttons. Tap anywhere to bring them back.","↔️ Drag your own video box to any corner, like FaceTime. It remembers where you put it.","🙌 Thanks to hachiware and Babygirl Fried Rice Legend for the ideas!"]},
