@@ -1,5 +1,5 @@
-// NightLane service worker (v20): push notifications + fast repeat loads.
-const CACHE="nightlane-v20";
+// NightLane service worker (v21): push notifications + fast repeat loads.
+const CACHE="nightlane-v21";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
@@ -135,7 +135,7 @@ self.addEventListener("push", event => {
     const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const visible = wins.filter(w => w.visibilityState === "visible");
     const rooms = await Promise.all(visible.map(askWhichRoom));
-    if (room && rooms.includes(room)) return quietPush(data);
+    if (room && rooms.includes(room)) return;   // you're reading this exact chat: never pop anything up
     // NightLane is the app you're using (any page): its own in-app pop-up already shows this, so skip the phone one
     // unless you turned on "Phone notifications while NightLane is open".
     if (visible.some(w => w.focused)) {   // focused = it's the app you're using right now (not just a window behind others)
