@@ -3206,9 +3206,19 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .callpick button{background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);font-size:13px;padding:12px 16px;text-align:left;white-space:nowrap}.callpick button:active{background:var(--cyan);color:#07041a}
 .top{position:relative;z-index:3}
 /* voice calls: no video boxes, their picture stays in the target ring, and the camera button hides */
-.callscreen.callvoice #localVideo,.callscreen.callvoice #remoteVideo{opacity:0;pointer-events:none}
-.callscreen.callvoice.live .calltarget{display:grid}.callscreen.callvoice.live .callinfo{position:relative;top:auto;left:auto;margin-top:-12vh;justify-items:center}.callscreen.callvoice.live .callinfo b{font-size:34px}
-.callscreen.callvoice.live .callreticle{animation-duration:12s}
+.callscreen.callvoice #localVideo,.callscreen.callvoice #remoteVideo,.callscreen.theyoff #remoteVideo{opacity:0;pointer-events:none}
+.callscreen.callvoice.live .calltarget,.callscreen.theyoff.live .calltarget{display:grid}
+.callscreen.callvoice.live .callinfo,.callscreen.theyoff.live .callinfo{position:relative;top:auto;left:auto;margin-top:-12vh;justify-items:center}
+.callscreen.callvoice.live .callinfo b,.callscreen.theyoff.live .callinfo b{font-size:34px}
+.callscreen.callvoice.live .callreticle,.callscreen.theyoff.live .callreticle{animation-duration:12s}
+/* second row: flip camera, privacy glitch, loud/quiet (hidden while it's ringing) */
+.callbar.sub{bottom:calc(env(safe-area-inset-bottom) + 154px);gap:14px}
+#callRingBar:not(.hidden)~#callSubBar{display:none}
+.hudbtn.mini{width:auto;height:48px;padding:0 16px 0 14px;display:flex;align-items:center;gap:8px;clip-path:polygon(0 25%,10px 0,100% 0,100% 75%,calc(100% - 10px) 100%,0 100%)}.hudbtn.mini svg{width:24px;height:24px}
+.hudbtn.mini span{text-shadow:none!important;animation:none!important;font-family:var(--tech);font-size:11px;letter-spacing:2px;color:var(--cyan)}.hudbtn.mini.on span{color:#ff4fd8}
+.hudbtn.on{background:#ff4fd8}.hudbtn.on svg{stroke:#ff4fd8}
+#callVol:not(.on) .wave2{display:none}
+#localVideo.back{transform:none}
 .hudbtn{width:84px;height:74px;display:grid;place-items:center;border:none;background:var(--cyan);position:relative;isolation:isolate;cursor:pointer;clip-path:polygon(0 25%,14px 0,100% 0,100% 75%,calc(100% - 14px) 100%,0 100%)}
 .hudbtn::before{content:"";position:absolute;inset:2px;background:rgba(10,20,34,.95);clip-path:inherit;z-index:-1}
 .hudbtn svg{width:36px;height:36px;fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -3784,6 +3794,11 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="hudbtn" id="callMute" aria-label="Mute"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
     <button type="button" class="hudbtn" id="callCam" aria-label="Camera off"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg></button>
     <button type="button" class="hudbtn end" id="callEnd" aria-label="Hang up"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1v-3c-2-.6-4-.6-6 0v3l-4 1z"/></svg></button>
+  </div>
+    <div class="callbar sub" id="callSubBar">
+    <button type="button" class="hudbtn mini" id="callFlip" aria-label="Flip camera"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/></svg><span>FLIP</span></button>
+    <button type="button" class="hudbtn mini" id="callGlitch" aria-label="Privacy glitch: hide your face" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 5h7M14 5h7M3 9h4M10 9h11M3 13h10M16 13h5M3 17h6M12 17h9"/><path d="M5 21h4M14 21h5"/></svg><span>MASK</span></button>
+    <button type="button" class="hudbtn mini on" id="callVol" aria-label="Volume: loud (tap for quiet)" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave2" d="M18.5 7a7 7 0 0 1 0 10"/></svg><span id="callVolTxt">LOUD</span></button>
   </div>
 </div>
 
@@ -12856,8 +12871,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16d";
+const APP_VERSION="2026.10.16e";
 const CHANGELOG=[
+  {v:"2026.10.16e", title:"Call controls 🔊", items:["🔊 Video calls are now LOUD: your mic gets a boost so quiet talkers come through. When both cameras are off it switches to QUIET mode, for holding the phone up to your ear. Tap the speaker button to switch it yourself.","🔄 Flip between your front and back camera.","👾 Privacy glitch: stay on video, but they only see you as moving neon blocks, never your face.","🎵 New sounds for accepting, declining and hanging up, and the connect chime now plays when you pick up too."]},
   {v:"2026.10.16d", title:"Voice calls 🎧", items:["🎧 Tap 📞 in a DM and pick Voice call or Video call. Voice calls keep both cameras off and show their picture instead.","👆 Bigger call buttons (thanks Freddy!)."]},
   {v:"2026.10.16c", title:"iPhone call fix 📞", items:["📞 Calls now work on iPhone: the \"couldn't use your camera or mic\" error is fixed (thanks jimmy!). Voice messages on iPhone got the same fix.","📝 Call notes in the chat no longer say \"edited\"."]},
   {v:"2026.10.16b", title:"Call sounds 🎵", items:["🎵 Calling someone now plays a cyberpunk connecting tune while it rings, and an \"access granted\" chime when the call connects.","⬆ The LEVEL UP effect is now NightLane yellow."]},
@@ -14445,6 +14461,17 @@ function stopCallTune(){
   const ctx=sfxCtx(), s=tuneSrc, g=tuneGain; tuneSrc=tuneGain=null;
   try{ g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(g.gain.value,ctx.currentTime); g.gain.linearRampToValueAtTime(0,ctx.currentTime+.3); s.stop(ctx.currentTime+.35); }catch(e){}   // quick fade out
 }
+/* short synth beeps for the call buttons: accept = rising blips, decline / hang up = falling buzz (made in code, no sound files) */
+function callBlip(kind){
+  if(!callSoundOn()) return;
+  try{ const ctx=sfxCtx(); if(ctx.state==="suspended") ctx.resume();
+    const up=kind==="accept", notes=up?[523,784,1047]:[392,262], t0=ctx.currentTime+.02;
+    notes.forEach((f,i)=>{ const o=ctx.createOscillator(), g=ctx.createGain(), t=t0+i*(up?.07:.11), d=up?.09:.16;
+      o.type=up?"square":"sawtooth"; o.frequency.setValueAtTime(f,t); if(!up) o.frequency.exponentialRampToValueAtTime(f*.7,t+d);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(up?.12:.14,t+.01); g.gain.exponentialRampToValueAtTime(.001,t+d);
+      o.connect(g).connect(ctx.destination); o.start(t); o.stop(t+d+.02); });
+  }catch(e){}
+}
 async function playConnectChime(){
   if(!callSoundOn()) return;
   try{ const ctx=sfxCtx(); if(ctx.state==="suspended") await ctx.resume(); chimeBuf=chimeBuf||await callBuf(CALL_CHIME);
@@ -14452,15 +14479,124 @@ async function playConnectChime(){
 }
 
 let callVoice=false;   // true = voice-only call (no cameras)
-function setCallVoice(v){ callVoice=!!v; $("callScreen").classList.toggle("callvoice",callVoice); show($("callCam"),!callVoice); }
+function setCallVoice(v){ callVoice=!!v; show($("callCam"),!callVoice); show($("callFlip"),!callVoice); show($("callGlitch"),!callVoice); updateCallLook(); }
+
+/* ===== 16e: what each phone is doing with its camera, and how loud the call is =====
+   myCam / theirCam: is a picture being sent (privacy glitch counts as on).
+   Both off (or a voice call) = QUIET mode: the avatar screen, normal volume, for holding it up to your ear.
+   Anyone's camera on = LOUD mode: your mic gets a boost before it's sent, so quiet talkers come through.
+   The 🔊 button flips it by hand, for both phones. */
+let camTrack=null, micRaw=null, camFacing="user", callCtx=null, micGain=null, audioSender=null, videoSender=null;
+let myCam=true, theirCam=true, loudPick=null, glitch=null;
+const LOUD_GAIN=2.2, QUIET_GAIN=1;
+function callLoud(){ const both=callVoice||(!myCam&&!theirCam); return loudPick!=null?loudPick:!both; }
+function updateCallLook(){
+  const cs=$("callScreen"), both=callVoice||(!myCam&&!theirCam);
+  cs.classList.toggle("callvoice",both); cs.classList.toggle("theyoff",!both&&!theirCam);
+  const loud=callLoud(), b=$("callVol");
+  b.classList.toggle("on",loud); b.setAttribute("aria-pressed",String(loud));
+  b.setAttribute("aria-label",loud?"Volume: loud (tap for quiet)":"Volume: quiet (tap for loud)"); $("callVolTxt").textContent=loud?"LOUD":"QUIET";
+  if(micGain&&callCtx){ try{ micGain.gain.setTargetAtTime(loud?LOUD_GAIN:QUIET_GAIN,callCtx.currentTime,.05); }catch(e){} }
+}
+/* made right on the tap (phones only start audio from a tap); used to boost the mic */
+function makeCallCtx(){ try{ callCtx=new (window.AudioContext||window.webkitAudioContext)(); callCtx.resume().catch(()=>{}); }catch(e){ callCtx=null; } }
+async function getCallMedia(){
+  const raw=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}, video:callVoice?false:{facingMode:camFacing}});
+  micRaw=raw.getAudioTracks()[0]; camTrack=raw.getVideoTracks()[0]||null;
+  let mic=micRaw;
+  try{   // mic -> volume knob -> limiter (stops the boost from crackling) -> the call
+    if(!callCtx) throw 0;
+    if(callCtx.state!=="running") await Promise.race([callCtx.resume(),new Promise(r=>setTimeout(r,800))]);
+    if(callCtx.state!=="running") throw 0;   // no boost is better than no sound
+    const src=callCtx.createMediaStreamSource(new MediaStream([micRaw]));
+    const g=callCtx.createGain(), lim=callCtx.createDynamicsCompressor(), out=callCtx.createMediaStreamDestination();
+    lim.threshold.value=-18; lim.knee.value=10; lim.ratio.value=6; lim.attack.value=.004; lim.release.value=.2;
+    src.connect(g).connect(lim).connect(out); micGain=g; mic=out.stream.getAudioTracks()[0];
+    callCtx.onstatechange=()=>{   // iPhone can pause audio (another call, Siri): fall back to the plain mic
+      if(!callCtx||callCtx.state==="running"||!micRaw) return;
+      callCtx.resume().catch(()=>{}).finally(()=>setTimeout(()=>{ if(callCtx&&callCtx.state!=="running"&&micRaw) useRawMic(); },1000));
+    };
+  }catch(e){ mic=micRaw; micGain=null; }
+  callStream=new MediaStream([mic,...(camTrack?[camTrack]:[])]);
+  myCam=!callVoice; theirCam=!callVoice; loudPick=null; updateCallLook();
+  paintLocal();
+  if(camTrack){ try{ const cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); show($("callFlip"),cams.length>1); }catch(e){} }
+}
+function useRawMic(){
+  const old=callStream?.getAudioTracks()[0]; if(!old||old===micRaw) return;
+  micRaw.enabled=old.enabled; audioSender?.replaceTrack(micRaw).catch(()=>{});
+  callStream.removeTrack(old); callStream.addTrack(micRaw); old.stop(); micGain=null;
+}
+function paintLocal(){ $("localVideo").srcObject=new MediaStream(callStream?callStream.getVideoTracks():[]); $("localVideo").classList.toggle("back",camFacing==="environment"&&!glitch); }
+async function swapSentVideo(track){   // send a different picture without redialing
+  const old=callStream.getVideoTracks()[0];
+  if(old!==track){ if(old) callStream.removeTrack(old); callStream.addTrack(track); }
+  if(videoSender) await videoSender.replaceTrack(track).catch(()=>{});
+  paintLocal();
+}
+function setMyCam(on){
+  myCam=!!on; if(camTrack) camTrack.enabled=myCam; if(glitch) glitch.track.enabled=myCam;
+  const b=$("callCam"); b.classList.toggle("off",!myCam); b.setAttribute("aria-pressed",String(!myCam)); b.setAttribute("aria-label",myCam?"Camera off":"Camera on");
+  $("localVideo").classList.toggle("camoff",!myCam);
+  loudPick=null; sendSignal("cam",{on:myCam}); updateCallLook();
+}
+/* 🔄 front <-> back camera */
+async function flipCam(){
+  if(!camTrack) return;
+  const want=camFacing==="user"?"environment":"user";
+  try{
+    camTrack.stop();   // some phones can't open 2 cameras at once
+    const fresh=(await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:want}}})).getVideoTracks()[0];
+    camFacing=want; camTrack=fresh; camTrack.enabled=myCam;
+    if(glitch) glitch.v.srcObject=new MediaStream([camTrack]); else await swapSentVideo(camTrack);
+    paintLocal();
+  }catch(e){ $("callState").textContent="Couldn't switch camera"; }
+}
+/* 👾 privacy glitch: they still see you move, but chopped into big neon blocks with RGB tearing, so your face never shows */
+function startGlitch(){
+  const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.srcObject=new MediaStream([camTrack]); v.play().catch(()=>{});
+  const W=270,H=360,CX=9,CY=12, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+  const sm=document.createElement("canvas"); sm.width=CX; sm.height=CY; const sx=sm.getContext("2d",{willReadFrequently:true});
+  const PAL=["#07041a","#3b2d80","#ff4fd8","#00f0ff","#f3ff3a"], cw=W/CX, ch=H/CY;
+  let f=0;
+  const draw=()=>{
+    f++;
+    let d=null; try{ if(v.readyState>=2){ sx.drawImage(v,0,0,CX,CY); d=sx.getImageData(0,0,CX,CY).data; } }catch(e){}
+    x.globalCompositeOperation="source-over"; x.globalAlpha=1; x.fillStyle=PAL[0]; x.fillRect(0,0,W,H);
+    for(let r=0;r<CY;r++){
+      const shift=Math.random()<.14?(Math.random()-.5)*cw*2.5:0;
+      for(let k=0;k<CX;k++){
+        const i=(r*CX+k)*4, lum=d?(.3*d[i]+.59*d[i+1]+.11*d[i+2])/255:Math.random()*.4;
+        x.fillStyle=PAL[Math.max(0,Math.min(4,Math.floor(lum*5+(Math.random()-.5)*.6)))];
+        x.fillRect(Math.round(k*cw+shift),Math.round(r*ch),Math.ceil(cw)+1,Math.ceil(ch)+1);
+      }
+    }
+    x.globalCompositeOperation="lighter"; x.globalAlpha=.16; x.drawImage(c,5,0); x.drawImage(c,-5,0);   // RGB split ghosts
+    x.globalCompositeOperation="source-over"; x.globalAlpha=1;
+    for(let n=Math.floor(Math.random()*3);n>0;n--){ const y=Math.random()*H|0, h=6+Math.random()*24|0; x.drawImage(c,0,y,W,h,(Math.random()-.5)*60,y,W,h); }   // tears
+    x.fillStyle="rgba(0,0,0,.28)"; for(let y=0;y<H;y+=3) x.fillRect(0,y,W,1);   // scanlines
+    if(f%14<11){ x.fillStyle="#f3ff3a"; x.font="bold 13px monospace"; x.textAlign="center"; x.fillText("// SIGNAL MASKED //",W/2,H*.3); }
+  };
+  draw(); const timer=setInterval(draw,1000/12);
+  const track=c.captureStream(12).getVideoTracks()[0];
+  glitch={v,timer,track};
+}
+function stopGlitch(){ if(!glitch) return; clearInterval(glitch.timer); glitch.track.stop(); glitch.v.srcObject=null; glitch=null; }
+async function toggleGlitch(){
+  if(!camTrack||!callStream) return;
+  if(glitch){ const g=glitch; glitch=null; await swapSentVideo(camTrack); glitch=g; stopGlitch(); }
+  else { startGlitch(); await swapSentVideo(glitch.track); }
+  const on=!!glitch, b=$("callGlitch"); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
+  paintLocal(); setMyCam(true);   // glitch is a picture, so the camera counts as on
+}
 async function openCall(voice=false){
   if(callStream) return;   // already in a call
   setCallVoice(voice===true);
   audioForCapture(true);   // iPhone: let the mic work during the call
   startCallTune();         // start it right on the tap (phones only allow sound that starts from a tap)
+  makeCallCtx();
   try{
-    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:!callVoice});
-    $("localVideo").srcObject=callStream;          // show yourself in the little box
+    await getCallMedia();   // camera + mic (with the loud-mode boost), and shows yourself in the little box
     $("callName").textContent=nameOf(dmUser);      // their name
     paintFace($("callFace"), cache.get(dmUser));   // their picture in the middle
     $("callState").textContent="Calling…";
@@ -14523,9 +14659,9 @@ let pc=null, pendingIce=[];
 async function startPeer(){
   const servers=await getIceServers(); if(!callStream) return;
   pc=new RTCPeerConnection(servers); pendingIce=[];
-  callStream.getTracks().forEach(t=>pc.addTrack(t,callStream));                  // send my camera + mic
+  callStream.getTracks().forEach(t=>{ const s=pc.addTrack(t,callStream); if(t.kind==="video") videoSender=s; else audioSender=s; });   // send my camera + mic
   pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; $("callScreen").classList.add("live");   // their video arrived
-    if(!callStartAt){ stopCallTune(); playConnectChime(); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
+    if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
   pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
   pc.onconnectionstatechange=()=>{ if(pc?.connectionState==="failed"){ $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } };
 }
@@ -14550,7 +14686,12 @@ function endCall(){
   if(callStream){
     callStream.getTracks().forEach(track => track.stop());
   }
-  callStream=null; audioForCapture(false);
+  stopGlitch(); [camTrack,micRaw].forEach(t=>t&&t.stop());
+  if(callCtx){ callCtx.onstatechange=null; callCtx.close().catch(()=>{}); }
+  camTrack=micRaw=callCtx=micGain=audioSender=videoSender=null; camFacing="user"; myCam=theirCam=true; loudPick=null;
+  $("callGlitch").classList.remove("on"); $("callGlitch").setAttribute("aria-pressed","false");
+  $("localVideo").classList.remove("back"); $("callScreen").classList.remove("theyoff");
+  callStream=null; audioForCapture(false); updateCallLook();
   $("localVideo").srcObject=null;
   ["callMute","callCam"].forEach(id=>{ $(id).classList.remove("off"); $(id).setAttribute("aria-pressed","false"); });
   $("localVideo").classList.remove("camoff");
@@ -14579,7 +14720,7 @@ async function showIncomingCall(m){
 }
 
 async function declineCall(){
-  stopRinging();
+  stopRinging(); callBlip("decline");
   if(!callLine) await joinCallLine(callRoom);
   sendSignal("decline");
   leaveCallLine();   // leave first, so endCall doesn't also send "end"
@@ -14588,19 +14729,20 @@ async function declineCall(){
 $("callDecline").onclick=declineCall;
 
 function onCallSignal(s){
-  if(s.type==="decline"){ callOutcome="declined"; stopRinging(); $("callState").textContent="Declined"; setTimeout(endCall,1500); }
-  if(s.type==="end"){ leaveCallLine(); endCall(); }   // they hung up (leave first so we don't say "end" back)
+  if(s.type==="decline"){ callOutcome="declined"; stopRinging(); callBlip("decline"); $("callState").textContent="Declined"; setTimeout(endCall,1500); }
+  if(s.type==="end"){ callBlip("decline"); leaveCallLine(); endCall(); }   // they hung up (leave first so we don't say "end" back)
   if(s.type==="offer") onOffer(s.sdp);     // video link notes (handled by the helpers above)
   if(s.type==="answer") onAnswer(s.sdp);
   if(s.type==="ice") onIce(s.c);
+  if(s.type==="cam"){ theirCam=!!s.on; loudPick=null; updateCallLook(); }   // they turned their camera on/off
+  if(s.type==="vol"){ loudPick=!!s.loud; updateCallLook(); }                 // they tapped 🔊
   if(s.type==="accept"){ stopRinging(); $("callState").textContent="Connecting…"; startPeer().then(sendOffer); }   // they picked up: start the video link
 }
 
 async function acceptCall(){
-  stopRinging(); audioForCapture(true);
+  stopRinging(); callBlip("accept"); audioForCapture(true); makeCallCtx();
   try{
-    callStream=await navigator.mediaDevices.getUserMedia({audio:true, video:!callVoice});
-    $("localVideo").srcObject=callStream;          // show yourself in the little box
+    await getCallMedia();   // camera + mic (with the loud-mode boost), and shows yourself in the little box
     show($("callRingBar"), false);
     show($("callMainBar"), true);
     $("callState").textContent="Connecting…";
@@ -14617,20 +14759,23 @@ $("callAccept").onclick=acceptCall;
 /* mute + camera off: the tracks stay connected, they just send silence / black until you turn them back on */
 function toggleTrack(kind,btn,offLabel,onLabel){
   if(!callStream) return;
-  const tracks=kind==="audio"?callStream.getAudioTracks():callStream.getVideoTracks();
+  const tracks=kind==="audio"?[...callStream.getAudioTracks(),...(micRaw?[micRaw]:[])]:callStream.getVideoTracks();
   const off=tracks.some(t=>t.enabled); tracks.forEach(t=>t.enabled=!off);
   btn.classList.toggle("off",off); btn.setAttribute("aria-pressed",String(off)); btn.setAttribute("aria-label",off?onLabel:offLabel);
   if(kind==="video") $("localVideo").classList.toggle("camoff",off);
 }
 $("callMute").onclick=()=>toggleTrack("audio",$("callMute"),"Mute","Unmute");
-$("callCam").onclick=()=>toggleTrack("video",$("callCam"),"Camera off","Camera on");
+$("callCam").onclick=()=>setMyCam(!myCam);
+$("callFlip").onclick=flipCam;
+$("callGlitch").onclick=toggleGlitch;
+$("callVol").onclick=()=>{ loudPick=!callLoud(); sendSignal("vol",{loud:loudPick}); updateCallLook(); };
 
 /* 📞 opens a small picker: 🎧 voice call or 📹 video call */
 $("callBtn").onclick=e=>{ e.stopPropagation(); const open=$("callPick").classList.contains("hidden"); show($("callPick"),open); $("callBtn").setAttribute("aria-expanded",String(open)); };
 $("callPickVoice").onclick=()=>{ show($("callPick"),false); openCall(true); };
 $("callPickVideo").onclick=()=>{ show($("callPick"),false); openCall(false); };
 document.addEventListener("click",e=>{ if(!$("callPick").classList.contains("hidden")&&!e.target.closest("#callPick,#callBtn")) show($("callPick"),false); });
-$("callEnd").onclick=endCall;
+$("callEnd").onclick=()=>{ callBlip("decline"); endCall(); };
 </script>
 </body>
 </html>
