@@ -1398,6 +1398,12 @@ body.theme-pipboy .compose,body.theme-pipboy .top{background:rgba(6,16,8,.92)!im
 .face.mx-grow .fi{animation:mxgrow 3s ease both}
 @keyframes mxgrow{15%,25%,35%{transform:scale(1.5)}20%,30%{transform:scale(1)}40%,85%{transform:scale(1.5)}100%{transform:scale(1)}}
 /* ===== dragon scene ===== */
+/* 🐈 Hagrid (pspsps): the Creator's fluffy black smoke cat strolls across, sits, blinks, says mrrp, wanders off. Sheet: 6 frames of 36x24 (walk x4, sit, blink) */
+.hg-cat{position:absolute;left:0;bottom:24%;width:108px;height:72px;background-size:648px 72px;background-repeat:no-repeat;image-rendering:pixelated;will-change:transform;filter:drop-shadow(0 0 3px rgba(200,190,255,.5))}   /* he is a very dark cat on a dark app: a soft moonlight rim */
+.hg-bubble{position:absolute;bottom:calc(24% + 76px);padding:4px 10px;background:#f4f1ff;color:#07041a;border:3px solid #07041a;box-shadow:3px 3px 0 #ff4fd8;font-family:"Monogram",ui-monospace,monospace;font-size:20px;line-height:1;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;white-space:nowrap}
+.hg-bubble.on{opacity:1;transform:none}
+.hg-paw{display:inline-block;width:14px;height:12px;margin-left:6px;vertical-align:-1px;color:#ff4fd8;animation:hgpaw .5s steps(3) both}
+@keyframes hgpaw{from{transform:scale(0) rotate(-20deg)}to{transform:none}}
 .dg-scene{position:absolute;inset:0;background:#000;opacity:0;animation:dgin .6s ease forwards;transition:opacity .8s}
 .dg-scene.out{opacity:0!important}
 @keyframes dgin{to{opacity:1}}
@@ -11314,6 +11320,47 @@ QX.onepiece=function(){
 SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
   {id:"onepiece", name:"The One Piece", re:/one piece/i, play:()=>QX.onepiece()}
 );
+/* 🐈 Hagrid: the Creator's cat. Call him like any cat: pspsps (or "pss pss pss") */
+const HAGRID_IMG="data:image/png;base64,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";
+QX.hagrid=function(m){
+  const layer=$("sfx"), W=innerWidth, FRAME=108;
+  const cat=document.createElement("div"); cat.className="hg-cat"; cat.style.backgroundImage=`url(${HAGRID_IMG})`;
+  const bub=document.createElement("div"); bub.className="hg-bubble"; bub.textContent="mrrp?";
+  layer.append(cat,bub);
+  const mid=Math.round(W/2-54), speed=110;   // px per second
+  let x=-FRAME, phase="in", t0=performance.now(), last=t0, frame=0, ft=0;
+  const show=f=>{ cat.style.backgroundPosition=`${-f*FRAME}px 0`; };
+  const meow=()=>{ try{ if(typeof uiSoundOn==="function"&&!uiSoundOn()) return; const ac=sfxCtx(); if(ac.state==="suspended") ac.resume();
+    const o=ac.createOscillator(), g=ac.createGain(), t=ac.currentTime; o.type="triangle";
+    o.frequency.setValueAtTime(520,t); o.frequency.linearRampToValueAtTime(820,t+.12); o.frequency.linearRampToValueAtTime(600,t+.32);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.09,t+.04); g.gain.exponentialRampToValueAtTime(.001,t+.36);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+.4); }catch(e){} };
+  const paw=()=>{ const b=m&&document.querySelector(`.msg[data-id="${m.id}"] .bubble`); if(!b||b.querySelector(".hg-paw")) return;
+    const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox","0 0 7 6"); s.setAttribute("class","hg-paw"); s.setAttribute("shape-rendering","crispEdges"); s.setAttribute("aria-hidden","true");
+    s.innerHTML='<path fill="currentColor" d="M1 0h1v1H1zM3 0h1v1H3zM5 0h1v1H5zM0 2h1v1H0zM6 2h1v1H6zM2 2h3v1H2zM1 3h5v2H1zM2 5h3v1H2z"/>'; b.append(s); };
+  let sitAt=0;
+  const tick=now=>{
+    const dt=(now-last)/1000; last=now;
+    if(phase==="in"||phase==="out"){
+      x+=speed*dt; ft+=dt; if(ft>.12){ ft=0; frame=(frame+1)%4; } show(frame);
+      if(phase==="in"&&x>=mid){ x=mid; phase="sit"; sitAt=now; show(4); paw(); }
+      if(phase==="out"&&x>W+10){ cat.remove(); bub.remove(); return; }
+    } else {
+      const k=now-sitAt;
+      show((k>500&&k<640)||(k>1500&&k<1640)?5:4);           // two slow blinks
+      if(k>700&&!bub.classList.contains("on")){ bub.classList.add("on"); meow(); }
+      if(k>2100) bub.classList.remove("on");
+      if(k>2400){ phase="out"; }
+    }
+    cat.style.transform=`translateX(${Math.round(x)}px)`; bub.style.left=(Math.round(x)+66)+"px";
+    requestAnimationFrame(tick);
+  };
+  show(0); cat.style.transform=`translateX(${x}px)`; requestAnimationFrame(tick);
+};
+SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"hagrid", name:"Hagrid", re:/(^|[^a-z])(?:p+s+[\s.!~]*){3,}(?=$|[^a-z])/i, play:m=>QX.hagrid(m)}
+);
+Object.assign(HINTS,{hagrid:"The Creator's cat comes when you call him the way you call any cat. Three times."});
 Object.assign(HINTS,{onepiece:"The treasure at the end of the Grand Line. Say its name."});
 HINTS.dragon="A winged silhouette crosses the moon when you say it.";
 
@@ -13154,8 +13201,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16q";
+const APP_VERSION="2026.10.16s";
 const CHANGELOG=[
+  {v:"2026.10.16s", title:"He's real now 🐈‍⬛", items:["🐈‍⬛ The secret cat got redrawn from real life: fluffy, smoky and judging you slightly."]},
+  {v:"2026.10.16r", title:"A new secret 🐈", items:["🐈 Someone very important to the Creator is hiding in the chat. Call him the way you'd call any cat…"]},
   {v:"2026.10.16q", title:"No double pop-ups 🔕", items:["🔕 While NightLane is open, new messages only show NightLane's own pop-up, not a phone notification on top of it (thanks jimmylikespie21!). Want both anyway? Turn on Phone notifications while NightLane is open in Profile."]},
   {v:"2026.10.16p", title:"Smarter notifications 👀", items:["👀 NightLane now knows which chat you have open, so it never sends your phone a notification for the chat you're reading. Close the app or switch chats and they come back right away."]},
   {v:"2026.10.16o", title:"Quieter notifications 🔕", items:["🔕 No more notification pop-ups for the chat you're already reading (thanks jimmylikespie21!)."]},
