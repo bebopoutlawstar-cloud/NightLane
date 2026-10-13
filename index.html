@@ -3253,9 +3253,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 #callVol:not(.on) .wave2{display:none}
 #localVideo.back{transform:none}
 /* hide the buttons (tap anywhere to bring them back), like FaceTime */
-.callscreen .callbar,.callscreen .callhud,.callscreen .callinfo{transition:opacity .25s}
-.callscreen.uihidden .callbar,.callscreen.uihidden .callhud,.callscreen.uihidden .callinfo{opacity:0;pointer-events:none}
-.callscreen.uihidden.callvoice .callinfo,.callscreen.uihidden.theyoff .callinfo{opacity:1}   /* no video to look at: keep their picture */
+.callscreen .callbar{transition:opacity .25s}
+.callscreen.uihidden .callbar{opacity:0;pointer-events:none}   /* only the buttons hide: the HUD corners, name and LIVE chip stay */
 /* the little LOUD / QUIET / "tap to show" pop */
 .callflash{position:absolute;left:50%;top:42%;z-index:4;transform:translate(-50%,-50%);padding:10px 16px;background:rgba(10,20,34,.92);border:2px solid var(--volt);color:var(--volt);font-family:var(--tech);font-size:13px;letter-spacing:1px;text-align:center;pointer-events:none;opacity:0;transition:opacity .2s;max-width:80%}
 .callflash.on{opacity:1}
@@ -13126,8 +13125,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16l";
+const APP_VERSION="2026.10.16m";
 const CHANGELOG=[
+  {v:"2026.10.16m", title:"Small tweak 👁", items:["👁 HIDE on calls now only hides the buttons. The neon HUD, their name and the LIVE timer stay on screen."]},
   {v:"2026.10.16l", title:"Fixes 🀄", items:["🀄 Mahjong: your hand no longer runs off the side of the screen on phones. Tiles wrap onto two rows (thanks Kenny!).","🔔 iPhone: no more blank \"NightLane\" notifications while you're in the app. If one shows, it's the real message, with no sound."]},
   {v:"2026.10.16k", title:"Call upgrades 📹", items:["🔊 LOUD and QUIET actually sound different now: LOUD is about 3× louder, and quiet talkers get a real boost. You'll see a pop-up on both phones when it switches.","👁 Tap HIDE, or tap the video, to hide all the buttons. Tap anywhere to bring them back.","↔️ Drag your own video box to any corner, like FaceTime. It remembers where you put it.","🙌 Thanks to hachiware and Babygirl Fried Rice Legend for the ideas!"]},
   {v:"2026.10.16j", title:"Mic help 🎤", items:["🎤 If your phone won't let NightLane use the mic or camera for a call, you now get clear steps for your phone (iPhone, Android or computer) instead of an error code."]},
