@@ -3007,6 +3007,8 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #editBox{min-height:110px;resize:vertical;font-family:var(--body);font-size:17px}
 .edited{opacity:.75;font-style:italic}
 .bubble{touch-action:manipulation}
+/* iPhone: no double-tap zoom anywhere (pinch zoom still works). Boxes that need touch-action:none (cropper, photo viewer) keep it, their rules win over * */
+*{touch-action:manipulation}
 /* ===== accessibility ===== */
 /* Less motion (chosen in NightLane) works like the device setting */
 html.motion-less *,html.motion-less *::before,html.motion-less *::after{animation:none!important}
@@ -12871,8 +12873,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16e";
+const APP_VERSION="2026.10.16f";
 const CHANGELOG=[
+  {v:"2026.10.16f", title:"No more surprise zoom", items:["🔍 Double-tapping on iPhone no longer zooms the screen (in chats, menus or calls). Pinch zoom still works."]},
   {v:"2026.10.16e", title:"Call controls 🔊", items:["🔊 Video calls are now LOUD: your mic gets a boost so quiet talkers come through. When both cameras are off it switches to QUIET mode, for holding the phone up to your ear. Tap the speaker button to switch it yourself.","🔄 Flip between your front and back camera.","👾 Privacy glitch: stay on video, but they only see you as moving neon blocks, never your face.","🎵 New sounds for accepting, declining and hanging up, and the connect chime now plays when you pick up too."]},
   {v:"2026.10.16d", title:"Voice calls 🎧", items:["🎧 Tap 📞 in a DM and pick Voice call or Video call. Voice calls keep both cameras off and show their picture instead.","👆 Bigger call buttons (thanks Freddy!)."]},
   {v:"2026.10.16c", title:"iPhone call fix 📞", items:["📞 Calls now work on iPhone: the \"couldn't use your camera or mic\" error is fixed (thanks jimmy!). Voice messages on iPhone got the same fix.","📝 Call notes in the chat no longer say \"edited\"."]},
