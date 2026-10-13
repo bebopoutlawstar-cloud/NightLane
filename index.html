@@ -3233,7 +3233,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .callbar{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 56px);display:flex;gap:30px}
 .callpick{position:absolute;right:14px;top:100%;margin-top:6px;z-index:30;display:grid;gap:6px;padding:8px;background:#0d0826;border:2px solid var(--cyan);box-shadow:4px 4px 0 #ff4fd8}
 .callpick button{background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);font-size:13px;padding:12px 16px;text-align:left;white-space:nowrap}.callpick button:active{background:var(--cyan);color:#07041a}
-.top{position:relative;z-index:3}
+.top{position:relative;z-index:8}   /* above the pinned-message bar (z 6), so the 📞 call menu drops over it */
 /* voice calls: no video boxes, their picture stays in the target ring, and the camera button hides */
 .callscreen.callvoice #localVideo,.callscreen.callvoice #remoteVideo,.callscreen.theyoff #remoteVideo{opacity:0;pointer-events:none}
 .callscreen.callvoice.live .calltarget,.callscreen.theyoff.live .calltarget{display:grid}
@@ -3806,6 +3806,16 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub left" id="installWhy">Installing gives you a home screen icon, full-screen chats, and notifications.</p>
     <p class="msgline" id="installMsg" role="status"></p>
     <button class="ghost" type="button" id="installClose">Close</button>
+  </div></div>
+</div>
+
+<div class="overlay hidden" id="micHelp" role="dialog" aria-modal="true" aria-labelledby="micHelpTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="micHelpTitle">Mic blocked</h2>
+    <p class="sub left" id="micHelpIntro"></p>
+    <ol class="steps" id="micHelpSteps"></ol>
+    <p class="sub left" id="micHelpErr" style="opacity:.6;font-size:12px"></p>
+    <button class="ghost" type="button" id="micHelpClose">Got it</button>
   </div></div>
 </div>
 
@@ -8402,7 +8412,7 @@ function lbZoomAt(z,cx,cy,ease){   // zoom to z, keeping the screen point (cx,cy
 ["profile","roomSheet","msgMenu","pollSheet","summarySheet","calSheet","searchSheet","backlogSheet","blShareSheet","forgotSheet","rcSheet"].forEach(id=>$(id).addEventListener("click",e=>{ if(e.target.id===id) show($(id),false); }));
 addEventListener("keydown",e=>{
   if(e.key==="Escape") closeTray();
-  if(e.key==="Escape") ["lightbox","profile","roomSheet","msgMenu","pollSheet","tray","themeSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","installSheet","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","recover","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet"].forEach(id=>{ const n=$(id); if(n) show(n,false); });
+  if(e.key==="Escape") ["micHelp","lightbox","profile","roomSheet","msgMenu","pollSheet","tray","themeSheet","gameSheet","personSheet","summarySheet","calSheet","searchSheet","installSheet","habitsSheet","quizSheet","slSheet","newsSheet","backlogSheet","blShareSheet","recover","forgotSheet","rcSheet","rulesSheet","cheatSheet","arcanaSheet"].forEach(id=>{ const n=$(id); if(n) show(n,false); });
   if(!$("lightbox").classList.contains("hidden")&&lbAlbum){ if(e.key==="ArrowLeft") lbStep(-1); if(e.key==="ArrowRight") lbStep(1); }
 });
 
@@ -13095,8 +13105,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16h";
+const APP_VERSION="2026.10.16j";
 const CHANGELOG=[
+  {v:"2026.10.16j", title:"Mic help 🎤", items:["🎤 If your phone won't let NightLane use the mic or camera for a call, you now get clear steps for your phone (iPhone, Android or computer) instead of an error code."]},
+  {v:"2026.10.16i", title:"Small fix 📞", items:["📞 The Voice/Video call menu no longer hides behind a pinned message (thanks hachiware!)."]},
   {v:"2026.10.16h", title:"Notifications stay on 🔔", items:["🔔 Fixed notifications switching themselves off after updates (thanks Isaiah and Freddy!). If your phone ever drops them anyway, NightLane turns them back on by itself, or shows a one-tap bar to do it."]},
   {v:"2026.10.16g", title:"New game: Go ⚫", items:["⚫ Play Go on a 9×9 board: ＋ → Games → Go. Surround territory, capture stones, and pass when you're done.","👆 Tap a spot to preview your stone, then tap again to place it, so no more misplaced stones.","📖 Full rules are under How to play."]},
   {v:"2026.10.16f", title:"No more surprise zoom", items:["🔍 Double-tapping on iPhone no longer zooms the screen (in chats, menus or calls). Pinch zoom still works."]},
@@ -14705,6 +14717,47 @@ async function playConnectChime(){
     const s=ctx.createBufferSource(), g=ctx.createGain(); s.buffer=chimeBuf; g.gain.value=.5; s.connect(g).connect(ctx.destination); s.start(); }catch(e){}
 }
 
+/* 🎤 when the phone won't hand over the mic / camera: explain why, in plain words, with the steps for THIS phone */
+function showMicHelp(err,voice){
+  const name=err?.name||"", msg=String(err?.message||err||""), what=voice?"microphone":"microphone and camera", What=voice?"Microphone":"Microphone and Camera";
+  const ios=BROWSER.ios||isIOS, android=BROWSER.android||/Android/i.test(navigator.userAgent);
+  const iosNum=+((navigator.userAgent.match(/OS (\d+)_/)||[])[1]||0);
+  let title="Mic blocked", intro="", steps=[];
+  if(/AudioSession/i.test(msg)){
+    title="Update needed"; intro="This phone is running an older NightLane.";
+    steps=["Swipe NightLane closed, then open it again to get the latest version.","Try the call again."];
+  } else if(name==="NotFoundError"||name==="OverconstrainedError"){
+    title="No mic found"; intro=`NightLane couldn't find a ${what} on this device.`;
+    steps=["If you're on a computer, plug in a headset or webcam and try again.",voice?"":"Or try a 🎧 Voice call instead, which only needs a mic."].filter(Boolean);
+  } else if(name==="NotReadableError"||name==="AbortError"){
+    title="Mic is busy"; intro=`Another app is using your ${what} right now.`;
+    steps=["Hang up any phone call, FaceTime, or other video app.","Close apps like the Camera or a voice recorder.","Try the call again."];
+  } else if(ios){
+    title=voice?"Mic blocked":"Mic & camera blocked";
+    intro=`Your iPhone is blocking the ${what} for NightLane. iPhone doesn't list NightLane in Settings by name: its mic and camera follow Safari's settings.`;
+    steps=["Swipe NightLane closed and open it again. Then call again and tap <b>Allow</b> when it asks.",
+      `If it doesn't ask: open <b>Settings → ${iosNum>=18?"Apps → Safari":"Safari"}</b>, scroll to <b>Settings for Websites</b>, and set <b>${What}</b> to <b>Ask</b> or <b>Allow</b>.`,
+      "Still blocked? Check <b>Settings → Screen Time → Content & Privacy Restrictions</b>. If <b>Microphone</b> is locked there, it needs to be unlocked.",
+      "Then swipe NightLane closed, open it again, and call."];
+  } else if(android){
+    title=voice?"Mic blocked":"Mic & camera blocked";
+    intro=`Your phone is blocking the ${what} for NightLane. Calls need permission to use it.`;
+    steps=["Using the installed app? Long-press the NightLane icon → <b>App info</b> → <b>Permissions</b>, and allow <b>"+What+"</b>.",
+      "In Chrome: tap the icon left of the web address → <b>Permissions</b>, and allow <b>"+What+"</b>.",
+      "Then close NightLane, open it again, and call."];
+  } else {
+    title=voice?"Mic blocked":"Mic & camera blocked";
+    intro=`Your browser is blocking the ${what} for NightLane. Calls need permission to use it.`;
+    steps=["Click the icon on the left of the address bar (a lock or sliders).",`Set <b>${What}</b> to <b>Allow</b>.`,"Reload the page and call again."];
+  }
+  $("micHelpTitle").textContent=title; $("micHelpIntro").textContent=intro;
+  $("micHelpSteps").innerHTML=steps.map(t=>"<li><span>"+t+"</span></li>").join("");   // fixed text only, nothing from users
+  $("micHelpErr").textContent=name||msg?`Phone said: ${[name,msg].filter(Boolean).join(" · ").slice(0,140)}`:"";
+  show($("micHelp"));
+}
+$("micHelpClose").onclick=()=>show($("micHelp"),false);
+$("micHelp").addEventListener("click",e=>{ if(e.target.id==="micHelp") show($("micHelp"),false); });
+
 let callVoice=false;   // true = voice-only call (no cameras)
 function setCallVoice(v){ callVoice=!!v; show($("callCam"),!callVoice); show($("callFlip"),!callVoice); show($("callGlitch"),!callVoice); updateCallLook(); }
 
@@ -14834,8 +14887,9 @@ async function openCall(voice=false){
     callMsgId=m?.id??null;
     ringTimer=setTimeout(()=>{ if(!pc){ callOutcome="missed"; $("callState").textContent="No answer"; setTimeout(endCall,1500); } },45000);   // give up after 45 seconds
   }catch(err){
+    const v=callVoice;
     $("status").textContent="Couldn't use your camera or mic: "+err.message;
-    endCall();
+    endCall(); showMicHelp(err,v);
   }
 }
 
@@ -14977,8 +15031,9 @@ async function acceptCall(){
     await startPeer();              // get the video link ready...
     sendSignal("accept");           // ...then tell the caller to send the offer
   }catch(err){
+    const v=callVoice;
     $("callState").textContent="Couldn't use your camera or mic";
-    setTimeout(endCall,1500);
+    setTimeout(()=>{ endCall(); showMicHelp(err,v); },1200);
   }
 }
 $("callAccept").onclick=acceptCall;
