@@ -1512,6 +1512,8 @@ body.verse .bubble::before{background:#fffdf3!important;clip-path:none!important
 body.verse .msg.me .bubble::before{background:
   radial-gradient(circle,rgba(255,45,85,.22) 1.2px,transparent 1.6px) 0 0/7px 7px,#ffe600!important;box-shadow:4px 4px 0 #000,6px 6px 0 var(--cyan)!important}
 body.verse .bubble a{color:#c4002f}
+body.verse .msg.me .bubble,body.verse .msg.me.custom .bubble{color:#111!important}   /* your caption box is always yellow, so the ink is always black (custom bubble colors had white text) */
+body.verse .msg.me .bubble a{color:#c4002f!important}
 body.verse .tag{background:var(--mag)!important;color:#fff!important;border:2.5px solid #000!important;box-shadow:2px 2px 0 #000;text-shadow:-1.5px 0 var(--cyan),1.5px 0 #000;font-size:14px;transform:rotate(-4deg)}
 body.verse .screen h1,body.verse .screen h2,body.verse .weekday,body.verse .daybreak{text-shadow:-2px 0 var(--mag),2px 0 var(--cyan)!important}
 body.verse .go,body.verse .send{background:var(--volt)!important;color:#000!important;border:3px solid #000!important;box-shadow:3px 3px 0 var(--mag)!important;font-family:"Bangers","Anton",sans-serif!important;letter-spacing:1px}
@@ -13552,8 +13554,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16w";
+const APP_VERSION="2026.10.16x";
 const CHANGELOG=[
+  {v:"2026.10.16x", title:"Easier to read 🕸️", items:["🕸️ Comic mode: your messages now always use black ink on the yellow caption box, even if you picked a custom bubble color."]},
   {v:"2026.10.16w", title:"Into another universe 🕸️", items:["🕸️ A new line is hiding in the chat that jumps your NightLane into a comic-book universe: halftone dots, off-register ink, sound effects when you send. Another two words bring you home.","💭 Friends typing show up as a comic thought bubble.","🎨 Do both to unlock the Multiverse frame. There's a bonus one-shot hiding too."]},
   {v:"2026.10.16v", title:"Footsteps on the map 👣", items:["👣 In ink-map mode, when a friend is typing you see their footprints walking across the map instead of \"is typing\". Footprints by Cole."]},
   {v:"2026.10.16u", title:"Up to no good 🗺️", items:["🗺️ There's an oath hidden in the chat that turns NightLane into an old ink map, just for you. Another two words fold it back up.","🪶 Do both to unlock the Ink & quill frame."]},
