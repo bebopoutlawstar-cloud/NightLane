@@ -19,7 +19,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
 <style>
 :root{
@@ -1490,6 +1490,71 @@ body.im-glitch .screen{animation:imglitch .7s steps(2) both}
 .face.frame-quill{--fr:linear-gradient(135deg,#f3e6c4,#c9a86a 45%,#6b4a2b);filter:drop-shadow(0 0 4px rgba(107,74,43,.7))}
 .face.frame-quill>.frx::after{content:"🪶";position:absolute;right:-.3em;top:-.45em;font-size:max(12px,.5em);transform:rotate(20deg)}
 /* ===================== /INK MAP ===================== */
+/* ===================== 🕸️ COMIC VERSE MODE ("Anyone can wear the mask" / "That's a canon event") =====================
+   Only on the phone that said it. Comic-print look: halftone dots, off-register red/cyan ink, thick panel outlines,
+   caption boxes, stepped animation, spray drips. Art style only: no characters, no logos. */
+body.verse{--night:#140a2e;--deep:#2b0b45;--white:#fffdf3;--muted:#c9b8ff;--cyan:#00e5ff;--mag:#ff2d55;--volt:#ffe600}
+body.verse .sky{background:
+  radial-gradient(circle,rgba(255,45,85,.38) 1.3px,transparent 1.8px) 0 0/10px 10px,
+  radial-gradient(circle,rgba(0,229,255,.22) 1.1px,transparent 1.6px) 5px 5px/10px 10px,
+  radial-gradient(circle at 85% 8%,rgba(255,230,0,.25),transparent 40%),
+  linear-gradient(170deg,#1a0b3a,#3b0b4f 60%,#140a2e)}
+body.verse .sky canvas{opacity:.18}
+body.verse .sky::after{content:"";position:fixed;inset:0;pointer-events:none;background:
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='90'><path fill='%23ff2d55' d='M0 0h160v10c-6 0-6 30-10 30s-4-30-10-30-4 14-8 14-4-14-10-14-5 46-9 46-4-46-10-46-4 20-8 20-4-20-10-20-4 10-8 10-4-10-10-10-6 34-10 34S60 10 54 10s-4 16-8 16-4-16-10-16-5 60-9 60-4-60-10-60-4 12-8 12S4 10 0 10z'/></svg>") left top/160px 90px no-repeat,
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='70'><path fill='%2300e5ff' d='M0 0h120v8c-5 0-5 22-9 22s-4-22-9-22-4 40-8 40-4-40-9-40-4 12-8 12-4-12-9-12-4 26-8 26-4-26-9-26-4 50-8 50S31 8 26 8s-4 14-8 14S14 8 9 8 5 30 0 30z'/></svg>") right top/120px 70px no-repeat,
+  repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 3px)}
+body.verse .screen,body.verse .screen *{font-family:"Comic Neue","Comic Sans MS",system-ui,sans-serif}
+body.verse .top,body.verse .compose,body.verse .pinbar,body.verse .dailybar,body.verse .herebar{background:rgba(20,10,46,.94)!important;border-color:#000!important;border-width:3px!important;box-shadow:0 3px 0 var(--mag)}
+body.verse .top h1,body.verse .top .title,body.verse .top b,body.verse .tag,body.verse .sheet h2{font-family:"Bangers","Anton",sans-serif!important;letter-spacing:1px}
+body.verse .bubble{color:#111;font-weight:700;filter:none!important;text-shadow:none}
+body.verse .bubble::before{background:#fffdf3!important;clip-path:none!important;border:3px solid #000;border-radius:4px;box-shadow:4px 4px 0 #000,6px 6px 0 var(--mag)!important}
+body.verse .msg.me .bubble::before{background:
+  radial-gradient(circle,rgba(255,45,85,.22) 1.2px,transparent 1.6px) 0 0/7px 7px,#ffe600!important;box-shadow:4px 4px 0 #000,6px 6px 0 var(--cyan)!important}
+body.verse .bubble a{color:#c4002f}
+body.verse .tag{background:var(--mag)!important;color:#fff!important;border:2.5px solid #000!important;box-shadow:2px 2px 0 #000;text-shadow:-1.5px 0 var(--cyan),1.5px 0 #000;font-size:14px;transform:rotate(-4deg)}
+body.verse .screen h1,body.verse .screen h2,body.verse .weekday,body.verse .daybreak{text-shadow:-2px 0 var(--mag),2px 0 var(--cyan)!important}
+body.verse .go,body.verse .send{background:var(--volt)!important;color:#000!important;border:3px solid #000!important;box-shadow:3px 3px 0 var(--mag)!important;font-family:"Bangers","Anton",sans-serif!important;letter-spacing:1px}
+body.verse .field,body.verse textarea{background:#fffdf3!important;color:#111!important;border:3px solid #000!important;border-radius:4px;box-shadow:3px 3px 0 var(--cyan)}
+body.verse .field::placeholder,body.verse textarea::placeholder{color:#7a6a9a}
+body.verse .sheet{background:radial-gradient(circle,rgba(255,45,85,.18) 1.2px,transparent 1.7px) 0 0/10px 10px,#1a0b3a!important;border:3px solid #000!important}
+body.verse .roomrow,body.verse .popt,body.verse .toast{border:2.5px solid #000!important;box-shadow:3px 3px 0 var(--mag)!important}
+body.verse .face .fi{filter:contrast(1.15) saturate(1.3)}
+body.verse .msg{animation:svpop .36s steps(3) both}
+@keyframes svpop{0%{transform:scale(.6) rotate(-4deg);opacity:0}50%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:none}}
+body.verse .msg.sv-split .bubble{animation:svsplit .5s steps(4) both}
+@keyframes svsplit{0%{transform:translate(-5px,0) skewX(-8deg);filter:drop-shadow(-6px 0 0 var(--cyan)) drop-shadow(6px 0 0 var(--mag)) hue-rotate(90deg)}
+  40%{transform:translate(6px,-2px) skewX(6deg);filter:drop-shadow(5px 0 0 var(--volt)) drop-shadow(-5px 0 0 var(--mag))}
+  75%{transform:translate(-2px,1px);filter:drop-shadow(-3px 0 0 var(--cyan)) hue-rotate(-60deg)}100%{transform:none;filter:none}}
+/* typing: a comic thought bubble with spider-sense squiggles */
+.sv-think{display:inline-flex;align-items:center;gap:8px;margin:0 0 8px;position:relative}
+.sv-think .sv-cloud{position:relative;display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:radial-gradient(circle,rgba(255,45,85,.28) 1.2px,transparent 1.6px) 0 0/7px 7px,#fffdf3;border:3px solid #000;border-radius:999px;box-shadow:3px 3px 0 var(--cyan);color:#111;font:16px/1 "Bangers","Anton",sans-serif;letter-spacing:1px}
+.sv-think .sv-cloud::before,.sv-think .sv-cloud::after{content:"";position:absolute;background:#fffdf3;border:2.5px solid #000;border-radius:50%}
+.sv-think .sv-cloud::before{width:10px;height:10px;left:-8px;bottom:-6px}
+.sv-think .sv-cloud::after{width:6px;height:6px;left:-15px;bottom:-11px}
+.sv-think .sv-dots i{display:inline-block;width:6px;height:6px;margin:0 1px;background:#000;border-radius:50%;animation:svdot .9s steps(2) infinite}
+.sv-think .sv-dots i:nth-child(2){animation-delay:.15s}.sv-think .sv-dots i:nth-child(3){animation-delay:.3s}
+@keyframes svdot{50%{transform:translateY(-4px)}}
+.sv-think .sv-sense{width:26px;height:22px;animation:svsense .32s steps(2) infinite}
+@keyframes svsense{50%{transform:translate(1px,-1px) scale(1.12)}}
+/* the onomatopoeia when you send */
+.sv-sfx{position:fixed;z-index:61;pointer-events:none;padding:10px 18px;font:clamp(26px,8vw,40px)/1 "Bangers","Anton",sans-serif;letter-spacing:2px;color:var(--volt);-webkit-text-stroke:1.5px #000;text-shadow:3px 3px 0 #000,-2px 0 var(--cyan),5px 4px 0 var(--mag);
+  background:radial-gradient(circle,rgba(0,0,0,.25) 1.2px,transparent 1.7px) 0 0/7px 7px,#fff;clip-path:polygon(50% 0,61% 22%,85% 8%,78% 33%,100% 40%,80% 55%,96% 80%,70% 72%,62% 100%,48% 78%,30% 98%,28% 72%,2% 84%,18% 58%,0 38%,22% 32%,14% 6%,38% 22%);
+  animation:svsfx .9s steps(5) forwards}
+@keyframes svsfx{0%{transform:scale(.2) rotate(-14deg);opacity:0}25%{transform:scale(1.15) rotate(6deg);opacity:1}70%{transform:scale(1) rotate(-3deg);opacity:1}100%{transform:scale(1.25) rotate(0);opacity:0}}
+/* the spells */
+.sxscene.sv-portal{background:radial-gradient(circle,rgba(0,0,0,.35) 1.4px,transparent 2px) 0 0/9px 9px}
+.sv-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:8px solid var(--c);box-shadow:0 0 0 3px #000,inset 0 0 0 3px #000;animation:svring 1.6s steps(8) var(--d) both}
+@keyframes svring{0%{transform:scale(0) rotate(0);opacity:1}70%{opacity:1}100%{transform:scale(34) rotate(40deg);opacity:0}}
+.sv-cap{font-family:"Bangers","Anton",sans-serif!important;letter-spacing:2px;color:#000!important;background:var(--volt);border:3px solid #000;padding:8px 16px;box-shadow:5px 5px 0 #000,8px 8px 0 var(--mag);text-shadow:none!important;transform:translateX(-50%) rotate(-3deg)!important;font-size:clamp(24px,7.5vw,44px)!important}
+.sv-slice{position:absolute;left:-10%;width:120%;background:var(--c);mix-blend-mode:difference;animation:svslice .9s steps(6) var(--d) both}
+@keyframes svslice{0%{transform:translateX(-30%);opacity:0}20%{opacity:.9}50%{transform:translateX(18%)}80%{transform:translateX(-8%);opacity:.9}100%{transform:none;opacity:0}}
+body.sv-leap .screen{animation:svleap 1.5s steps(14) both}
+@keyframes svleap{0%{transform:none}30%{transform:translateY(105vh) rotate(4deg)}55%{transform:translateY(-6vh) rotate(-3deg)}75%{transform:translateY(2vh)}100%{transform:none}}
+.face.frame-verse{--fr:conic-gradient(from 20deg,#ff2d55,#ffe600,#00e5ff,#ff2d55);filter:drop-shadow(-2px 0 0 #00e5ff) drop-shadow(2px 0 0 #ff2d55)}
+.face.frame-verse>.frx::after{content:"🕸️";position:absolute;right:-.3em;top:-.45em;font-size:max(12px,.5em);transform:rotate(-12deg)}
+@media (prefers-reduced-motion:reduce){body.verse .msg,body.verse .msg.sv-split .bubble,.sv-think .sv-sense,.sv-think .sv-dots i{animation:none}}
+/* ===================== /COMIC VERSE ===================== */
 .dg-scene{position:absolute;inset:0;background:#000;opacity:0;animation:dgin .6s ease forwards;transition:opacity .8s}
 .dg-scene.out{opacity:0!important}
 @keyframes dgin{to{opacity:1}}
@@ -7797,6 +7862,8 @@ function paintTyping(){
   }
   if(footTimer){ stopFootsteps(); box.innerHTML=""; }
   const label=names.length===1?`${names[0]} is typing`:names.length===2?`${names[0]} & ${names[1]} are typing`:"Several people are typing";
+  if(typeof VERSE!=="undefined"&&VERSE.isOn()){ VERSE.typing(box,label); return; }   // 🕸️ comic mode: thought bubble + spider-sense
+  if(box.querySelector(".sv-think")) box.innerHTML="";
   let pill=box.querySelector(".pill");
   if(!pill){ pill=el("div","pill"); pill.innerHTML='<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span></span>'; box.append(pill); }
   pill.lastChild.textContent=label;
@@ -7988,6 +8055,7 @@ async function sendFields(fields){
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const sameMsg=(m,f)=>(m.kind||"text")===(f.kind||"text")&&(m.text||null)===(f.text||null)&&(m.image_url||null)===(f.image_url||null)&&(m.media_url||null)===(f.media_url||null)&&(m.sticker||null)===(f.sticker||null);
 async function sendRobust(code,payload){
+  if(typeof VERSE!=="undefined"&&payload?.kind==="text") try{ VERSE.pop(); }catch(e){}
   const started=Date.now(), had=new Set(msgs.filter(m=>m.user_id===user.id).map(m=>m.id));
   const waits=[0,1500,3000,5000,8000]; let lastErr;
   for(const w of waits){
@@ -11560,6 +11628,86 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
 );
 Object.assign(HINTS,{solemnly:"Swear, very seriously, that you're up to no good. The whole oath.",
   mischief:"Two words that close the map when the mischief is done."});
+/* 🕸️ COMIC VERSE: "Anyone can wear the mask" jumps your NightLane into a comic-print universe;
+   "That's a canon event" glitches it back. Only on the phone that said it; remembered until you say the second line.
+   Can't be in two universes at once, so it closes the ink map (and the map closes it). */
+const VERSE={
+  KEY:"nl-verse", _iv:null,
+  isOn(){ return document.body.classList.contains("verse"); },
+  set(on){
+    on=!!on;
+    if(on&&INKMAP.isOn()) INKMAP.set(false);
+    document.body.classList.toggle("verse",on); try{ LS.set(this.KEY,on?"1":""); }catch(e){}
+    this.loop(on); try{ paintTyping(); }catch(e){}
+  },
+  loop(on){   // every so often a message slips into another dimension and snaps back
+    clearInterval(this._iv); this._iv=null; if(!on) return;
+    this._iv=setInterval(()=>{
+      if(document.hidden||reducedMotion()||!fxEnabled()) return;
+      const all=[...document.querySelectorAll("#feed .msg, .feed .msg")].filter(x=>{ const r=x.getBoundingClientRect(); return r.bottom>0&&r.top<innerHeight; });
+      if(!all.length) return; const m=all[Math.floor(Math.random()*all.length)];
+      m.classList.remove("sv-split"); void m.offsetWidth; m.classList.add("sv-split"); setTimeout(()=>m.classList.remove("sv-split"),520);
+    },5200+Math.random()*2400);
+  },
+  SFX:["THWIP!","BAM!","POW!","ZAP!","WHAM!","KRAK!","FWOOSH!","BOOM!"],
+  pop(){   // a comic sound effect bursts over the compose bar when you send
+    if(!this.isOn()||!fxEnabled()||reducedMotion()) return;
+    const c=document.querySelector(".compose"), r=c?c.getBoundingClientRect():{left:20,top:innerHeight-120,width:300};
+    const b=el("div","sv-sfx",this.SFX[Math.floor(Math.random()*this.SFX.length)]);
+    b.style.left=Math.max(8,Math.min(innerWidth-190,r.left+r.width*(.25+Math.random()*.4)))+"px"; b.style.top=Math.max(60,r.top-70)+"px";
+    document.body.append(b); setTimeout(()=>b.remove(),950);
+  },
+  SENSE:'<svg class="sv-sense" viewBox="0 0 26 22" aria-hidden="true"><g fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path stroke="#000" d="M3 4l3 3-2 2 4 3M13 1v4l-2 2 2 3M23 4l-3 3 2 2-4 3"/><path stroke="#ff2d55" d="M2 16l4-1M24 16l-4-1M13 21v-4"/></g></svg>',
+  typing(box,label){   // the typing indicator in comic mode
+    let t=box.querySelector(".sv-think");
+    if(!t){ box.innerHTML=""; t=el("div","sv-think"); t.innerHTML=this.SENSE+'<span class="sv-cloud"><span class="sv-who"></span><span class="sv-dots" aria-hidden="true"><i></i><i></i><i></i></span></span>'; box.append(t); }
+    t.querySelector(".sv-who").textContent=label.toUpperCase();
+  }
+};
+try{ if(LS.get(VERSE.KEY)==="1"&&LS.get(INKMAP.KEY)!=="1"){ document.body.classList.add("verse"); setTimeout(()=>VERSE.loop(true),1500); } }catch(e){}
+{ const _imset=INKMAP.set; INKMAP.set=function(on){ if(on&&VERSE.isOn()) VERSE.set(false); _imset.call(INKMAP,on); try{ paintTyping(); }catch(e){} }; }
+function svBeep(kind){   // a stuttery synth zap (portal) or a tape-glitch crunch (canon)
+  try{ const ac=sfxCtx(); if(!uiSoundOn()||!ac) return; if(ac.state==="suspended") ac.resume(); const t=ac.currentTime;
+    const notes=kind==="in"?[220,330,440,660,880,1320]:[880,523,659,330,247,165];
+    notes.forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type="square"; o.frequency.value=f; const s=t+i*.09;
+      g.gain.setValueAtTime(0,s); g.gain.linearRampToValueAtTime(.045,s+.01); g.gain.exponentialRampToValueAtTime(.001,s+.08); o.connect(g).connect(ac.destination); o.start(s); o.stop(s+.1); });
+  }catch(e){}
+}
+QX.mask=function(m){
+  const mine=!m||m.user_id===user?.id;
+  if(!mine){ const L=sxLayer("sxVerse",2600); sxCap(L,`${nameOf(m.user_id)} just jumped universes…`,"small sv-cap"); return; }
+  if(VERSE.isOn()){ const L=sxLayer("sxVerse",2200); sxCap(L,"You're already in this universe.","small sv-cap"); return; }
+  const L=sxLayer("sxVerse",3400); L.classList.add("sv-portal");
+  [["#ff2d55",0],["#00e5ff",.12],["#ffe600",.24],["#ff2d55",.4],["#00e5ff",.52]].forEach(([c,d])=>{ const r=el("div","sv-ring"); r.style.setProperty("--c",c); r.style.setProperty("--d",d+"s"); L.append(r); });
+  setTimeout(()=>sxCap(L,"ANYONE CAN WEAR THE MASK.","sv-cap"),650);
+  svBeep("in"); if(navigator.vibrate) navigator.vibrate([20,40,20,40,60]);
+  setTimeout(()=>VERSE.set(true),1200);
+};
+QX.canon=function(m){
+  const mine=!m||m.user_id===user?.id;
+  if(!mine||!VERSE.isOn()){ const L=sxLayer("sxVerse",2200); sxCap(L,"That's a canon event.","small sv-cap"); return; }
+  const L=sxLayer("sxVerse",2600);
+  for(let i=0;i<7;i++){ const s=el("div","sv-slice"); s.style.top=(i*14+Math.random()*6)+"%"; s.style.height=(4+Math.random()*9)+"%"; s.style.setProperty("--c",["#ff2d55","#00e5ff","#ffe600"][i%3]); s.style.setProperty("--d",(i*.05)+"s"); L.append(s); }
+  sxCap(L,"CANON EVENT.","sv-cap");
+  svBeep("out"); if(navigator.vibrate) navigator.vibrate([60,30,20,30,20]);
+  setTimeout(()=>{ VERSE.set(false); document.body.classList.add("im-glitch"); setTimeout(()=>document.body.classList.remove("im-glitch"),750); },900);
+};
+QX.leap=function(){   // the screen drops away… and swings back up
+  const L=sxLayer("sxVerse",2400); sxCap(L,"LEAP OF FAITH","small sv-cap");
+  document.body.classList.remove("sv-leap"); void document.body.offsetWidth; document.body.classList.add("sv-leap");
+  setTimeout(()=>document.body.classList.remove("sv-leap"),1600);
+  try{ const ac=sfxCtx(); if(uiSoundOn()&&ac){ if(ac.state==="suspended") ac.resume(); const t=ac.currentTime, o=ac.createOscillator(), g=ac.createGain(); o.type="triangle";
+    o.frequency.setValueAtTime(900,t); o.frequency.exponentialRampToValueAtTime(120,t+.45); o.frequency.exponentialRampToValueAtTime(700,t+.9);
+    g.gain.setValueAtTime(.06,t); g.gain.exponentialRampToValueAtTime(.001,t+1); o.connect(g).connect(ac.destination); o.start(t); o.stop(t+1.05); } }catch(e){}
+};
+SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"mask",  name:"Anyone can wear the mask", re:/anyone can wear the mask/i, mode:on=>VERSE.set(true), play:m=>QX.mask(m)},
+  {id:"canon", name:"Canon event", re:/(^|[^a-z])canon event/i, mode:on=>VERSE.set(false), play:m=>QX.canon(m)},
+  {id:"leap",  name:"Leap of faith", re:/(^|[^a-z])leap of faith([^a-z]|$)/i, play:m=>QX.leap(m)}
+);
+Object.assign(HINTS,{mask:"Five words that say a hero can be anybody. Say it and jump universes.",
+  canon:"Two words for a moment that has to happen in every universe. They bring you home.",
+  leap:"It's not a jump. It's a…"});
 Object.assign(HINTS,{hagrid:"The Creator's cat comes when you call him the way you call any cat. Three times."});
 Object.assign(HINTS,{onepiece:"The treasure at the end of the Grand Line. Say its name."});
 HINTS.dragon="A winged silhouette crosses the moon when you say it.";
@@ -11810,8 +11958,9 @@ const UNLOCKS=[
   {id:"frame:heartbeat",type:"frame", label:"Heartbeat frame",       by:{linkRank:8}},
   {id:"frame:quill",    type:"frame", label:"Ink & quill frame 🪶",   by:{secrets:["solemnly","mischief"],n:2}},
   {id:"frame:shark",    type:"frame", label:"Shark frame 🦈",        by:{secrets:["jawstheme","biggerboat","amity","smileyou"],n:2}},
+  {id:"frame:verse",    type:"frame", label:"Multiverse frame 🕸️",   by:{secrets:["mask","canon"],n:2}},
 ];
-const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Lovers 💞",crew:"Ride or Die 🤜🤛",creator:"Creator 👑",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat",shark:"Shark 🦈",quill:"Ink & quill 🪶"};
+const FRAMES={neon:"Neon ring",glitch:"Glitch",flame:"Flame",phantom:"Phantom",pixel:"Pixel",gold:"Gold crown",mythic:"Mythic",guts:"Blazing",bonded:"Lovers 💞",crew:"Ride or Die 🤜🤛",creator:"Creator 👑",circuit:"Circuit",frost:"Frost",thunder:"Thunder",galaxy:"Galaxy",sakura:"Sakura",spiral:"Spiral",shadow:"Shadow",heartbeat:"Heartbeat",shark:"Shark 🦈",quill:"Ink & quill 🪶",verse:"Multiverse 🕸️"};
 const myLevel=()=>xpLevel(xpData().xp).lvl;
 function unlockMet(u){ return u.by.secrets?u.by.secrets.filter(hasSecret).length>=(u.by.n||u.by.secrets.length):u.by.secret?hasSecret(u.by.secret):u.by.level?myLevel()>=u.by.level:u.by.stat?statCount(u.by.stat)>=u.by.stat_n:u.by.linkRank?[...socialLinks.values()].some(r=>rankFromXp(r.xp).rank>=u.by.linkRank):true; }
 const unlockOk=(type,key)=>{ const u=UNLOCKS.find(x=>x.id===type+":"+key); return !u||unlockMet(u); };
@@ -13403,8 +13552,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16v";
+const APP_VERSION="2026.10.16w";
 const CHANGELOG=[
+  {v:"2026.10.16w", title:"Into another universe 🕸️", items:["🕸️ A new line is hiding in the chat that jumps your NightLane into a comic-book universe: halftone dots, off-register ink, sound effects when you send. Another two words bring you home.","💭 Friends typing show up as a comic thought bubble.","🎨 Do both to unlock the Multiverse frame. There's a bonus one-shot hiding too."]},
   {v:"2026.10.16v", title:"Footsteps on the map 👣", items:["👣 In ink-map mode, when a friend is typing you see their footprints walking across the map instead of \"is typing\". Footprints by Cole."]},
   {v:"2026.10.16u", title:"Up to no good 🗺️", items:["🗺️ There's an oath hidden in the chat that turns NightLane into an old ink map, just for you. Another two words fold it back up.","🪶 Do both to unlock the Ink & quill frame."]},
   {v:"2026.10.16t", title:"Something's in the water 🦈", items:["🦈 Four new secrets from a certain 1975 summer movie are hiding in the chat.","🌊 Find any two of them to unlock the new Shark frame."]},
