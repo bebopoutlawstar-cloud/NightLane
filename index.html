@@ -335,6 +335,16 @@ body.july4 .stamp::before{content:"⭐"}
 .cropbox img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;pointer-events:none}
 .cropring{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 200px rgba(7,4,26,.55);outline:2px dashed rgba(255,255,255,.7);outline-offset:-2px;pointer-events:none}
 .cropzoom{display:flex;align-items:center;gap:8px;width:min(72vw,280px)}.cropzoom input{flex:1;accent-color:var(--cyan)}
+.cropzoom .croprot{flex:none;width:42px!important;min-width:0;height:36px;margin:0!important;padding:0!important;font-size:18px;line-height:1;display:grid;place-items:center}
+.cropbox.wide{width:min(86vw,380px);aspect-ratio:3/1}
+.cropbox.wide .cropring{border-radius:0;box-shadow:none;clip-path:polygon(0 0,100% 0,100% 88%,96% 100%,0 100%);outline:none;border:2px dashed rgba(255,255,255,.7)}
+.cropzoom.wide{width:min(86vw,380px)}
+.cropprev{display:grid;justify-items:center;gap:6px;width:min(86vw,380px);margin:4px auto 6px}
+.cropprev small{color:var(--muted);font-size:12px}
+.cropprev .pv-faces{display:flex;align-items:flex-end;gap:14px}
+#cropPrevBody{width:100%;display:grid;justify-items:center}
+.cropprev .cardprev{width:100%}
+.cropbox:not(.wide) .cropring{border-radius:0;box-shadow:none;outline-offset:-6px}   /* your picture shows as a square card, not a circle (the preview below shows the real look) */
 .overlay{position:fixed;inset:0;z-index:10;background:rgba(7,4,26,.86);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
 .sheet{width:min(100%,380px);background:var(--night);border:3px solid var(--cyan);box-shadow:8px 8px 0 var(--mag);padding:26px 22px;display:grid;gap:14px;justify-items:center;text-align:center;transform:rotate(-1.5deg)}
 .sheet h2{font-family:var(--tech);font-size:20px;color:var(--cyan)}
@@ -4379,8 +4389,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   <div class="sheet"><div class="sheetbody">
     <h2 id="cropTitle">Crop your photo</h2>
     <div class="cropbox" id="cropBox"><img id="cropImg" alt="Your photo" draggable="false"><div class="cropring" aria-hidden="true"></div></div>
-    <label class="cropzoom"><span aria-hidden="true">➖</span><input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom"><span aria-hidden="true">➕</span></label>
-    <p class="note">Drag to move · pinch or slide to zoom</p>
+    <label class="cropzoom"><span aria-hidden="true">➖</span><input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom"><span aria-hidden="true">➕</span><button type="button" class="ghost croprot" id="cropRotate" aria-label="Rotate 90 degrees">⟳</button></label>
+    <p class="note">Drag to move · pinch or slide to zoom · ⟳ to rotate</p>
+    <div class="cropprev" id="cropPrev" aria-label="Preview"><small>Preview: how friends will see it</small><div id="cropPrevBody"></div></div>
     <button class="go" type="button" id="cropSave">Save photo</button>
     <button class="ghost" type="button" id="cropCancel">Cancel</button>
   </div></div>
@@ -6451,8 +6462,11 @@ $("cardFile").onchange=async e=>{
   try{
     if(!/^image\//.test(f.type||"")) throw new Error("Pick a picture file.");
     if(f.size>15e6) throw new Error("That picture is over 15 MB. Pick a smaller one.");
+    let cropped;
+    try{ cropped=await openCrop(f,"banner"); }catch(err){ throw new Error("couldn't open that picture"); }
+    if(!cropped) return say("cardMsg","");   // cancelled
     say("cardMsg","Uploading banner…");
-    const url=await api.upload("avatars",user.id,await shrink(f,900,false));
+    const url=await api.upload("avatars",user.id,cropped);
     draftCard={...draftCard,banner:"img",img:url}; say("cardMsg",""); paintCardSheet();
   }catch(err){ say("cardMsg","Couldn't upload: "+err.message,true); }
 };
@@ -6917,26 +6931,54 @@ function drawSetRow(btn){
   new MutationObserver(()=>drawSetRow(b)).observe(b,{childList:true,characterData:true,subtree:true});
 });
 /* ✂️ Crop your profile photo before it's saved: drag to move, pinch / slide to zoom. The circle shows how it looks. */
-const crop={img:null,x:0,y:0,z:1,base:1,box:280,ptrs:new Map(),pinch:null,done:null};
+/* Also crops the profile-card banner (a wide 3:1 frame), with a live preview of how friends will see it. */
+const crop={img:null,x:0,y:0,z:1,base:1,box:280,bw:280,bh:280,mode:"avatar",ptrs:new Map(),pinch:null,done:null,urls:[],pvUrl:null,pvT:0};
 function cropClamp(){ const s=crop.base*crop.z, w=crop.img.naturalWidth*s, h=crop.img.naturalHeight*s;
-  crop.x=Math.min(0,Math.max(crop.box-w,crop.x)); crop.y=Math.min(0,Math.max(crop.box-h,crop.y)); }
-function cropPaint(){ cropClamp(); $("cropImg").style.transform=`translate(${crop.x}px,${crop.y}px) scale(${crop.base*crop.z})`; }
-function cropZoomTo(z,cx=crop.box/2,cy=crop.box/2){   // zoom around a point so it stays under your finger
+  crop.x=Math.min(0,Math.max(crop.bw-w,crop.x)); crop.y=Math.min(0,Math.max(crop.bh-h,crop.y)); }
+function cropPaint(){ cropClamp(); $("cropImg").style.transform=`translate(${crop.x}px,${crop.y}px) scale(${crop.base*crop.z})`; cropPreviewSoon(); }
+function cropFit(){   // fill the frame and center the picture
+  const im=crop.img; crop.z=1; $("cropZoom").value=1;
+  crop.base=Math.max(crop.bw/im.naturalWidth,crop.bh/im.naturalHeight);
+  crop.x=(crop.bw-im.naturalWidth*crop.base)/2; crop.y=(crop.bh-im.naturalHeight*crop.base)/2; cropPaint(); }
+function cropCanvas(maxW){   // what's inside the frame, as a canvas
+  const s=crop.base*crop.z, sw=crop.bw/s, sh=crop.bh/s, c=document.createElement("canvas");
+  c.width=Math.max(1,Math.min(maxW,Math.round(sw))); c.height=Math.max(1,Math.round(c.width*crop.bh/crop.bw));
+  c.getContext("2d").drawImage(crop.img,-crop.x/s,-crop.y/s,sw,sh,0,0,c.width,c.height); return c; }
+function cropPreviewSoon(){ clearTimeout(crop.pvT); crop.pvT=setTimeout(cropPreview,90); }
+function cropPreview(){
+  if(!crop.img||$("cropSheet").classList.contains("hidden")) return;
+  cropCanvas(crop.mode==="banner"?480:200).toBlob(b=>{ if(!b) return;
+    if(crop.pvUrl) URL.revokeObjectURL(crop.pvUrl); const u=crop.pvUrl=URL.createObjectURL(b), box=$("cropPrevBody"); box.innerHTML="";
+    if(crop.mode==="banner"){   // the real card: your banner, your effect + stickers, your picture on top
+      const wrap=el("div","cardprev"), ban=el("div","pcard-banner"), face=el("div","face lg"); wrap.append(ban,face); box.append(wrap);
+      const c=cleanCard(draftCard)||{fx:null,stk:[]}; paintCardBanner(ban,{...c,banner:"img",img:u,stk:c.stk||[]}); paintFace(face,meProfile);
+    } else {   // your picture at the sizes friends see it
+      const row=el("div","pv-faces"); [["face lg"],["face"],["face sm"]].forEach(([k])=>{ const f=el("div",k); paintFace(f,{...meProfile,avatar_url:u}); row.append(f); }); box.append(row);
+    }
+  },"image/jpeg",.85);
+}
+function cropZoomTo(z,cx=crop.bw/2,cy=crop.bh/2){   // zoom around a point so it stays under your finger
   z=Math.min(4,Math.max(1,z)); const s0=crop.base*crop.z, s1=crop.base*z;
   crop.x=cx-(cx-crop.x)*s1/s0; crop.y=cy-(cy-crop.y)*s1/s0; crop.z=z; $("cropZoom").value=z; cropPaint(); }
-function openCrop(file){
+function openCrop(file,mode="avatar"){
   return new Promise(async(resolve,reject)=>{
     try{
-      const url=URL.createObjectURL(await readableImage(file)), im=$("cropImg");
+      crop.mode=mode; const wide=mode==="banner";
+      $("cropBox").classList.toggle("wide",wide); document.querySelector("#cropSheet .cropzoom").classList.toggle("wide",wide);
+      $("cropTitle").textContent=wide?"Crop your banner":"Crop your photo"; $("cropSave").textContent=wide?"Use this banner":"Save photo";
+      const url=URL.createObjectURL(await readableImage(file)), im=$("cropImg"); crop.urls=[url];
       await new Promise((ok,bad)=>{ im.onload=ok; im.onerror=()=>bad(new Error("couldn't open that photo")); im.src=url; });
       show($("cropSheet"));
-      crop.img=im; crop.box=$("cropBox").clientWidth||280; crop.z=1; $("cropZoom").value=1;
-      crop.base=crop.box/Math.min(im.naturalWidth,im.naturalHeight);   // fill the square
-      crop.x=(crop.box-im.naturalWidth*crop.base)/2; crop.y=(crop.box-im.naturalHeight*crop.base)/2; cropPaint();
-      crop.done=(blob)=>{ crop.done=null; URL.revokeObjectURL(url); show($("cropSheet"),false); resolve(blob); };
+      crop.img=im; crop.bw=$("cropBox").clientWidth||280; crop.bh=$("cropBox").clientHeight||crop.bw; crop.box=crop.bw; cropFit();
+      crop.done=(blob)=>{ crop.done=null; crop.urls.forEach(u=>URL.revokeObjectURL(u)); crop.urls=[]; if(crop.pvUrl){ URL.revokeObjectURL(crop.pvUrl); crop.pvUrl=null; } show($("cropSheet"),false); resolve(blob); };
     }catch(err){ reject(err); }
   });
 }
+$("cropRotate").onclick=()=>{   // turn the picture a quarter turn clockwise
+  const im=crop.img; if(!im) return; const c=document.createElement("canvas"); c.width=im.naturalHeight; c.height=im.naturalWidth;
+  const g=c.getContext("2d"); g.translate(c.width,0); g.rotate(Math.PI/2); g.drawImage(im,0,0);
+  c.toBlob(b=>{ if(!b) return; const u=URL.createObjectURL(b); crop.urls.push(u); im.onload=()=>{ im.onload=null; cropFit(); }; im.src=u; },"image/jpeg",.92);
+};
 $("cropZoom").oninput=e=>cropZoomTo(+e.target.value);
 $("cropBox").addEventListener("pointerdown",e=>{ $("cropBox").setPointerCapture(e.pointerId); crop.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); crop.pinch=null; });
 $("cropBox").addEventListener("pointermove",e=>{
@@ -6948,11 +6990,7 @@ $("cropBox").addEventListener("pointermove",e=>{
 });
 ["pointerup","pointercancel"].forEach(t=>$("cropBox").addEventListener(t,e=>{ crop.ptrs.delete(e.pointerId); crop.pinch=null; }));
 $("cropBox").addEventListener("wheel",e=>{ e.preventDefault(); const r=$("cropBox").getBoundingClientRect(); cropZoomTo(crop.z*(e.deltaY<0?1.1:1/1.1),e.clientX-r.left,e.clientY-r.top); },{passive:false});
-$("cropSave").onclick=()=>{
-  const s=crop.base*crop.z, side=crop.box/s, c=document.createElement("canvas"); c.width=c.height=Math.min(400,Math.round(side));
-  c.getContext("2d").drawImage(crop.img,-crop.x/s,-crop.y/s,side,side,0,0,c.width,c.height);
-  c.toBlob(b=>crop.done&&crop.done(b),"image/jpeg",.88);
-};
+$("cropSave").onclick=()=>{ cropCanvas(crop.mode==="banner"?960:400).toBlob(b=>crop.done&&crop.done(b),"image/jpeg",.88); };
 $("cropCancel").onclick=()=>crop.done&&crop.done(null);
 $("cropSheet").addEventListener("click",e=>{ if(e.target.id==="cropSheet") crop.done&&crop.done(null); });
 $("avatarPicker").onchange=async e=>{
@@ -13554,8 +13592,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16y";
+const APP_VERSION="2026.10.16z";
 const CHANGELOG=[
+  {v:"2026.10.16z", title:"Crop your banner ✂️", items:["✂️ Uploading a profile card banner now lets you crop it: drag, pinch or slide to zoom, and ⟳ to rotate.","👀 Both croppers (banner and profile photo) show a live preview of exactly how friends will see it."]},
   {v:"2026.10.16y", title:"Mahjong: no surprise throws 🀄", items:["🀄 Tapping a tile now only picks it. Nothing gets thrown away until you hit the Throw away button. Tap the picked tile again to put it back."]},
   {v:"2026.10.16x", title:"Easier to read 🕸️", items:["🕸️ Comic mode: your messages now always use black ink on the yellow caption box, even if you picked a custom bubble color."]},
   {v:"2026.10.16w", title:"Into another universe 🕸️", items:["🕸️ A new line is hiding in the chat that jumps your NightLane into a comic-book universe: halftone dots, off-register ink, sound effects when you send. Another two words bring you home.","💭 Friends typing show up as a comic thought bubble.","🎨 Do both to unlock the Multiverse frame. There's a bonus one-shot hiding too."]},
