@@ -10130,7 +10130,7 @@ function mjGroupRow(h,{z=2,pick=false,good=null}={}){
 function mjTileBtn(t,z,pick,good){
   const e=mjTileEl(t,{z,cls:(good?.has(t)?"good":"")+(pick&&mjPick===t?" picked":"")});
   if(pick){ e.tabIndex=0; e.setAttribute("role","button"); e.setAttribute("aria-label",`${mjName(t)}${good?.has(t)?" (good to throw away)":""}`);
-    const go=()=>{ if(mjPick===t){ mjThrow(t); return; } mjPick=t; const g=gamesById.get(openGameId); if(g) paintMahjong(g); };
+    const go=()=>{ mjPick=mjPick===t?null:t; const g=gamesById.get(openGameId); if(g) paintMahjong(g); };   // tapping only picks (or un-picks); the Throw away button is the only way to throw
     e.onclick=go; e.onkeydown=ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); go(); } }; }
   return e;
 }
@@ -10173,7 +10173,7 @@ async function paintMahjong(g,prev){
     const sets=groups.filter(x=>x.type!=="pair").length, pair=groups.some(x=>x.type==="pair");
     $("mjProgress").textContent=`Sets ${sets}/4 · Pair ${pair?"✔":"✘"}`;
     if(canSelf||canClaim) hint.append(el("b","mjwin","🀄 Your hand is complete! Hit MAHJONG!"));
-    else if(throwing){ hint.append(el("span","",mjPick?`Tap ${mjName(mjPick)} again (or Throw away) to get rid of it.`:"Tap a tile you don't need to throw it away.")); if(good?.size) hint.append(el("span","mjstar"," ★ = throw this and you're one tile from winning!")); }
+    else if(throwing){ hint.append(el("span","",mjPick?`Hit "Throw away" to get rid of ${mjName(mjPick)}, or tap it again to keep it.`:"Tap a tile you don't need, then hit Throw away.")); if(good?.size) hint.append(el("span","mjstar"," ★ = throw this and you're one tile from winning!")); }
     else if(hand.length===13){ const w=mjWaits(hand); if(w.length){ const b=el("span","mjwait"); b.append(el("b","","🀄 One away! You win with: ")); w.forEach(t=>b.append(mjTileEl(t,{z:1}))); hint.append(b); } }
   }
   // buttons
@@ -13554,8 +13554,9 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16x";
+const APP_VERSION="2026.10.16y";
 const CHANGELOG=[
+  {v:"2026.10.16y", title:"Mahjong: no surprise throws 🀄", items:["🀄 Tapping a tile now only picks it. Nothing gets thrown away until you hit the Throw away button. Tap the picked tile again to put it back."]},
   {v:"2026.10.16x", title:"Easier to read 🕸️", items:["🕸️ Comic mode: your messages now always use black ink on the yellow caption box, even if you picked a custom bubble color."]},
   {v:"2026.10.16w", title:"Into another universe 🕸️", items:["🕸️ A new line is hiding in the chat that jumps your NightLane into a comic-book universe: halftone dots, off-register ink, sound effects when you send. Another two words bring you home.","💭 Friends typing show up as a comic thought bubble.","🎨 Do both to unlock the Multiverse frame. There's a bonus one-shot hiding too."]},
   {v:"2026.10.16v", title:"Footsteps on the map 👣", items:["👣 In ink-map mode, when a friend is typing you see their footprints walking across the map instead of \"is typing\". Footprints by Cole."]},
