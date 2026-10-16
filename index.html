@@ -168,6 +168,13 @@ body.july4 .stamp::before{content:"⭐"}
 .cb-sw.on,.cb-chip.on,.cb-stk.on{border-color:var(--volt);box-shadow:0 0 0 2px var(--volt)}
 .cb-chip{font:inherit;font-size:14px;font-weight:700;background:var(--night);color:var(--white);border:2px solid #3b2d80;padding:6px 10px}
 .cb-row{flex:none}
+.cb-partner{display:grid;gap:8px;width:100%}
+.cb-prow{display:flex;align-items:center;gap:10px;font-weight:700}
+.cb-pbtn{width:auto;justify-self:start;margin:0}
+.cb-ppick summary{cursor:pointer;color:var(--cyan);font-weight:700;padding:4px 0}
+.cb-pchip{display:inline-flex;align-items:center;gap:8px}
+.cb-pchip .face.sm{width:26px;height:26px;font-size:12px}
+#relAsk .face.lg{margin:0 auto 6px}
 .cb-links{width:100%}
 /* ===== Partners ===== */
 .pxsprite{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
@@ -3453,6 +3460,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .calllog .cltext{font-family:var(--tech);font-size:13px;letter-spacing:.5px;flex:1}.calllog.missed .cltext{color:#ff4fd8}
 .calllog .clback{flex:none;background:var(--cyan);color:#07041a;border:none;font-family:var(--tech);font-size:10px;padding:6px 9px;clip-path:polygon(0 25%,8px 0,100% 0,100% 75%,calc(100% - 8px) 100%,0 100%)}
 .hudbtn.accept{background:var(--volt)}.hudbtn.accept::before{background:var(--volt)}.hudbtn.accept svg{fill:#07041a;stroke:#07041a}
+.relstatus{font-family:var(--tech);font-size:12px;letter-spacing:.5px;color:var(--night);background:var(--mag);padding:3px 9px 2px;transform:skewX(-8deg);margin-top:-6px}
+#personMutual{display:flex;align-items:center;gap:6px;justify-content:center;font-size:13px;color:var(--muted)}
+#personMutual .face.sm{width:26px;height:26px;font-size:12px}
 </style>
 </head>
 <body>
@@ -4142,10 +4152,12 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
     <span class="pronouns hidden" id="personPronouns"></span>
+    <span class="relstatus hidden" id="personRelStatus"></span>
     <div class="plinks" id="personLinks"></div>
     <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
     <p class="friendtag hidden" id="personTag"></p>
+    <div class="hidden" id="personMutual"></div>
     <div class="myarcana theirarcana hidden" id="personArcana"></div>
     <button type="button" class="personbond hidden" id="personBond"></button>
     <button type="button" class="personbond hidden" id="personPartner"></button>
@@ -4193,6 +4205,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="cb-row" id="cardPronounChips"></div>
     <label for="cardPronouns" class="sr">Pronouns</label>
     <input class="field" id="cardPronouns" maxlength="20" placeholder="e.g. she/her" autocomplete="off">
+    <h3 class="cb-h">Relationship status <small>(optional)</small></h3>
+    <div class="cb-row" id="cardRelStatusChips"></div>
+    <h3 class="cb-h">Partner <small>(optional)</small></h3>
+    <div class="cb-partner" id="cardPartner"></div>
     <details class="cb-links" id="cardLinksBox"><summary>🔗 Social links <small>(optional)</small></summary>
       <p class="sub" style="margin:4px 0 0">Just your username. Pasting a full link works too.</p>
       <div class="cb-linkgrid" id="cardLinks"></div>
@@ -4210,6 +4226,17 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 
+<!-- ============ 💞 PARTNER REQUEST ============ -->
+<div class="overlay hidden" id="relAsk" role="dialog" aria-modal="true" aria-labelledby="relAskTitle">
+  <div class="sheet"><div class="sheetbody">
+    <div class="face lg" id="relAskFace"></div>
+    <h2 id="relAskTitle">💞 Partner request</h2>
+    <p class="sub" id="relAskText"></p>
+    <button class="go" type="button" id="relYes">Yes, tag us</button>
+    <button class="ghost" type="button" id="relNo">No thanks</button>
+    <button class="ghost" type="button" id="relLater">Decide later</button>
+  </div></div>
+</div>
 <!-- ============ SUMMARY SHEET ============ -->
 <div class="overlay hidden" id="summarySheet" role="dialog" aria-modal="true" aria-labelledby="sumTitle">
   <div class="sheet"><div class="sheetbody"><h2 id="sumTitle"></h2><div class="left sumbody" id="sumBody"></div><button class="ghost" type="button" id="sumClose">Close</button></div></div>
@@ -5305,6 +5332,12 @@ const live = {
   },
   async addContact(uid){ must(await sb.from("contacts").upsert({contact:uid},{onConflict:"owner,contact",ignoreDuplicates:true})); },
   async removeContact(uid){ must(await sb.from("contacts").delete().eq("contact",uid)); },
+  async mutualFriends(uid){ return (must(await sb.rpc("mutual_friends",{p_other:uid}))||[]).map(r=>typeof r==="string"?r:r.mutual_friends); },
+  async relMine(){ return must(await sb.rpc("rel_mine")); },
+  async relPartners(ids){ return must(await sb.rpc("rel_partners",{p_users:ids}))||[]; },
+  async relRequest(uid){ return must(await sb.rpc("rel_request",{p_to:uid})); },
+  async relRespond(uid,yes){ return must(await sb.rpc("rel_respond",{p_from:uid,p_accept:!!yes})); },
+  async relClear(){ return must(await sb.rpc("rel_clear")); },
   async startDm(uid){
     const {data,error}=await sb.rpc("start_dm",{p_user:uid});
     if(error) throw new Error(/not_connected/.test(error.message)?"not_connected":/cant_message/.test(error.message)?"cant_message":error.message);
@@ -5479,7 +5512,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   const demoSocialLinks=new Map([["me|vee",{user_a:"me",user_b:"vee",xp:9,today_xp:9,today_date:iso().slice(0,10),arcana:"Star"}]]);
   function demoBot(id){ const g=games[id]; if(!g||g.status!=="active") return; const mark=g.player_x==="me"?"o":"x"; if(g.state.turn!==mark) return;
     const cell=tttBotMove(g.state.board,mark); applyTTT(g,cell,mark); fire("game",JSON.parse(JSON.stringify(g))); }
-  const rooms={}, reacts=[], blocked=new Set(), polls={}, votes=[], pins={}, contacts=new Set(["vee"]); let ALL=null, FRIEND=null;
+  const rooms={}, reacts=[], blocked=new Set(), polls={}, votes=[], pins={}, contacts=new Set(["vee"]), relLinks=[]; let ALL=null, FRIEND=null;
   people.nix={id:"nix",username:"Nix",avatar_url:null};
   const lines=["No way. Tell me everything.","That is so you.","Check this: www.example.com","Meet at the usual spot?","LOL stop"];
   const seed=room=>rooms[room] ||= {owner:"me",token:"demo"+Math.random().toString(36).slice(2,8),members:{me:{read:iso()},rook:{read:iso(70000)},vee:{read:iso(50000)}},msgs:[
@@ -5855,6 +5888,15 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async findUser(n){ return Object.values(people).find(p=>p.username.toLowerCase()===n.toLowerCase())||null; },
     async addContact(uid){ contacts.add(uid); },
     async removeContact(uid){ contacts.delete(uid); },
+    async mutualFriends(uid){ const theirs={vee:["rook","nix"],rook:["vee"],nix:["vee"]}[uid]||[]; return [...contacts].filter(c=>theirs.includes(c)&&c!==uid); },
+    async relMine(){ const acc=relLinks.find(l=>l.ok&&(l.from==="me"||l.to==="me")); return {partner:acc?(acc.from==="me"?acc.to:acc.from):null, outgoing:relLinks.find(l=>!l.ok&&l.from==="me")?.to||null, incoming:relLinks.filter(l=>!l.ok&&l.to==="me").map(l=>l.from)}; },
+    async relPartners(ids){ return ids.flatMap(u=>{ const l=relLinks.find(l=>l.ok&&(l.from===u||l.to===u)); return l?[{user_id:u,partner:l.from===u?l.to:l.from}]:[]; }); },
+    async relRequest(uid){ if(!(contacts.has(uid)&&(await this.addedMe()).includes(uid))) throw new Error("You can only tag a friend who added you back");
+      if(relLinks.some(l=>l.ok&&(l.from==="me"||l.to==="me"))) throw new Error("Remove your current partner first");
+      for(let i=relLinks.length-1;i>=0;i--) if(!relLinks[i].ok&&relLinks[i].from==="me") relLinks.splice(i,1);
+      const l={from:"me",to:uid,ok:false}; relLinks.push(l); setTimeout(()=>{ if(relLinks.includes(l)) l.ok=true; },2500); return "pending"; },   // demo friends always say yes
+    async relRespond(uid,yes){ const l=relLinks.find(l=>!l.ok&&l.from===uid&&l.to==="me"); if(!l) throw new Error("That request is gone"); if(yes) l.ok=true; else relLinks.splice(relLinks.indexOf(l),1); return yes?"accepted":"declined"; },
+    async relClear(){ for(let i=relLinks.length-1;i>=0;i--){ const l=relLinks[i]; if(l.from==="me"||(l.to==="me"&&l.ok)) relLinks.splice(i,1); } },
     async startDm(uid){
       const code="dm-"+[uid,"me"].sort().join("-");
       if(!rooms[code]){ if(uid==="nix") throw new Error("not_connected");
@@ -6380,6 +6422,7 @@ const CARD_BANNERS={
   ember: {label:"Ember",      bg:"linear-gradient(135deg,#1a0505 0%,#8a1c1c 55%,#ff8a1f 100%)"},
   void:  {label:"Void",       bg:"radial-gradient(circle at 70% 30%,#3b2d80 0%,#07041A 70%)"},
 };
+const REL_STATUSES=["Single","Taken","It's complicated","Married","Not looking"];
 const CARD_FX={none:"None",sparkle:"✨ Sparkles",snow:"❄️ Snow",hearts:"💖 Hearts",embers:"🔥 Embers",stars:"🌠 Stars"};
 const CARD_FX_CHARS={sparkle:"✦",snow:"❄",hearts:"♥",embers:"•",stars:"✧"};
 /* social links: we only store usernames and build the address ourselves, so nobody can sneak in a sketchy link */
@@ -6410,8 +6453,9 @@ function cleanCard(c){   // only trust known values (it comes from other people'
   if(out.banner==="img") out.img=safeImg(c.img);
   const pr=typeof c.pronouns==="string"?c.pronouns.replace(/[\u0000-\u001f<>]/g,"").replace(/\s+/g," ").trim().slice(0,20):"";
   if(pr) out.pronouns=pr;
+  if(REL_STATUSES.includes(c.relStatus)) out.relStatus=c.relStatus;
   const ln=cleanLinks(c.links); if(ln) out.links=ln;
-  return out.banner||out.fx||out.stk.length||out.pronouns||out.links?out:null;
+  return out.banner||out.fx||out.stk.length||out.pronouns||out.links||out.relStatus?out:null;
 }
 const cardOf=p=>cleanCard(p?.theme?.card);
 function paintCardBanner(box,card){
@@ -6431,8 +6475,18 @@ function paintCardSheet(){
   if(!cleanCard(c)){ $("cardPreview").style.background="repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 10px,transparent 10px 20px)"; }
   paintFace($("cardFace"),meProfile);
   if(document.activeElement!==$("cardPronouns")) $("cardPronouns").value=c.pronouns||"";
-  const pc=$("cardPronounChips"); pc.innerHTML="";
-  ["he/him","she/her","they/them","he/they","she/they","any/all"].forEach(t=>{ const b=el("button","cb-chip"+(c.pronouns===t?" on":""),t); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,pronouns:draftCard.pronouns===t?"":t}; $("cardPronouns").value=draftCard.pronouns; paintCardSheet(); }; pc.append(b); });
+  const rc=$("cardPronounChips"); rc.innerHTML="";
+  ["he/him","she/her","they/them","he/they","she/they","any/all"].forEach(t=>{ const b=el("button","cb-chip"+(c.pronouns===t?" on":""),t); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,pronouns:draftCard.pronouns===t?"":t}; $("cardPronouns").value=draftCard.pronouns; paintCardSheet(); }; rc.append(b); });
+  const pc = $("cardRelStatusChips"); pc.innerHTML = "";
+  ["Single","Taken","It's complicated","Married","Not looking"].forEach(s => {
+    const b = el("button", "cb-chip" + (c.relStatus === s ? " on" : ""), s);
+    b.type = "button";
+    b.onclick = () => {
+      draftCard = { ...draftCard, relStatus: draftCard.relStatus === s ? "" : s };
+      paintCardSheet();
+    };
+    pc.append(b);
+  });
   const lg=$("cardLinks");
   if(!lg.childElementCount) Object.entries(CARD_LINKS).forEach(([k,d])=>{
     const lab=el("label",null,d.icon+" "+d.label); lab.htmlFor="cardLink-"+k;
@@ -6453,8 +6507,86 @@ function paintCardSheet(){
     b.onclick=()=>{ let list=[...(draftCard.stk||[])]; if(list.includes(id)) list=list.filter(x=>x!==id); else { if(list.length>=3){ say("cardMsg","Up to 3 stickers. Tap one to remove it first.",true); return; } list.push(id); } say("cardMsg",""); draftCard={...draftCard,stk:list}; paintCardSheet(); };
     st.append(b); });
 }
-function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); $("cardLinksBox").open=!!draftCard.links; show($("profile"),false); paintCardSheet(); show($("cardSheet")); }
+function openCardSheet(){ draftCard={banner:null,img:null,fx:null,stk:[],...(meProfile?.theme?.card||{})}; say("cardMsg",""); $("cardLinksBox").open=!!draftCard.links; show($("profile"),false); paintCardSheet(); paintCardPartner(); show($("cardSheet")); loadRel(); }
 $("openCard").onclick=openCardSheet;
+/* ================= 💞 RELATIONSHIPS: partner tags + mutual friends =================
+   The server (relationships.sql) makes sure a partner tag only shows once the other person says yes,
+   only between friends who added each other, one partner at a time.
+   ✍️ Cole's part builds on these:
+     • relPartnerOf(uid)      → Promise: that person's partner id, or null (cached for a minute, safe to call a lot)
+     • api.mutualFriends(uid) → Promise: array of ids you BOTH added (empty if none)
+     • relName(uid)           → their username (no room nicknames) */
+
+
+const REL={partner:null,outgoing:null,incoming:[],ready:false,asked:new Set(),cache:new Map()};
+const relName=uid=>cache.get(uid)?.username||"Someone";
+const relMissing=err=>/rel_|mutual_friends|schema cache|does not exist|Could not find the function/i.test(err?.message||"");
+async function loadRel(){
+  if(!user) return;
+  try{
+    const r=await api.relMine();
+    Object.assign(REL,{partner:r?.partner||null,outgoing:r?.outgoing||null,incoming:Array.isArray(r?.incoming)?r.incoming:[],ready:true});
+    REL.cache.set(user.id,{p:REL.partner,t:Date.now()});
+    await ensureProfiles([REL.partner,REL.outgoing,...REL.incoming].filter(Boolean));
+  }catch(e){ REL.ready=false; }
+  if(!$("cardSheet").classList.contains("hidden")) paintCardPartner();
+  relMaybeAsk();
+}
+async function relPartnerOf(uid){
+  if(!uid) return null;
+  const hit=REL.cache.get(uid); if(hit&&Date.now()-hit.t<60000) return hit.p;
+  try{
+    const rows=await api.relPartners([uid]), p=(rows||[]).find(r=>r.user_id===uid)?.partner||null;
+    REL.cache.set(uid,{p,t:Date.now()}); if(p) await ensureProfiles([p]); return p;
+  }catch(e){ return hit?.p||null; }
+}
+const relFriends=()=>contactIds.filter(id=>addedMeIds.includes(id)&&!blocked.has(id)&&cache.has(id));
+function relRow(uid,text){ const row=el("div","cb-prow"), f=el("span","face sm"); paintFace(f,cache.get(uid)); row.append(f,el("span","",text)); return row; }
+function paintCardPartner(){
+  const box=$("cardPartner"); if(!box) return; box.innerHTML="";
+  if(!REL.ready){ box.append(el("p","sub","Partner tags aren't switched on yet.")); return; }
+  if(REL.partner){
+    box.append(relRow(REL.partner,`💞 You and ${relName(REL.partner)}`));
+    const rm=el("button","ghost cb-pbtn","Remove partner tag"); rm.type="button";
+    rm.onclick=()=>{ if(confirm(`Remove the partner tag with ${relName(REL.partner)}? It disappears from both profiles.`)) relAct(()=>api.relClear(),"Partner tag removed."); };
+    box.append(rm); return;
+  }
+  if(REL.outgoing){
+    box.append(relRow(REL.outgoing,`⏳ Waiting for ${relName(REL.outgoing)} to say yes`));
+    const c=el("button","ghost cb-pbtn","Cancel request"); c.type="button"; c.onclick=()=>relAct(()=>api.relClear(),"Request cancelled."); box.append(c);
+  }
+  const fr=relFriends().filter(id=>id!==REL.outgoing);
+  if(!fr.length){ if(!REL.outgoing) box.append(el("p","sub","You can tag a friend once you've both added each other.")); return; }
+  const pick=el("details","cb-ppick"); pick.append(el("summary","",REL.outgoing?"Ask someone else instead":"💞 Tag a partner"));
+  const list=el("div","cb-row");
+  fr.forEach(uid=>{ const b=el("button","cb-chip cb-pchip"); b.type="button"; const f=el("span","face sm"); paintFace(f,cache.get(uid)); b.append(f,el("span","",relName(uid)));
+    b.onclick=()=>relAct(()=>api.relRequest(uid),null,uid); list.append(b); });
+  pick.append(list, el("p","sub","They get asked first. Nothing shows until they say yes.")); box.append(pick);
+}
+async function relAct(fn,okMsg,who){
+  say("cardMsg","…");
+  try{
+    const r=await fn(); REL.cache.clear(); await loadRel(); paintCardPartner();
+    say("cardMsg",okMsg||(r==="accepted"?`💞 You and ${relName(who)} are tagged!`:`Asked ${relName(who)}. It shows once they say yes.`));
+  }catch(err){ say("cardMsg",relMissing(err)?"Partner tags aren't switched on yet.":err.message,true); }
+}
+function relMaybeAsk(){   // someone asked you: one friendly yes / no card, once per session per person
+  if(!$("relAsk").classList.contains("hidden")) return;
+  const from=REL.incoming.find(u=>!REL.asked.has(u)&&cache.has(u)&&!blocked.has(u)); if(!from) return;
+  REL.asked.add(from);
+  paintFace($("relAskFace"),cache.get(from));
+  $("relAskText").textContent=`${relName(from)} wants to show you as their partner. Say yes and it shows on both of your profiles.`;
+  $("relAsk").dataset.from=from; show($("relAsk"));
+}
+async function relAnswer(yes){
+  const from=$("relAsk").dataset.from; show($("relAsk"),false); if(!from) return;
+  try{ await api.relRespond(from,yes); if(yes){ toast("💞 Tagged!",`You and ${relName(from)} now show as partners.`); if(navigator.vibrate) navigator.vibrate([20,40,20]); } }
+  catch(err){ toast("Couldn't answer",relMissing(err)?"Partner tags aren't switched on yet.":err.message); }
+  REL.cache.clear(); await loadRel();
+}
+$("relYes").onclick=()=>relAnswer(true);
+$("relNo").onclick=()=>relAnswer(false);
+$("relLater").onclick=()=>show($("relAsk"),false);
 $("cardPronouns").addEventListener("input",()=>{ draftCard={...draftCard,pronouns:$("cardPronouns").value}; document.querySelectorAll("#cardPronounChips .cb-chip").forEach(b=>b.classList.toggle("on",b.textContent===draftCard.pronouns.trim())); });
 $("cardClose").onclick=()=>show($("cardSheet"),false);
 $("cardFile").onchange=async e=>{
@@ -8993,6 +9125,7 @@ async function loadContacts(){
   if(!user) return;
   [contactIds,addedMeIds]=await Promise.all([api.contacts().catch(()=>contactIds),api.addedMe().catch(()=>addedMeIds)]);
   await ensureProfiles([...contactIds,...addedMeIds]);
+  if(Date.now()-(loadRel.at||0)>60000){ loadRel.at=Date.now(); loadRel(); }   // 💞 partner tags + asks (at most once a minute)
   if(Date.now()-(loadContacts.fresh||0)>30000){ loadContacts.fresh=Date.now(); await refreshProfiles(contactIds); }   // fresh statuses, at most every 30s
   // people who added you, that you haven't added back
   const reqBox=$("requestList"); reqBox.innerHTML="";
@@ -9185,6 +9318,13 @@ function paintPerson(){
   paintFace($("personFace"),p);
   { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!(card&&(card.banner||card.fx||card.stk.length)));
     $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns);
+    $("personRelStatus").textContent=card?.relStatus||""; show($("personRelStatus"),!!card?.relStatus);
+    relPartnerOf(uid).then(partner=>{
+      if(personUid!==uid) return;   // they tapped someone else while we were waiting
+      if(!partner) return;          // no partner: keep the status line as it is
+      $("personRelStatus").textContent=`${card?.relStatus||"💞"} with ${relName(partner)}`;
+      show($("personRelStatus"),true);
+    });
     paintPersonLinks(card?.links); }
   paintPersonPartner(uid);
   paintPersonJoin(uid);
@@ -9194,6 +9334,18 @@ function paintPerson(){
   const f=isFriend(uid), back=addedMe(uid);
   $("personTag").textContent = f&&back?"🤝 You're friends": f?"✓ On your friends list": back?"👋 Added you as a friend":"";
   show($("personTag"),f||back);
+  const mb=$("personMutual"); mb.innerHTML=""; show(mb,false);   // start empty and hidden
+api.mutualFriends(uid).then(ids=>{
+  if(personUid!==uid) return;      // same guard as before
+  if(!ids.length) return;          // no friends in common: stay hidden
+  ids.slice(0,5).forEach(id=>{     // up to 5 faces
+    const face=el("span","face sm");
+    paintFace(face, cache.get(id));
+    mb.append(face);
+  });
+    mb.append(el("span","ma-count",`${ids.length} mutual friend${ids.length===1 ? "" : "s"}`));
+  show(mb,true);
+});
   const pa=$("personArcana"); pa.innerHTML=""; show(pa,!!p.arcana);
   if(p.arcana){ pa.append(el("span","ma-eyebrow",`🃏 ${p.username}'s Arcana`), el("span","ma-name",p.arcana)); if(ARCANA_FLAVOR[p.arcana]) pa.append(el("span","ta-flavor",ARCANA_FLAVOR[p.arcana]));
     if(ARCANA_MEANING[p.arcana]){ pa.append(el("span","ma-more","What does it mean? ›")); pa.setAttribute("role","button"); pa.tabIndex=0; pa.setAttribute("aria-label",`${p.username}'s Arcana: ${p.arcana}. Tap to see what it means.`);
@@ -13592,8 +13744,11 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.16z";
+const APP_VERSION="2026.10.17b";
 const CHANGELOG=[
+  
+    {v:"2026.10.17b", title:"Status + mutual friends 🤝", items:["💞 Show off your boo: set your relationship status (Single, Taken, It's complicated…) in Profile → Profile card, and tag your partner. They get asked first, and the tag only shows once they say yes.","🤝 Tap a friend's picture to see the friends you have in common."]},
+  {v:"2026.10.17a", title:"Partner tags 💞", items:["💞 Tag your partner on your profile: Profile → Profile card → Partner. They get asked first, and it only shows once they say yes.","🤝 Behind the scenes: NightLane can now find the friends you have in common."]},
   {v:"2026.10.16z", title:"Crop your banner ✂️", items:["✂️ Uploading a profile card banner now lets you crop it: drag, pinch or slide to zoom, and ⟳ to rotate.","👀 Both croppers (banner and profile photo) show a live preview of exactly how friends will see it."]},
   {v:"2026.10.16y", title:"Mahjong: no surprise throws 🀄", items:["🀄 Tapping a tile now only picks it. Nothing gets thrown away until you hit the Throw away button. Tap the picked tile again to put it back."]},
   {v:"2026.10.16x", title:"Easier to read 🕸️", items:["🕸️ Comic mode: your messages now always use black ink on the yellow caption box, even if you picked a custom bubble color."]},
