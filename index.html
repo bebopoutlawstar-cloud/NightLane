@@ -19,7 +19,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&family=Pixelify+Sans:wght@400;700&family=Silkscreen&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
 <style>
 :root{
@@ -3483,6 +3483,42 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 #personMutual{display:flex;align-items:center;gap:6px;justify-content:center;font-size:13px;color:var(--muted)}
 #personMutual .face.sm{width:26px;height:26px;font-size:12px}
 .bltile .bt-lock{position:absolute;top:3px;right:3px;font-size:11px;filter:drop-shadow(0 0 3px #000)}
+#nsText{font-size:20px;font-weight:700;margin:6px 0 14px}
+#nsScale{display:flex;flex-direction:column;gap:8px;width:100%}
+#nsScale .blbtn{font-size:14px;padding:10px}
+.nsbar{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:8px;width:100%;text-align:left}
+.nsbar b{font-family:var(--tech);font-size:11px}
+.nsfill{display:block;height:12px;min-width:2px;box-shadow:0 0 8px currentColor}
+#nsSheet .sheetbody{font-family:"Pixelify Sans",var(--body)}
+#nsSheet #nsCount,#nsSheet #nsAsk{font-family:"Silkscreen",var(--tech);font-size:11px;letter-spacing:1px}
+#nsSheet #nsAsk{color:var(--cyan)}
+#nsText{font-family:"Pixelify Sans",var(--body);font-size:26px;line-height:1.1;padding:20px 16px;border:3px solid #f4f1ff;background:#07041a;box-shadow:6px 6px 0 var(--mag)}
+#nsProg{width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(28,1fr);gap:2px;height:14px;padding:3px;border:3px solid #f4f1ff;background:#07041a;margin:4px 0 10px}
+#nsProg span{background:#2a2350}
+#nsProg span.on{background:var(--cyan)}
+#nsSheet #nsScale{flex-direction:row;justify-content:space-between;align-items:center;margin-top:16px}
+.nssq{padding:0;cursor:pointer;border:3px solid #f4f1ff;background:#07041a}
+.nssq:hover,.nssq:focus-visible{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+#nsEnds{width:100%;display:flex;justify-content:space-between;font-family:"Silkscreen",var(--tech);font-size:10px;color:var(--muted);margin-top:6px}
+.nsres #nsAsk{font-family:"Pixelify Sans",var(--body)!important;font-size:30px!important;letter-spacing:0!important;margin:6px 0 10px;text-shadow:0 0 12px currentColor}
+.nsres #nsScale{padding:0 18px 0 22px;box-sizing:border-box}   /* keep the bar labels clear of the slanted sheet edge */
+.nsres .nsbar{grid-template-columns:76px 1fr}
+#nsGlyph{display:flex;justify-content:center;margin:8px 0 4px}
+.nsglyph{position:relative;width:calc(var(--px)*9);height:calc(var(--px)*9)}
+.nsglyph>div{position:absolute;inset:0;display:grid;grid-template-columns:repeat(9,var(--px));grid-auto-rows:var(--px)}
+.nsglyph i.on{background:var(--c)}
+.nsglyph .ng-halo{filter:blur(calc(var(--px)*.9)) brightness(1.4);opacity:.6;animation:nsbreathe 3.6s ease-in-out var(--delay) infinite}
+.nsglyph .ng-core{filter:drop-shadow(0 0 calc(var(--px)*.35) var(--c))}
+@keyframes nsbreathe{0%,100%{opacity:.3}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.nsglyph .ng-halo{animation:none}}
+#nsExtra{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:16px;text-align:left}
+#nsExtra:empty{display:none}
+.nsah{border:3px solid #f4f1ff;background:#07041a;padding:14px;display:flex;flex-direction:column;gap:8px}
+.nsah-k{font-family:"Silkscreen",var(--tech);font-size:11px;color:#b86bff;letter-spacing:1px}
+.nsah-q{margin:0;font-family:"Pixelify Sans",var(--body);font-size:20px}
+.nsah textarea{width:100%;box-sizing:border-box;resize:vertical}
+.nsah-note{font-size:12px;color:var(--muted)}
+.nsah .blbtn{align-self:flex-start}
 </style>
 </head>
 <body>
@@ -3747,6 +3783,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="ghost" id="openBacklog">🎮 Media Backlog</button>
     <button type="button" class="ghost" id="openHabits">🎯 Habits &amp; Stats</button>
     <button type="button" class="ghost" id="openQuiz">🃏 Who are you? (personality quiz)</button>
+    <button type="button" class="ghost" id="openSignal">📡 Night Signal</button>
     <details class="proflist"><summary id="unlockSummary">🎁 Unlockables</summary><div class="unlockbox"><div id="unlockList"></div></div></details>
     <details class="proflist"><summary id="secretSummary">🔒 Secrets found: 0</summary><div class="secretbox">
       <div class="hintbox" id="hintBox"></div>
@@ -4629,6 +4666,24 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 
+<!-- ============ NIGHT SIGNAL ============ -->
+<div class="overlay hidden" id="nsSheet" role="dialog" aria-modal="true" aria-labelledby="nsTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="nsTitle">Night Signal</h2>
+    <p class="note" id="nsCount"></p>
+    <div id="nsProg" aria-hidden="true"></div>
+    <div id="nsGlyph" class="hidden" aria-hidden="true"></div>
+    <p id="nsAsk">How likely are you to…</p>
+    <p id="nsText"></p>
+    <div id="nsScale" role="radiogroup" aria-label="How likely"></div>
+    <div id="nsEnds"><span>NOT LIKELY</span><span>VERY LIKELY</span></div>
+    <div id="nsExtra"></div>
+    <button class="ghost" type="button" id="nsClose">Close</button>
+  </div></div>
+</div>
+
+
+
 <!-- ============ MEDIA BACKLOG ============ -->
 <div class="overlay hidden" id="backlogSheet" role="dialog" aria-modal="true" aria-labelledby="blTitle">
   <div class="sheet"><div class="sheetbody">
@@ -5490,6 +5545,13 @@ const live = {
   async addBacklogMany(list){ return must(await sb.from("backlog_items").insert(list).select()); },
   async updateBacklog(id,patch){ must(await sb.from("backlog_items").update(patch).eq("id",id)); },
   async deleteBacklog(id){ must(await sb.from("backlog_items").delete().eq("id",id)); },
+  async mySignal(){ return must(await sb.from("night_signal").select("*").eq("user_id",user.id).maybeSingle()); },
+  async saveSignal(scores,top){ must(await sb.from("night_signal").upsert({user_id:user.id,scores,top,taken_at:new Date().toISOString()},{onConflict:"user_id"})); },
+  async afterHours(){ const r=must(await sb.from("night_signal_after_hours").select("answer").eq("user_id",user.id).maybeSingle()); return r?.answer||""; },
+  async saveAfterHours(answer){
+    if(!answer) return must(await sb.from("night_signal_after_hours").delete().eq("user_id",user.id));
+    must(await sb.from("night_signal_after_hours").upsert({user_id:user.id,answer,updated_at:new Date().toISOString()},{onConflict:"user_id"}));
+  },
   async saveProgress(d){ return must(await sb.rpc("save_progress",{p_xp:d.xp,p_log:d.log,p_secrets:d.secrets,p_unlocks:d.unlocks})); },
   saveProgressOnExit(d){ if(!owlToken) return; try{ fetch(SUPABASE_URL+"/rest/v1/rpc/save_progress",{method:"POST",keepalive:true,headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+owlToken,"Content-Type":"application/json"},body:JSON.stringify({p_xp:d.xp,p_log:d.log,p_secrets:d.secrets,p_unlocks:d.unlocks})}).catch(()=>{}); }catch(e){} },
   owlSchedule(tz){ if(!owlToken) return; try{ fetch(SUPABASE_URL+"/rest/v1/rpc/owl_schedule",{method:"POST",keepalive:true,headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+owlToken,"Content-Type":"application/json"},body:JSON.stringify({p_tz:tz})}).catch(()=>{}); }catch(e){} },
@@ -5553,6 +5615,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     {id:6,room,user_id:"vee",kind:"sticker",sticker:"omw",created_at:iso(30000)}]};
   polls[5]={message_id:5,options:["Arcade","Movies","Both 😎"],multi:false}; votes.push({message_id:5,user_id:"vee",option_index:0});
   people.vee.bubble_color="#0E3B4A"; people.vee.arcana="Priestess";
+  const demoSignal={};
   let demoBlId=500; const demoBl={me:[], vee:[
     {id:1,user_id:"vee",type:"anime",title:"Cyberpunk: Edgerunners",status:"in-progress",progress:6,total:10,rating:5,platform:"Netflix",image:"https://media.kitsu.app/anime/poster_images/44242/small.jpg",source_id:"kitsu:44242",created_at:iso(9e6)},
     {id:2,user_id:"vee",type:"game",title:"Persona 5 Royal",status:"planned",progress:0,total:null,rating:0,platform:"PC",image:null,source_id:"rawg:274755",created_at:iso(9e7)}]};
@@ -5994,6 +6057,10 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       const row={id:demoBlId++,user_id:"me",status:"planned",progress:0,total:null,rating:0,platform:null,image:null,source_id:null,created_at:iso(),...it}; list.unshift(row); return {...row}; },
     async updateBacklog(id,patch){ const r=(demoBl.me||[]).find(x=>x.id===id); if(r) Object.assign(r,patch); },
     async deleteBacklog(id){ demoBl.me=(demoBl.me||[]).filter(x=>x.id!==id); },
+    async mySignal(){ return demoSignal.me?{...demoSignal.me}:null; },
+    async saveSignal(scores,top){ demoSignal.me={user_id:"me",scores,top,taken_at:iso()}; },
+    async afterHours(){ return demoSignal.ah||""; },
+    async saveAfterHours(answer){ demoSignal.ah=answer||""; },
     async saveProgress(d){ return {xp:d.xp,xp_log:d.log,secrets:d.secrets,unlocks:d.unlocks}; }, saveProgressOnExit(){},
     async habits(){ return demoHabits.filter(h=>!h.archived); },
     async habitStats(){ return demoHabits.map(h=>({id:h.id,stat:h.stat})); },
@@ -13849,9 +13916,11 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18d";
+const APP_VERSION="2026.10.18f";
 const CHANGELOG=[
   
+    {v:"2026.10.18f", title:"Night Signal polish 📡", items:["📡 Your Night Signal bars no longer get clipped by the angled edge of the screen."]},
+    {v:"2026.10.18e", title:"Night Signal 📡", items:["📡 New: Night Signal! Profile → 📡 Night Signal. Answer 28 \"how likely are you to…\" questions and find your signal: Spark, Glow, Drift, Static, Beacon, Shade or Pulse.","🌙 After Hours: one last question after your result. Only you can ever see your answer.","↻ Retake it any time from your Profile."]},
     {v:"2026.10.18d", title:"Easier to spot 🔒", items:["🔒 Private backlog items now show a pink \"🔒 Private\" button, so you can tell at a glance what only you can see."]},
     {v:"2026.10.18c", title:"Just for you 🔒", items:["🔒 Tap 🔓 on anything in your Media Backlog to make it private. Only you can see it: friends won't see it on your backlog, and it won't show in the share list in chats. Tap 🔒 to make it public again."]},
     {v:"2026.10.18b", title:"Crop room pictures ✂️", items:["✂️ Changing a room picture now lets you crop it first, with a preview of how it looks. GIFs stay animated. Thanks Han!"]},
@@ -14394,6 +14463,178 @@ QX.rankup=function(name,arcana,rank){
   if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
   setTimeout(()=>w.remove(),3000);
 };
+
+/* ================= NIGHT SIGNAL 📡 ================= */
+const NS_QUESTIONS=[
+  {text:"be the first to talk in a new group chat", signal:"spark"},
+  {text:"tell a friend a hard truth they need to hear", signal:"spark"},
+  {text:"say what everyone’s thinking but won’t say", signal:"spark"},
+  {text:"jump in before you know the rules", signal:"spark"},
+  {text:"ask “what were you about to say?” after someone gets cut off", signal:"glow"},
+  {text:"text a quiet friend “you good?”", signal:"glow"},
+  {text:"help a friend even when you’re exhausted", signal:"glow"},
+  {text:"hype a friend’s post right away", signal:"glow"},
+  {text:"laugh it off when a server gets your order wrong", signal:"drift"},
+  {text:"shrug when plans get canceled", signal:"drift"},
+  {text:"let a small argument go instead of winning it", signal:"drift"},
+  {text:"take a long walk with no destination", signal:"drift"},
+  {text:"say yes to a 2 a.m. food run", signal:"static"},
+  {text:"send a meme at the worst moment", signal:"static"},
+  {text:"change plans just for fun", signal:"static"},
+  {text:"start a bit that goes too far", signal:"static"},
+  {text:"talk about friends the same way when they’re not around", signal:"beacon"},
+  {text:"answer a 3 a.m. call even when you’re asleep", signal:"beacon"},
+  {text:"remember the small stuff people tell you", signal:"beacon"},
+  {text:"keep the same friends for years", signal:"beacon"},
+  {text:"change your mind after a good argument", signal:"shade"},
+  {text:"replay a conversation hours later to see what you could have said", signal:"shade"},
+  {text:"write things you'd never say out loud", signal:"shade"},
+  {text:"lie awake thinking about the universe and your place in it", signal:"shade"},
+  {text:"own a mistake and fix it before anyone asks", signal:"pulse"},
+  {text:"set a boundary with a friend even when it’s hard", signal:"pulse"},
+  {text:"redo something until it's perfect", signal:"pulse"},
+  {text:"grind a game until you 100% it", signal:"pulse"},
+];
+const NS_AFTER_HOURS="What is stopping you from being you?";
+const NS_SCALE=["Not likely","Probably not","Maybe","Probably","Very likely"];
+const NS_INFO={
+  spark: {name:"SPARK", color:"#ff4d4d", blurb:"Bold. You jump in first and figure it out on the way."},
+  glow:  {name:"GLOW",  color:"#ffb347", blurb:"Warm. You light up the room and check on everyone."},
+  drift: {name:"DRIFT", color:"#00e5ff", blurb:"Chill. Patient, easygoing and hard to rattle."},
+  static:{name:"STATIC",color:"#f3ff3a", blurb:"Chaotic fun. The plot twist and the 2 a.m. idea."},
+  beacon:{name:"BEACON",color:"#4d7cff", blurb:"Loyal. The light your friends always find their way back to."},
+  shade: {name:"SHADE", color:"#b86bff", blurb:"Deep. A quiet thinker with layers."},
+  pulse: {name:"PULSE", color:"#4dff88", blurb:"Driven. Once you start, you finish."}
+};
+let nsIndex=0;      // which question we're on (0 = the first one)
+let nsAnswers=[];   // the score for each answer, 0 to 4
+
+function nsPaint(){
+  const q=NS_QUESTIONS[nsIndex];
+  $("nsCount").textContent=`Question ${nsIndex+1} of ${NS_QUESTIONS.length}`;
+  show($("nsProg")); show($("nsEnds"));
+  show($("nsGlyph"),false); $("nsExtra").innerHTML=""; $("nsSheet").classList.remove("nsres");   // back to question mode
+  const prog=$("nsProg"); prog.innerHTML="";
+  NS_QUESTIONS.forEach((_,i)=>{
+    const seg=el("span");
+    if( nsAnswers[i] !== undefined ) seg.className="on";
+    prog.append(seg);
+  });
+  $("nsAsk").textContent="How likely are you to…"; $("nsAsk").style.color="";   // undo the result-screen look on a retake
+  $("nsText").textContent=q.text;
+  const box=$("nsScale"); box.innerHTML="";
+  box.style.flexDirection="";
+  NS_SCALE.forEach((label,score)=>{
+    const b=el("button","nssq"); b.type="button"; b.setAttribute("role","radio");
+    b.setAttribute("aria-label",label);
+    b.style.width=b.style.height= `${20 + score * 10}px`;
+    b.onclick=()=>nsPick(score);
+    box.append(b);
+  });
+}
+function nsPick(score){
+  nsAnswers[nsIndex]=score;   // remember this answer
+  nsIndex++;                  // move to the next question
+  if( nsIndex < NS_QUESTIONS.length ) nsPaint();
+  else nsFinish();            // all 28 answered
+}
+function nsOpen(){
+  nsIndex=0; nsAnswers=[];    // start fresh
+  nsPaint();
+  show($("nsSheet"));
+}
+$("nsClose").onclick=()=>show($("nsSheet"),false);
+
+function nsFinish(){
+  const scores={spark:0,glow:0,drift:0,static:0,beacon:0,shade:0,pulse:0};
+  NS_QUESTIONS.forEach((q,i)=>{
+    scores[q.signal]+=nsAnswers[i];
+  });
+  let top="spark";
+  for(const s in scores){
+    if( scores[s] > scores[top] ) top=s;
+  }
+  nsShowResult(scores, top);
+  nsSave(scores, top);
+}
+function nsShowResult(scores, top){
+  show($("nsProg"),false); show($("nsEnds"),false);
+  $("nsSheet").classList.add("nsres");
+  const info=NS_INFO[top];
+  $("nsCount").textContent="Your Night Signal";
+  $("nsAsk").textContent=`You’re a ${info.name}.`;
+  $("nsAsk").style.color=info.color;
+  $("nsText").textContent=info.blurb;
+  const box=$("nsScale"); box.innerHTML="";
+  box.style.flexDirection="column";
+  for(const s in scores){
+    const row=el("div","nsbar");
+    const fill=el("span","nsfill");
+    fill.style.width=`${(scores[s] / 16) * 100}%`;
+    fill.style.background=NS_INFO[s].color;
+    row.append(el("b","",NS_INFO[s].name), fill);
+    box.append(row);
+  }
+  nsResultExtras(top);
+}
+
+/* ---- Night Signal: finishing touches (pixel icon, saving, After Hours, retake) ---- */
+const NS_GLYPHS={   // 9×9 pixel art from the concept board: # = lit pixel
+  spark:  ["....##...","...##....","..##.....",".#######.","....##...","...##....","..##.....",".##......","........."],
+  glow:   [".##...##.","#..#.#..#","#...#...#","#.......#",".#.....#.","..#...#..","...#.#...","....#....","........."],
+  drift:  [".........","..##.....",".#..#..#.","#....##..",".........","..##.....",".#..#..#.","#....##..","........."],
+  static: [".#.....#.","..#...#..","#########","#.#..#..#","#..#...##","##...#..#","#..##.#.#","#########",".#.....#."],
+  beacon: ["#...#...#",".#.###.#.","...#.#...","...###...","...#.#...","..##.##..","..#####..",".##...##.","#########"],
+  shade:  ["...###...","..##.....",".##......",".##......",".##......",".##......","..##.....","...###...","........."],
+  pulse:  [".........","....#....","...##....","...#.#...","####.#.##","......##.","......#..",".........","........."]
+};
+function nsGlyph(kind,px){   // two copies of the icon: a blurred one behind that breathes, and a crisp one on top
+  const color=NS_INFO[kind].color, wrap=el("div","nsglyph");
+  wrap.style.setProperty("--px",px+"px"); wrap.style.setProperty("--c",color);
+  wrap.style.setProperty("--delay",Object.keys(NS_INFO).indexOf(kind)*0.48+"s");
+  ["halo","core"].forEach(layer=>{
+    const g=el("div","ng-"+layer);
+    NS_GLYPHS[kind].join("").split("").forEach(ch=>{ const c=el("i"); if(ch==="#") c.className="on"; g.append(c); });
+    wrap.append(g);
+  });
+  return wrap;
+}
+function nsResultExtras(top){
+  const g=$("nsGlyph"); g.innerHTML=""; g.append(nsGlyph(top,8)); show(g);
+  const box=$("nsExtra"); box.innerHTML="";
+  const ah=el("div","nsah");
+  ah.append(el("div","nsah-k","🌙 AFTER HOURS"), el("p","nsah-q",NS_AFTER_HOURS));
+  const ta=document.createElement("textarea"); ta.className="field"; ta.maxLength=500; ta.rows=3;
+  ta.placeholder="Type as much or as little as you want. Or skip it."; ta.setAttribute("aria-label",NS_AFTER_HOURS);
+  const note=el("div","nsah-note","🔒 Only you can see this. It's never shown to friends.");
+  const save=el("button","blbtn add","Save my answer"); save.type="button";
+  save.onclick=async()=>{
+    save.disabled=true; save.textContent="Saving…";
+    try{ await api.saveAfterHours(ta.value.trim()); save.textContent=ta.value.trim()?"Saved 🌙":"Cleared"; }
+    catch(e){ save.textContent="Couldn't save. Try again"; note.textContent=nsSetupHint(e); }
+    setTimeout(()=>{ save.disabled=false; if(/Saved|Cleared/.test(save.textContent)) save.textContent="Save my answer"; },1800);
+  };
+  ah.append(ta,note,save); box.append(ah);
+  api.afterHours().then(a=>{ if(a&&!ta.value) ta.value=a; }).catch(()=>{});
+  const again=el("button","blbtn","↻ Retake the quiz"); again.type="button"; again.onclick=nsOpen;
+  box.append(again);
+}
+function nsSetupHint(e){
+  const m=String(e?.message||e);
+  return /night_signal|relation|does not exist|schema cache/i.test(m) ? "Night Signal needs a quick setup: run night-signal.sql in Supabase." : m;
+}
+async function nsSave(scores,top){
+  try{ await api.saveSignal(scores,top); }
+  catch(e){ $("nsExtra").prepend(el("p","note bad","Your result didn't save: "+nsSetupHint(e))); }
+}
+async function nsStart(){   // from Profile: show your saved result, or start the quiz if you haven't taken it
+  show($("profile"),false);
+  let mine=null; try{ mine=await api.mySignal(); }catch(e){}
+  if(mine&&mine.scores&&NS_INFO[mine.top]){ nsIndex=0; nsAnswers=[]; show($("nsSheet")); nsShowResult(mine.scores,mine.top); }
+  else nsOpen();
+}
+$("openSignal").onclick=nsStart;
+
 
 /* ================= MEDIA BACKLOG 🎮📺 =================
    Cole's Media Backlog (the React class app), rebuilt inside NightLane: games + anime, statuses, +1 progress,
