@@ -351,6 +351,7 @@ body.july4 .stamp::before{content:"⭐"}
 .cropprev .pv-faces{display:flex;align-items:flex-end;gap:14px}
 #cropPrevBody{width:100%;display:grid;justify-items:center}
 .cropprev .cardprev{width:100%}
+.pv-roomname{display:flex;align-items:center;font-weight:700;font-size:15px}
 .cropbox:not(.wide) .cropring{border-radius:0;box-shadow:none;outline-offset:-6px}   /* your picture shows as a square card, not a circle (the preview below shows the real look) */
 .overlay{position:fixed;inset:0;z-index:10;background:rgba(7,4,26,.86);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
 .sheet{width:min(100%,380px);background:var(--night);border:3px solid var(--cyan);box-shadow:8px 8px 0 var(--mag);padding:26px 22px;display:grid;gap:14px;justify-items:center;text-align:center;transform:rotate(-1.5deg)}
@@ -1641,6 +1642,7 @@ body.sv-leap .screen{animation:svleap 1.5s steps(14) both}
 .gifpick img{width:100%;height:100%;object-fit:cover;display:block}
 .gifpick:focus-visible,.gifpick:hover{border-color:var(--volt)}
 .gifgrid .note{grid-column:1/-1;text-align:center;font-size:13px}
+#gbGrid{max-height:52vh;width:100%}
 .gifcredit{font-family:var(--tech);font-size:10px;color:var(--muted)}
 /* ===== dice ===== */
 .dn-face{position:absolute;inset:0;background:#07041A;border:5px solid var(--cyan);box-shadow:7px 7px 0 var(--mag)}
@@ -3645,7 +3647,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
         <input type="file" id="pdfPicker" accept="application/pdf,.pdf" class="sr" tabindex="-1" aria-hidden="true">
       </div>
       <div class="stickers" id="stickerGrid"></div>
-      <div class="hidden" id="gifPane"><div class="gifbar"><label for="gifSearch" class="sr">Search GIFs</label><input class="field" id="gifSearch" placeholder="Search GIPHY…" autocomplete="off"></div><div class="gifgrid" id="gifGrid"></div></div>
+      <div class="hidden" id="gifPane"><div class="gifbar"><label for="gifSearch" class="sr">Search GIFs</label><input class="field" id="gifSearch" placeholder="Search GIFs…" autocomplete="off"></div><div class="gifgrid" id="gifGrid"></div></div>
       <div class="hidden" id="trayBlPane">
         <label for="trayBlSearch" class="sr">Search your backlog</label>
         <input class="field" id="trayBlSearch" placeholder="Search your backlog…" autocomplete="off">
@@ -4242,6 +4244,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
   </div></div>
 </div>
 
+<!-- ============ 🎞️ GIF BANNER PICKER ============ -->
+<div class="overlay hidden" id="gifBannerSheet" role="dialog" aria-modal="true" aria-labelledby="gbTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="gbTitle">🎞️ Pick a GIF banner</h2>
+    <label for="gbSearch" class="sr">Search GIFs</label><input class="field" id="gbSearch" placeholder="Search GIFs…" autocomplete="off">
+    <div class="gifgrid" id="gbGrid"></div>
+    <button class="ghost" type="button" id="gbClose">Cancel</button>
+  </div></div>
+</div>
 <!-- ============ 💞 PARTNER REQUEST ============ -->
 <div class="overlay hidden" id="relAsk" role="dialog" aria-modal="true" aria-labelledby="relAskTitle">
   <div class="sheet"><div class="sheetbody">
@@ -6516,6 +6527,7 @@ function paintCardSheet(){
   const none=el("button","cb-sw"+(!c.banner?" on":""),"None"); none.type="button"; none.onclick=()=>{ draftCard={...draftCard,banner:null,img:null}; paintCardSheet(); }; bg.append(none);
   Object.entries(CARD_BANNERS).forEach(([id,b])=>{ const s=el("button","cb-sw"+(c.banner===id?" on":"")); s.type="button"; s.style.background=b.bg; s.title=b.label; s.setAttribute("aria-label","Banner: "+b.label); s.onclick=()=>{ draftCard={...draftCard,banner:id,img:null}; paintCardSheet(); }; bg.append(s); });
   const up=el("button","cb-sw up"+(c.banner==="img"?" on":""),c.banner==="img"?"🖼️ ✓":"🖼️ Upload"); up.type="button"; up.onclick=()=>$("cardFile").click(); bg.append(up);
+  const gb=el("button","cb-sw up","🎞️ GIF"); gb.type="button"; gb.title="Search for a GIF banner"; gb.onclick=openBannerGifs; bg.append(gb);
   const fx=$("cardFx"); fx.innerHTML="";
   Object.entries(CARD_FX).forEach(([id,label])=>{ const b=el("button","cb-chip"+((c.fx||"none")===id?" on":""),label); b.type="button"; b.onclick=()=>{ draftCard={...draftCard,fx:id==="none"?null:id}; paintCardSheet(); }; fx.append(b); });
   const st=$("cardStk"); st.innerHTML="";
@@ -7106,6 +7118,9 @@ function cropPreview(){
     if(crop.mode==="banner"){   // the real card: your banner, your effect + stickers, your picture on top
       const wrap=el("div","cardprev"), ban=el("div","pcard-banner"), face=el("div","face lg"); wrap.append(ban,face); box.append(wrap);
       const c=cleanCard(draftCard)||{fx:null,stk:[]}; paintCardBanner(ban,{...c,banner:"img",img:u,stk:c.stk||[]}); paintFace(face,meProfile);
+    } else if(crop.mode==="room"){   // the room picture: big in settings, small next to the room name and in your chat list
+      const row=el("div","pv-faces"), big=el("div","hash pic"); big.style.cssText="width:64px;height:64px"; big.append(roomIconEl(u,"roomicon big"));
+      const lab=el("span","pv-roomname"); lab.append(roomIconEl(u),document.createTextNode(roomName||"#"+(room||"room"))); row.append(big,lab); box.append(row);
     } else {   // your picture at the sizes friends see it
       const row=el("div","pv-faces"); [["face lg"],["face"],["face sm"]].forEach(([k])=>{ const f=el("div",k); paintFace(f,{...meProfile,avatar_url:u}); row.append(f); }); box.append(row);
     }
@@ -7119,7 +7134,7 @@ function openCrop(file,mode="avatar"){
     try{
       crop.mode=mode; const wide=mode==="banner";
       $("cropBox").classList.toggle("wide",wide); document.querySelector("#cropSheet .cropzoom").classList.toggle("wide",wide);
-      $("cropTitle").textContent=wide?"Crop your banner":"Crop your photo"; $("cropSave").textContent=wide?"Use this banner":"Save photo";
+      $("cropTitle").textContent=wide?"Crop your banner":mode==="room"?"Crop the room picture":"Crop your photo"; $("cropSave").textContent=wide?"Use this banner":mode==="room"?"Use this picture":"Save photo";
       const url=URL.createObjectURL(await readableImage(file)), im=$("cropImg"); crop.urls=[url];
       await new Promise((ok,bad)=>{ im.onload=ok; im.onerror=()=>bad(new Error("couldn't open that photo")); im.src=url; });
       show($("cropSheet"));
@@ -7896,8 +7911,12 @@ $("riPick").onclick=()=>$("riFile").click();
 $("riFile").onchange=async e=>{
   const f=e.target.files[0]; e.target.value=""; if(!f) return;
   if(f.size>15e6) return say("rsMsg","That picture is over 15 MB. Pick a smaller one.",true);
+  const gif=f.type==="image/gif"&&f.size<5e6;   // 🎞️ GIFs stay animated (cropping would freeze them)
+  let pic=f;
+  if(!gif){ try{ pic=await openCrop(f,"room"); }catch(err){ return say("rsMsg","Couldn't open that picture: "+err.message,true); }
+    if(!pic) return say("rsMsg",""); }   // cancelled
   $("riPick").disabled=true; say("rsMsg","Uploading…");
-  try{ const url=await api.upload("avatars",user.id,await shrink(f,400,true)); await api.setRoomIcon(room,url); roomIcons.set(room,url); paintRoomIcon(); loadInboxSoon(); say("rsMsg","Room picture updated for everyone."); }
+  try{ const url=await api.upload("avatars",user.id,pic); await api.setRoomIcon(room,url); roomIcons.set(room,url); paintRoomIcon(); loadInboxSoon(); say("rsMsg","Room picture updated for everyone."); }
   catch(err){ say("rsMsg","Couldn't change the picture: "+err.message,true); }
   finally{ $("riPick").disabled=false; }
 };
@@ -11997,24 +12016,68 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
 );
 Object.assign(HINTS,{kenough:"A plastic man in a mojo dojo casa house learns he's… enough."});
 
-/* ================= GIF KEYBOARD (GIPHY) ================= */
+/* ================= GIF KEYBOARD (KLIPY first, GIPHY backup) =================
+   KLIPY is what Discord moved to after Google shut down Tenor. With no KLIPY key (or if KLIPY is down), GIPHY answers. */
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
+const KLIPY_API_KEY="";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
 let gifTimer=null, gifLastQ=null;
+function klipyCid(){   // an anonymous id per phone (KLIPY asks for one), never your NightLane account id
+  let id=null; try{ id=LS.get("nl-gif-cid"); }catch(e){}
+  if(!id){ id="nl-"+Math.random().toString(36).slice(2,12); try{ LS.set("nl-gif-cid",id); }catch(e){} }
+  return id;
+}
+function klipyItem(it){   // KLIPY items carry files by size (hd/md/sm/xs) and format (gif/webp/mp4); read them defensively
+  const f=it?.file||it?.files||{};
+  const url=o=>typeof o==="string"?o:(o&&typeof o.url==="string"?o.url:null);
+  const pick=(sizes)=>{ for(const z of sizes){ const o=f[z]; if(!o) continue; for(const fm of ["gif","webp"]){ const u=url(o[fm]); if(u&&/^https:\/\//.test(u)) return u; } } return null; };
+  const small=pick(["sm","xs","md","hd"])||(/^https:\/\//.test(it?.src||"")?it.src:null);
+  const big=pick(["md","sm","hd"])||small, banner=pick(["hd","md","sm"])||big;
+  return small?{title:it.title||"",images:{fixed_height_small:{url:small},fixed_height:{url:big},banner:{url:banner}},via:"KLIPY"}:null;
+}
+async function fetchKlipy(q){
+  const base=`https://api.klipy.com/api/v1/${encodeURIComponent(KLIPY_API_KEY)}/gifs/`, qs=`per_page=24&rating=pg-13&customer_id=${encodeURIComponent(klipyCid())}`;
+  const r=await fetch(q?`${base}search?q=${encodeURIComponent(q)}&${qs}`:`${base}trending?${qs}`); if(!r.ok) throw new Error("klipy "+r.status);
+  const d=await r.json(), list=d?.data?.data||(Array.isArray(d?.data)?d.data:[]);
+  return list.map(klipyItem).filter(Boolean);
+}
+async function fetchGiphy(q){
+  const u=q?`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=24&rating=pg-13`:`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=24&rating=pg-13`;
+  const d=await (await fetch(u)).json();
+  return (d.data||[]).map(g=>({title:g.title||"",images:{fixed_height_small:{url:g.images.fixed_height_small.url},fixed_height:{url:g.images.fixed_height.url},banner:{url:(g.images.downsized_medium||g.images.downsized||g.images.fixed_height).url}},via:"GIPHY"}));
+}
+async function fetchGifs(q){   // KLIPY first; GIPHY when there's no KLIPY key, KLIPY fails, or finds nothing
+  if(KLIPY_API_KEY){ try{ const k=await fetchKlipy(q); if(k.length) return k; }catch(e){} }
+  if(!GIPHY_API_KEY) return [];
+  return fetchGiphy(q);
+}
+function paintGifGrid(grid,list,onPick,label){
+  grid.innerHTML="";
+  if(!list.length){ grid.innerHTML='<p class="note">No GIFs for that. Try another word.</p>'; return; }
+  list.forEach(g=>{ const b=el("button","gifpick"); b.type="button"; b.setAttribute("aria-label",label+(g.title||"gif"));
+    const i=document.createElement("img"); i.src=g.images.fixed_height_small.url; i.alt=g.title||""; i.loading="lazy"; b.append(i);
+    b.onclick=()=>onPick(g); grid.append(b); });
+  grid.append(el("p","note gifcredit","Powered by "+(list[0].via||"GIPHY")));
+}
 async function loadGifs(q){
-  const grid=$("gifGrid"); if(!GIPHY_API_KEY){ grid.innerHTML='<p class="note">Add a GIPHY key to turn on GIFs.</p>'; return; }
+  const grid=$("gifGrid");
   if(q===gifLastQ&&grid.children.length) return; gifLastQ=q;
   grid.innerHTML='<p class="note">Loading…</p>';
-  try{
-    const u=q?`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=24&rating=pg-13`:`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=24&rating=pg-13`;
-    const r=await fetch(u); const d=await r.json(); grid.innerHTML="";
-    if(!d.data?.length){ grid.innerHTML='<p class="note">No GIFs for that. Try another word.</p>'; return; }
-    d.data.forEach(g=>{ const b=el("button","gifpick"); b.type="button"; b.setAttribute("aria-label","Send GIF: "+(g.title||"gif"));
-      const i=document.createElement("img"); i.src=g.images.fixed_height_small.url; i.alt=g.title||""; i.loading="lazy"; b.append(i);
-      b.onclick=()=>openGifPreview(g);
-      grid.append(b); });
-    grid.append(el("p","note gifcredit","Powered by GIPHY"));
-  }catch(e){ grid.innerHTML='<p class="note">Couldn\'t reach GIPHY. Check your connection.</p>'; }
+  try{ const list=await fetchGifs(q); if(gifLastQ!==q) return; paintGifGrid(grid,list,openGifPreview,"Send GIF: "); }
+  catch(e){ grid.innerHTML='<p class="note">Couldn\'t reach the GIF search. Check your connection.</p>'; }
 }
+/* 🎞️ pick a GIF for your profile card banner (same search as chat) */
+let gbTimer=null, gbLastQ=null;
+async function loadBannerGifs(q){
+  const grid=$("gbGrid"); if(q===gbLastQ&&grid.children.length) return; gbLastQ=q;
+  grid.innerHTML='<p class="note">Loading…</p>';
+  try{ const list=await fetchGifs(q); if(gbLastQ!==q) return;
+    paintGifGrid(grid,list,g=>{ draftCard={...draftCard,banner:"img",img:g.images.banner?.url||g.images.fixed_height.url}; show($("gifBannerSheet"),false); paintCardSheet(); say("cardMsg","🎞️ GIF banner picked. Hit Save card."); },"Use as banner: "); }
+  catch(e){ grid.innerHTML='<p class="note">Couldn\'t reach the GIF search. Check your connection.</p>'; }
+}
+function openBannerGifs(){ gbLastQ=null; $("gbSearch").value=""; show($("gifBannerSheet")); loadBannerGifs(""); setTimeout(()=>$("gbSearch").focus({preventScroll:true}),80); }
+$("gbSearch").addEventListener("input",e=>{ clearTimeout(gbTimer); gbTimer=setTimeout(()=>loadBannerGifs(e.target.value.trim()),350); });
+$("gbClose").onclick=()=>show($("gifBannerSheet"),false);
+$("gifBannerSheet").addEventListener("click",e=>{ if(e.target.id==="gifBannerSheet") show($("gifBannerSheet"),false); });
 /* tap a GIF → see it big, add a message if you want, then send */
 let gifPicked=null;
 function openGifPreview(g){
@@ -12446,7 +12509,7 @@ function previewCard(url,p){
 }
 function attachPreview(bub,m){
   if(m.kind!=="text"||!m.text) return; const url=firstUrl(m.text); if(!url) return;
-  if(/giphy\.com|tenor\.com|\.(png|jpe?g|gif|webp)(\?|$)/i.test(url)) return;
+  if(/giphy\.com|tenor\.com|klipy\.com|\.(png|jpe?g|gif|webp)(\?|$)/i.test(url)) return;
   if(location.origin&&url.startsWith(location.origin+location.pathname)) return;
   fetchPreview(url).then(p=>{ if(!p||!p.title) return; const node=elById.get(m.id); const b=node?.querySelector(".bubble"); if(b&&!b.querySelector(".lpcard")) b.append(previewCard(url,p)); });
 }
@@ -13784,10 +13847,12 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.17f";
+const APP_VERSION="2026.10.18b";
 const CHANGELOG=[
   
-    {v:"2026.10.17f", title:"GIF banners move again 🎞️", items:["🎞️ GIF banners on your profile card stay animated again. (Upload it again if yours froze.) Thanks Kennie!"]},
+    {v:"2026.10.18b", title:"Crop room pictures ✂️", items:["✂️ Changing a room picture now lets you crop it first, with a preview of how it looks. GIFs stay animated. Thanks Han!"]},
+  {v:"2026.10.18a", title:"GIF banners + better GIF search 🎞️", items:["🎞️ Profile card → Banner → 🎞️ GIF: search for a GIF and make it your banner, no download needed.","🔍 GIF search now uses KLIPY (what Discord uses), with GIPHY as a backup."]},
+  {v:"2026.10.17f", title:"GIF banners move again 🎞️", items:["🎞️ GIF banners on your profile card stay animated again. (Upload it again if yours froze.) Thanks Kennie!"]},
   {v:"2026.10.17e", title:"Secret tweak 🦁", items:["🦁 The Vol + Tron secret now hides behind just one name."]},
   {v:"2026.10.17d", title:"A new secret 🦁", items:["🦁 Two friends, one robot. There's a new secret hiding behind a name…"]},
   {v:"2026.10.17c", title:"Small fix 🔧", items:["🔧 Mutual friends and pet Partners no longer show up twice on a friend's profile. Thanks Beef!"]},
