@@ -1,6 +1,6 @@
 # 🌃 NightLane
 
-**A neon, Persona-style group chat for you and your friends.**
+**A neon, game-menu style group chat for you and your friends.**
 
 **[nightlane.chat](https://nightlane.chat)** · Works on iPhone, Android and PC · Ages 13+
 
