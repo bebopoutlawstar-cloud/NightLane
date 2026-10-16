@@ -3481,6 +3481,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .relstatus{font-family:var(--tech);font-size:12px;letter-spacing:.5px;color:var(--night);background:var(--mag);padding:3px 9px 2px;transform:skewX(-8deg);margin-top:-6px}
 #personMutual{display:flex;align-items:center;gap:6px;justify-content:center;font-size:13px;color:var(--muted)}
 #personMutual .face.sm{width:26px;height:26px;font-size:12px}
+.bltile .bt-lock{position:absolute;top:3px;right:3px;font-size:11px;filter:drop-shadow(0 0 3px #000)}
 </style>
 </head>
 <body>
@@ -5986,7 +5987,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async blocks(){ return [...blocked]; }, async block(uid){ blocked.add(uid); }, async unblock(uid){ blocked.delete(uid); },
     async savePush(){}, async deletePush(){}, async testPush(){ return {sent:1,devices:1,demo:true}; },
     owlSchedule(){}, async owlCancel(){},
-    async backlog(uid){ return (demoBl[uid]||[]).map(x=>({...x})); },
+    async backlog(uid){ return (demoBl[uid]||[]).filter(x=>uid==="me"||!x.private).map(x=>({...x})); },   // like the database: private items only for their owner
     async addBacklogMany(arr){ const out=[]; for(const it of arr) out.push(await this.addBacklog(it)); return out; },
     async addBacklog(it){ const list=(demoBl.me ||= []); if(it.source_id&&list.some(x=>x.source_id===it.source_id)) throw new Error('duplicate key value violates unique constraint "backlog_items_no_dupes"');
       const row={id:demoBlId++,user_id:"me",status:"planned",progress:0,total:null,rating:0,platform:null,image:null,source_id:null,created_at:iso(),...it}; list.unshift(row); return {...row}; },
@@ -8553,7 +8554,7 @@ $("trayBlSearch").oninput=()=>paintTrayBacklog();
 function paintTrayBacklog(){
   const list=$("trayBlList"); list.innerHTML="";
   const q=$("trayBlSearch").value.trim().toLowerCase();
-  const items=(myBl||[]).filter(it=>!q||String(it.title||"").toLowerCase().includes(q));
+  const items=(myBl||[]).filter(it=>!it.private && (!q||String(it.title||"").toLowerCase().includes(q)));
   if(!(myBl||[]).length){
     list.append(el("p","note","Your backlog is empty. Add games and anime first, then share them here."));
     const b=el("button","ghost","📚 Open my backlog"); b.type="button"; b.onclick=()=>{ closeTray(); openBacklog(user.id); }; list.append(b); return;
@@ -13847,9 +13848,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18b";
+const APP_VERSION="2026.10.18c";
 const CHANGELOG=[
   
+    {v:"2026.10.18c", title:"Just for you 🔒", items:["🔒 Tap 🔓 on anything in your Media Backlog to make it private. Only you can see it: friends won't see it on your backlog, and it won't show in the share list in chats. Tap 🔒 to make it public again."]},
     {v:"2026.10.18b", title:"Crop room pictures ✂️", items:["✂️ Changing a room picture now lets you crop it first, with a preview of how it looks. GIFs stay animated. Thanks Han!"]},
   {v:"2026.10.18a", title:"GIF banners + better GIF search 🎞️", items:["🎞️ Profile card → Banner → 🎞️ GIF: search for a GIF and make it your banner, no download needed.","🔍 GIF search now uses KLIPY (what Discord uses), with GIPHY as a backup."]},
   {v:"2026.10.17f", title:"GIF banners move again 🎞️", items:["🎞️ GIF banners on your profile card stay animated again. (Upload it again if yours froze.) Thanks Kennie!"]},
@@ -14404,6 +14406,7 @@ const blKey=it=>it.source_id||("title:"+String(it.title||"").toLowerCase()+"|"+i
 function blFriendlyError(err){
   const m=String(err?.message||err);
   if(/duplicate key|no_dupes/i.test(m)) return "That's already on your backlog.";
+  if(/'?private'? column|column .*private/i.test(m)) return "Private items need a quick setup: run backlog-private.sql in Supabase.";
   if(/backlog_items_type_check|violates check constraint/i.test(m)) return "Books and manga need a quick setup: run backlog-books.sql in Supabase.";
   if(/relation|does not exist|schema cache|backlog_items/i.test(m)) return "The backlog isn't set up yet: run media-backlog.sql in Supabase.";
   return m;
@@ -14502,8 +14505,12 @@ if(it.type==="movie"){
 }
     const share=el("button","blbtn","Share"); share.type="button"; share.onclick=()=>openBlShare(it);
     const pic=el("button","blbtn blpic","🖼️"); pic.type="button"; pic.title=it.image?"Change the picture":"Add your own picture"; pic.setAttribute("aria-label",(it.image?"Change the picture for ":"Add a picture for ")+it.title); pic.onclick=()=>blChangePoster(it);
+    const lock=el("button","blbtn", it.private ? "🔒" : "🔓" );
+    lock.type="button";
+    lock.setAttribute("aria-label", (it.private ? "Show to friends: " : "Hide from friends: ") + it.title);
+    lock.onclick=()=>blUpdate(it,{ private: !it.private});
     const del=el("button","blbtn bldel","✕"); del.type="button"; del.setAttribute("aria-label","Remove "+it.title); del.onclick=()=>blDelete(it);
-    row.append(sel,plus,share,pic,del); mid.append(row);
+    row.append(sel,plus,share,pic,lock,del); mid.append(row);
   } else {
     mid.append(el("div","blstatus "+it.status,BL_STATUS[it.status]||it.status));
     if(!(myBl||[]).some(x=>blKey(x)===blKey(it))) mid.append(blAddToMineButton(it));   // you both have it: no button needed
@@ -14878,6 +14885,7 @@ function blTile(it){
   const u=safeImg(it.image); if(u){ const i=document.createElement("img"); i.src=u; i.alt=""; i.loading="lazy"; i.onerror=()=>i.remove(); b.append(i); }
   const badge=it.status==="completed"?"✓":it.status==="in-progress"?(blCounted(it.type)&&it.total?Math.round(100*(+it.progress||0)/it.total)+"%":"▶"):"";
   if(badge) b.append(el("span","bt-badge",badge));
+  if(it.private) b.append(el("span","bt-lock","🔒"));
   if(it.rating) b.append(el("span","bt-stars","★".repeat(it.rating)));
   b.onclick=()=>openBlPeek(it);
   return b;
