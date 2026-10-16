@@ -2442,6 +2442,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .blbtn:disabled{opacity:.4;cursor:default}
 .blbtn.add{background:var(--cyan);color:var(--night)}
 .blbtn.bldel{border-color:var(--muted);color:var(--muted)}
+.blbtn.bllock.on{background:var(--mag);border-color:var(--mag);color:var(--night);font-weight:700}
 .blstatus{font-family:var(--tech);font-size:11px;color:var(--cyan)}
 .blstatus.completed{color:#2ee66b}.blstatus.planned{color:var(--muted)}
 .blsearch{display:flex;gap:6px}
@@ -13848,9 +13849,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18c";
+const APP_VERSION="2026.10.18d";
 const CHANGELOG=[
   
+    {v:"2026.10.18d", title:"Easier to spot 🔒", items:["🔒 Private backlog items now show a pink \"🔒 Private\" button, so you can tell at a glance what only you can see."]},
     {v:"2026.10.18c", title:"Just for you 🔒", items:["🔒 Tap 🔓 on anything in your Media Backlog to make it private. Only you can see it: friends won't see it on your backlog, and it won't show in the share list in chats. Tap 🔒 to make it public again."]},
     {v:"2026.10.18b", title:"Crop room pictures ✂️", items:["✂️ Changing a room picture now lets you crop it first, with a preview of how it looks. GIFs stay animated. Thanks Han!"]},
   {v:"2026.10.18a", title:"GIF banners + better GIF search 🎞️", items:["🎞️ Profile card → Banner → 🎞️ GIF: search for a GIF and make it your banner, no download needed.","🔍 GIF search now uses KLIPY (what Discord uses), with GIPHY as a backup."]},
@@ -14505,7 +14507,7 @@ if(it.type==="movie"){
 }
     const share=el("button","blbtn","Share"); share.type="button"; share.onclick=()=>openBlShare(it);
     const pic=el("button","blbtn blpic","🖼️"); pic.type="button"; pic.title=it.image?"Change the picture":"Add your own picture"; pic.setAttribute("aria-label",(it.image?"Change the picture for ":"Add a picture for ")+it.title); pic.onclick=()=>blChangePoster(it);
-    const lock=el("button","blbtn", it.private ? "🔒" : "🔓" );
+    const lock=el("button","blbtn bllock"+(it.private?" on":""), it.private ? "🔒 Private" : "🔓" );   // private = filled pink with a word, so it can't be mistaken for the open lock
     lock.type="button";
     lock.setAttribute("aria-label", (it.private ? "Show to friends: " : "Hide from friends: ") + it.title);
     lock.onclick=()=>blUpdate(it,{ private: !it.private});
