@@ -9313,14 +9313,16 @@ function openPerson(uid){
   personUid=uid; say("personMsg",""); paintPerson(); show($("personSheet"));
   refreshProfiles([uid]).then(()=>{ if(personUid===uid&&!$("personSheet").classList.contains("hidden")) paintPerson(); });
 }
+let personPaintTok=0;   // a profile gets drawn twice (right away, then with fresh info): only the newest draw may add server answers
 function paintPerson(){
+  const tok=++personPaintTok;
   const uid=personUid, p=cache.get(uid)||{username:"Someone"}, nick=room?members.get(uid)?.nick:null;
   paintFace($("personFace"),p);
   { const card=cardOf(p); paintCardBanner($("personBanner"),card); $("personSheet").classList.toggle("has-card",!!(card&&(card.banner||card.fx||card.stk.length)));
     $("personPronouns").textContent=card?.pronouns||""; show($("personPronouns"),!!card?.pronouns);
     $("personRelStatus").textContent=card?.relStatus||""; show($("personRelStatus"),!!card?.relStatus);
     relPartnerOf(uid).then(partner=>{
-      if(personUid!==uid) return;   // they tapped someone else while we were waiting
+      if(personUid!==uid||tok!==personPaintTok) return;   // they tapped someone else while we were waiting (or a newer draw took over)
       if(!partner) return;          // no partner: keep the status line as it is
       $("personRelStatus").textContent=`${card?.relStatus||"💞"} with ${relName(partner)}`;
       show($("personRelStatus"),true);
@@ -9336,7 +9338,7 @@ function paintPerson(){
   show($("personTag"),f||back);
   const mb=$("personMutual"); mb.innerHTML=""; show(mb,false);   // start empty and hidden
 api.mutualFriends(uid).then(ids=>{
-  if(personUid!==uid) return;      // same guard as before
+  if(personUid!==uid||tok!==personPaintTok) return;      // same guard as before + only the newest draw adds faces
   if(!ids.length) return;          // no friends in common: stay hidden
   ids.slice(0,5).forEach(id=>{     // up to 5 faces
     const face=el("span","face sm");
@@ -13744,10 +13746,11 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.17b";
+const APP_VERSION="2026.10.17c";
 const CHANGELOG=[
   
-    {v:"2026.10.17b", title:"Status + mutual friends 🤝", items:["💞 Show off your boo: set your relationship status (Single, Taken, It's complicated…) in Profile → Profile card, and tag your partner. They get asked first, and the tag only shows once they say yes.","🤝 Tap a friend's picture to see the friends you have in common."]},
+    {v:"2026.10.17c", title:"Small fix 🔧", items:["🔧 Mutual friends and pet Partners no longer show up twice on a friend's profile. Thanks Beef!"]},
+  {v:"2026.10.17b", title:"Status + mutual friends 🤝", items:["💞 Show off your boo: set your relationship status (Single, Taken, It's complicated…) in Profile → Profile card, and tag your partner. They get asked first, and the tag only shows once they say yes.","🤝 Tap a friend's picture to see the friends you have in common."]},
   {v:"2026.10.17a", title:"Partner tags 💞", items:["💞 Tag your partner on your profile: Profile → Profile card → Partner. They get asked first, and it only shows once they say yes.","🤝 Behind the scenes: NightLane can now find the friends you have in common."]},
   {v:"2026.10.16z", title:"Crop your banner ✂️", items:["✂️ Uploading a profile card banner now lets you crop it: drag, pinch or slide to zoom, and ⟳ to rotate.","👀 Both croppers (banner and profile photo) show a live preview of exactly how friends will see it."]},
   {v:"2026.10.16y", title:"Mahjong: no surprise throws 🀄", items:["🀄 Tapping a tile now only picks it. Nothing gets thrown away until you hit the Throw away button. Tap the picked tile again to put it back."]},
@@ -14712,8 +14715,8 @@ function paintPartnerButton(){
 }
 /* friends' partners on their profile card */
 async function paintPersonPartner(uid){
-  const b=$("personPartner"); show(b,false); b.innerHTML="";
-  const p=await loadPartner(uid); if(personUid!==uid||!p) return;
+  const tok=personPaintTok, b=$("personPartner"); show(b,false); b.innerHTML="";
+  const p=await loadPartner(uid); if(personUid!==uid||tok!==personPaintTok||!p) return;
   b.append(pxImg(partnerSpecies(p),!!p.shiny,"pt-btnimg"),document.createTextNode(` ${partnerName(p)} · ${PARTNER_STAGES[+p.stage||0]}${p.shiny?" ✦":""}`));
   b.onclick=()=>openPartner(uid); show(b,true);
 }
