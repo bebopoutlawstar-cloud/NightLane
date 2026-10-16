@@ -6610,12 +6610,18 @@ $("cardFile").onchange=async e=>{
   try{
     if(!/^image\//.test(f.type||"")) throw new Error("Pick a picture file.");
     if(f.size>15e6) throw new Error("That picture is over 15 MB. Pick a smaller one.");
-    let cropped;
-    try{ cropped=await openCrop(f,"banner"); }catch(err){ throw new Error("couldn't open that picture"); }
-    if(!cropped) return say("cardMsg","");   // cancelled
-    say("cardMsg","Uploading banner…");
-    const url=await api.upload("avatars",user.id,cropped);
-    draftCard={...draftCard,banner:"img",img:url}; say("cardMsg",""); paintCardSheet();
+    // 🎞️ a GIF keeps moving: cropping redraws it as a still picture, so GIFs (up to 5 MB) skip the cropper and go up as they are
+    const gif=f.type==="image/gif"&&f.size<5e6;
+    let pic;
+    if(gif) pic=f;
+    else{
+      try{ pic=await openCrop(f,"banner"); }catch(err){ throw new Error("couldn't open that picture"); }
+      if(!pic) return say("cardMsg","");   // cancelled
+    }
+    say("cardMsg",gif?"Uploading your GIF banner…":"Uploading banner…");
+    const url=await api.upload("avatars",user.id,pic);
+    draftCard={...draftCard,banner:"img",img:url}; paintCardSheet();
+    say("cardMsg",gif?"🎞️ GIF banners stay animated (they're centered, not cropped). Hit Save card.":"");
   }catch(err){ say("cardMsg","Couldn't upload: "+err.message,true); }
 };
 $("cardSave").onclick=async()=>{
@@ -13778,10 +13784,11 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.17e";
+const APP_VERSION="2026.10.17f";
 const CHANGELOG=[
   
-    {v:"2026.10.17e", title:"Secret tweak 🦁", items:["🦁 The Vol + Tron secret now hides behind just one name."]},
+    {v:"2026.10.17f", title:"GIF banners move again 🎞️", items:["🎞️ GIF banners on your profile card stay animated again. (Upload it again if yours froze.) Thanks Kennie!"]},
+  {v:"2026.10.17e", title:"Secret tweak 🦁", items:["🦁 The Vol + Tron secret now hides behind just one name."]},
   {v:"2026.10.17d", title:"A new secret 🦁", items:["🦁 Two friends, one robot. There's a new secret hiding behind a name…"]},
   {v:"2026.10.17c", title:"Small fix 🔧", items:["🔧 Mutual friends and pet Partners no longer show up twice on a friend's profile. Thanks Beef!"]},
   {v:"2026.10.17b", title:"Status + mutual friends 🤝", items:["💞 Show off your boo: set your relationship status (Single, Taken, It's complicated…) in Profile → Profile card, and tag your partner. They get asked first, and the tag only shows once they say yes.","🤝 Tap a friend's picture to see the friends you have in common."]},
