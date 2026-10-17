@@ -885,6 +885,42 @@ details.fgroup[open] > summary.fsec::after{content:" ▾"}
 
 /* ===== rooms / DMs / friends ===== */
 .fronttabs .tab{position:relative;padding:9px 4px}
+/* 🛣️ Lanes */
+.lanenew{width:100%;margin:0 0 10px}
+.lanecard{border:2px solid #3b2d80;background:rgba(7,4,26,.85);margin:0 0 12px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.lanehead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(90deg,rgba(255,79,216,.18),transparent)}
+.laneicon{flex:none;width:42px;height:42px;display:grid;place-items:center;font-size:24px;background:var(--night);border:2px solid var(--mag);box-shadow:3px 3px 0 var(--cyan)}
+.lanehead .ln-info{flex:1;min-width:0}.lanehead b{display:block;font-family:var(--num);font-size:22px;letter-spacing:1px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lanehead small{color:var(--muted);font-size:12px}
+.lanehead .ln-gear{flex:none;width:auto!important;margin:0;padding:6px 10px;font-size:18px;background:none;border:2px solid #3b2d80;color:var(--cyan);cursor:pointer}
+.lanechat{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px 8px 18px;background:none;border:none;border-top:1px solid rgba(59,45,128,.6);color:var(--white);text-align:left;cursor:pointer}
+.lanechat:hover{background:rgba(0,240,255,.06)}
+.lanechat .lc-tag{flex:none;width:30px;height:30px;display:grid;place-items:center;font-size:17px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.35)}
+.lanechat .lc-info{flex:1;min-width:0}.lanechat .lc-name{font-weight:700;font-size:15px}.lanechat .lc-name::before{content:"# ";color:var(--muted)}
+.lanechat .lc-prev{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lanechat.unread .lc-name{color:var(--cyan)}
+.lanechat .badge{flex:none}
+.lanebar{display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:rgba(7,4,26,.92);border-bottom:2px solid #3b2d80;scrollbar-width:none;position:relative;z-index:7}
+.lanebar::-webkit-scrollbar{display:none}
+.lanebar button{flex:none;display:flex;align-items:center;gap:5px;padding:5px 10px;font-size:13px;background:none;border:2px solid #3b2d80;color:var(--white);cursor:pointer;white-space:nowrap;position:relative}
+.lanebar button[aria-selected="true"]{border-color:var(--cyan);background:rgba(0,240,255,.14);color:var(--cyan)}
+.lanebar button.dot::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--volt);border:2px solid var(--night)}
+.lanebar .lb-home{font-weight:800;color:var(--mag)}
+.lschats,.lspeople{display:grid;gap:6px;width:100%}
+.lsrow{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.04);text-align:left}
+.lsrow .ls-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsrow .ls-role{font-size:11px;color:var(--volt);font-family:var(--tech);letter-spacing:1px}
+#laneSheet .lsrow button{flex:none;width:auto!important;margin:0;padding:4px 8px;font-size:13px;background:none;border:1px solid #3b2d80;color:var(--muted);cursor:pointer;font-family:inherit;text-shadow:none;letter-spacing:0;text-transform:none}
+.lfbox{display:grid;gap:8px;width:100%;text-align:left}
+.lflabel{font-family:var(--tech);font-size:12px;letter-spacing:1px;color:var(--cyan)}
+.lfgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.lfgrid.tags{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}
+#laneForm .lfgrid button,#laneForm .lfpick button{width:auto!important;margin:0;padding:6px 4px;font-size:20px;background:none;border:2px solid #3b2d80;color:var(--white);cursor:pointer;font-family:inherit;text-shadow:none;letter-spacing:0;text-transform:none}
+#laneForm .lfgrid.tags button{font-size:13px;padding:7px 4px}
+#laneForm .lfpick{display:grid;gap:6px}#laneForm .lfpick button{font-size:15px;text-align:left;padding:8px 10px}
+#laneForm button[aria-checked="true"]{border-color:var(--cyan);background:rgba(0,240,255,.14)}
+.lfrow{display:flex;gap:8px}.lfrow .lfemoji{flex:none;width:64px;text-align:center}
+.rslane{width:100%}
 .tabbadge{position:absolute;top:-8px;right:-4px;min-width:20px;padding:1px 6px;font-family:var(--tech);font-size:10px;background:var(--volt);color:var(--night);border:2px solid var(--night);transform:rotate(6deg)}
 #contactsPane h3,#dmsPane h3{font-family:var(--tech);font-size:12px;color:var(--cyan);margin-top:6px}
 .contactrow .tagline{display:block;font-size:12px;color:var(--volt)}
@@ -1858,7 +1894,7 @@ body.theme-gold .go,body.theme-gold .send{background:linear-gradient(135deg,#FFD
 .segmented button[aria-checked="true"]{background:var(--white);color:var(--night);box-shadow:4px 4px 0 var(--mag);text-shadow:none}
 /* front tabs & + tray tabs */
 .fronttabs{gap:0;transform:skewX(-10deg);margin:6px 0 8px;overflow:visible}
-.fronttabs .tab{font-family:var(--num);font-size:22px;letter-spacing:1px;text-transform:uppercase;border:none;background:transparent;color:var(--white);text-shadow:3px 3px 0 var(--night),4px 4px 0 var(--mag);padding:6px 4px}
+.fronttabs .tab{font-family:var(--num);font-size:19px;letter-spacing:1px;text-transform:uppercase;border:none;background:transparent;color:var(--white);text-shadow:3px 3px 0 var(--night),4px 4px 0 var(--mag);padding:6px 4px}
 .fronttabs .tab[aria-selected="true"]{background:transparent;color:var(--night);text-shadow:none;isolation:isolate}
 /* the slanted white shape + pink shadow live on layers BEHIND the tab, so the unread badge on top isn't cropped */
 .fronttabs .tab[aria-selected="true"]::before,.fronttabs .tab[aria-selected="true"]::after{content:"";position:absolute;inset:0;clip-path:polygon(0 8%,100% 0,97% 100%,3% 92%);pointer-events:none}
@@ -3691,6 +3727,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="linkbtn installlink hidden" id="installLink2">📲 Install NightLane as an app</button>
     <div class="fronttabs" role="tablist">
       <button type="button" class="tab" role="tab" id="tabChats" aria-selected="true">Rooms<span class="tabbadge hidden" id="badgeRooms"></span></button>
+      <button type="button" class="tab" role="tab" id="tabLanes" aria-selected="false">Lanes<span class="tabbadge hidden" id="badgeLanes"></span></button>
       <button type="button" class="tab" role="tab" id="tabDms" aria-selected="false">DMs<span class="tabbadge hidden" id="badgeDms"></span></button>
       <button type="button" class="tab" role="tab" id="tabContacts" aria-selected="false">Friends<span class="tabbadge hidden" id="badgeFriends"></span></button>
     </div>
@@ -3699,6 +3736,11 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <div class="chattools hidden" id="roomTools"><label for="roomFind" class="sr">Find a room</label><input class="field" id="roomFind" type="search" placeholder="🔍 Find a room" autocomplete="off" maxlength="30"><div class="chatfilter" role="group" aria-label="Show"><button type="button" class="cf on" data-f="all" aria-pressed="true">All</button><button type="button" class="cf" data-f="unread" aria-pressed="false">Unread</button></div></div>
       <div class="inbox hidden" id="inboxWrap"><div class="inbox" id="inbox"></div></div>
       <p class="note hidden" id="inboxEmpty">No rooms yet. Make a new room above or open an invite link.</p>
+    </div>
+    <div id="lanesPane" class="hidden">
+      <button class="go lanenew" type="button" id="laneNewBtn">＋ New Lane</button>
+      <div id="laneList"></div>
+      <p class="note hidden" id="laneEmpty">🛣️ A Lane is your crew's hangout: one place with side chats for games, movies, music, whatever you're into. Make one and add your friends.</p>
     </div>
     <div id="dmsPane" class="hidden">
       <div class="chattools hidden" id="dmTools"><label for="dmFind" class="sr">Find a chat</label><input class="field" id="dmFind" type="search" placeholder="🔍 Find a chat" autocomplete="off" maxlength="30"><div class="chatfilter" role="group" aria-label="Show"><button type="button" class="cf on" data-f="all" aria-pressed="true">All</button><button type="button" class="cf" data-f="unread" aria-pressed="false">Unread</button></div></div>
@@ -3738,6 +3780,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" id="roomBtn" type="button">Room</button>
     <button class="ghost" id="back" type="button">Back</button>
   </div>
+  <div class="lanebar hidden" id="laneBar" role="tablist" aria-label="Side chats in this Lane"></div>
   <div class="herebar hidden" id="hereBar"></div>
   <div class="catchup hidden" id="catchUp"><button type="button" class="catchbtn" id="catchUpBtn"><span id="catchUpText"></span></button><button type="button" class="ib-x" id="catchUpX" aria-label="Dismiss">✕</button></div>
   <div class="dailybar hidden" id="dailyBar">
@@ -3979,7 +4022,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
       <button type="button" role="radio" data-mode="mentions">@ Mentions</button>
       <button type="button" role="radio" data-mode="off">Off</button>
     </div>
+    <div class="rslane hidden" id="rsLaneBox"><p class="sub left" id="rsLaneText"></p><button class="go" type="button" id="rsLaneOpen">🛣️ Manage the Lane</button></div>
     <div id="roomOnly">
+    <div class="hidden" id="rsMoveBox"><h3>Lanes</h3><p class="sub left">Tuck this room into one of your Lanes as a side chat. Everyone here joins the Lane, and the messages come along.</p><button class="ghost" type="button" id="rsMoveLane">📦 Move into a Lane</button></div>
     <h3>Room name</h3>
     <form class="namerow" id="nameForm">
       <label for="roomName" class="sr">Room name</label>
@@ -4745,6 +4790,44 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 </div>
 
 <!-- ============ ADD FRIENDS TO A ROOM ============ -->
+<!-- ============ LANES ============ -->
+<div class="overlay hidden" id="laneSheet" role="dialog" aria-modal="true" aria-labelledby="lsTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="lsTitle"></h2>
+    <p class="sub" id="lsSub"></p>
+    <button class="ghost hidden" type="button" id="lsRename">✏️ Name &amp; icon</button>
+    <h3>Side chats</h3>
+    <div class="lschats" id="lsChats"></div>
+    <button class="ghost hidden" type="button" id="lsAddChat">＋ Add a side chat</button>
+    <h3>People</h3>
+    <button class="go" type="button" id="lsAddFriends">＋ Add friends</button>
+    <div class="lspeople" id="lsPeople"></div>
+    <p class="msgline" id="lsMsg" aria-live="polite"></p>
+    <button class="danger" type="button" id="lsLeave">Leave this Lane</button>
+    <button class="ghost" type="button" id="lsClose">Close</button>
+  </div></div>
+</div>
+<div class="overlay hidden" id="laneForm" role="dialog" aria-modal="true" aria-labelledby="lfTitle">
+  <div class="sheet"><div class="sheetbody">
+    <h2 id="lfTitle"></h2>
+    <div class="lfbox" id="lfLaneBox">
+      <label class="lflabel" for="lfLaneName">Lane name</label>
+      <input class="field" id="lfLaneName" maxlength="40" placeholder="The Crew" autocomplete="off">
+      <span class="lflabel">Icon</span>
+      <div class="lfgrid" id="lfIcons" role="radiogroup" aria-label="Lane icon"></div>
+    </div>
+    <div class="lfbox hidden" id="lfPickBox"><span class="lflabel">Which Lane?</span><div class="lfpick" id="lfPick" role="radiogroup" aria-label="Lane"></div></div>
+    <div class="lfbox" id="lfChatBox">
+      <span class="lflabel" id="lfChatLabel">First side chat</span>
+      <div class="lfgrid tags" id="lfLabels" role="radiogroup" aria-label="Side chat label"></div>
+      <div class="lfrow"><label class="sr" for="lfEmoji">Emoji</label><input class="field lfemoji" id="lfEmoji" maxlength="4" placeholder="💬" autocomplete="off"><label class="sr" for="lfChatName">Side chat name</label><input class="field" id="lfChatName" maxlength="30" placeholder="General" autocomplete="off"></div>
+    </div>
+    <p class="msgline" id="lfMsg" aria-live="polite"></p>
+    <button class="go" type="button" id="lfGo">Make it</button>
+    <button class="ghost" type="button" id="lfClose">Cancel</button>
+  </div></div>
+</div>
+
 <div class="overlay hidden" id="afSheet" role="dialog" aria-modal="true" aria-labelledby="afTitle">
   <div class="sheet"><div class="sheetbody">
     <h2 id="afTitle">Add friends</h2>
@@ -5676,6 +5759,20 @@ const live = {
   },
   async setAvatar(uid,url){ must(await sb.from("profiles").update({avatar_url:url}).eq("id",uid)); },
   async myRooms(){ return must(await sb.rpc("my_rooms")); },
+  // 🛣️ Lanes (lanes.sql). Before that's run, myLanes quietly returns nothing so the app still works.
+  async myLanes(){ const {data,error}=await sb.rpc("my_lanes"); if(error){ if(/my_lanes|schema cache|does not exist/i.test(error.message)) return []; throw error; } return data||[]; },
+  async laneRooms(ids){ return ids.length?must(await sb.from("rooms").select("code,name,lane,lane_label,lane_pos").in("lane",ids)):[]; },
+  async laneMembers(lane){ return must(await sb.from("lane_members").select("user_id,role,joined_at").eq("lane",lane)); },
+  async laneCreate(name,icon,chat,label){ return must(await sb.rpc("lane_create",{p_name:name,p_icon:icon,p_chat:chat,p_label:label})); },
+  async laneAddChat(lane,name,label){ return must(await sb.rpc("lane_add_chat",{p_lane:lane,p_name:name,p_label:label})); },
+  async laneEditChat(code,name,label){ must(await sb.rpc("lane_edit_chat",{p_room:code,p_name:name,p_label:label})); },
+  async laneRemoveChat(code){ must(await sb.rpc("lane_remove_chat",{p_room:code})); },
+  async laneRename(lane,name,icon){ must(await sb.rpc("lane_rename",{p_lane:lane,p_name:name,p_icon:icon})); },
+  async laneAddFriends(lane,ids){ return must(await sb.rpc("lane_add_friends",{p_lane:lane,p_users:ids})); },
+  async laneSetRole(lane,uid,role){ must(await sb.rpc("lane_set_role",{p_lane:lane,p_user:uid,p_role:role})); },
+  async laneRemoveMember(lane,uid){ must(await sb.rpc("lane_remove_member",{p_lane:lane,p_user:uid})); },
+  async laneLeave(lane){ must(await sb.rpc("lane_leave",{p_lane:lane})); },
+  async laneAttach(lane,code,label){ must(await sb.rpc("lane_attach_room",{p_lane:lane,p_room:code,p_label:label})); },
   async contacts(){ const rows=must(await sb.from("contacts").select("contact,created_at").eq("owner",user.id)); return rows.map(r=>r.contact); },
   async addedMe(){ const rows=must(await sb.from("contacts").select("owner,created_at").eq("contact",user.id)); return rows.map(r=>r.owner); },
   async myInviteToken(){ return must(await sb.rpc("my_invite_token")); },
@@ -5875,6 +5972,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   const demoSocialLinks=new Map([["me|vee",{user_a:"me",user_b:"vee",xp:9,today_xp:9,today_date:iso().slice(0,10),arcana:"Star"}]]);
   function demoBot(id){ const g=games[id]; if(!g||g.status!=="active") return; const mark=g.player_x==="me"?"o":"x"; if(g.state.turn!==mark) return;
     const cell=tttBotMove(g.state.board,mark); applyTTT(g,cell,mark); fire("game",JSON.parse(JSON.stringify(g))); }
+  const demoLanes={}; let demoLaneN=0;
   const rooms={}, reacts=[], blocked=new Set(), polls={}, votes=[], pins={}, contacts=new Set(["vee"]), relLinks=[]; let ALL=null, FRIEND=null;
   people.nix={id:"nix",username:"Nix",avatar_url:null};
   const lines=["No way. Tell me everything.","That is so you.","Check this: www.example.com","Meet at the usual spot?","LOL stop"];
@@ -6293,7 +6391,27 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     subscribeAll(onMsg,onFriend){ ALL=onMsg; FRIEND=onFriend; const t=setTimeout(()=>{ const r=seed("5959"); const m={id:nextId++,room:"5959",user_id:"rook",kind:"text",text:"@"+(people.me?.username||"you")+" you coming tonight?",mentions:["me"],created_at:iso()}; r.msgs.push(m); onMsg(m); },4000); return ()=>{ ALL=null; clearTimeout(t); }; },
     async myRooms(){ seed("5959"); if(rooms["5959"].name===undefined) rooms["5959"].name="The Hideout"; return Object.entries(rooms).filter(([,r])=>r.members.me).map(([code,r])=>{ const m=r.msgs[r.msgs.length-1]; const other=r.is_dm?Object.keys(r.members).find(u=>u!=="me"):null; return {code,name:r.name||null,is_dm:!!r.is_dm,dm_user:other,dm_name:other?people[other].username:null,dm_avatar:null,notify:r.members.me.notify||"all",is_owner:r.owner==="me",last_text:m?.text,last_image:!!m?.image_url,last_kind:m?.kind||"text",last_at:m?.created_at||iso(),last_sender:m?people[m.user_id]?.username:null,unread:r.msgs.filter(x=>x.user_id!=="me"&&x.created_at>(r.members.me?.read||"")).length}; }); },
     async joinRoom(room){ const existed=!!rooms[room]; seed(room); if(!existed){ rooms[room].msgs=[]; rooms[room].members={me:{read:iso()}}; return "created"; } rooms[room].members.me ||= {read:iso()}; return "member"; },
-    async roomInfo(room){ const r=seed(room); if(room==="5959"&&r.name===undefined) r.name="The Hideout"; return {code:room,name:r.name||null,background:r.background||null,owner:r.owner,invite_token:r.token,is_dm:!!r.is_dm,disappear_seconds:r.disappear||0}; },
+    async roomInfo(room){ const r=seed(room); if(room==="5959"&&r.name===undefined) r.name="The Hideout"; return {code:room,name:r.name||null,background:r.background||null,owner:r.owner,invite_token:r.token,is_dm:!!r.is_dm,lane:r.lane||null,lane_label:r.lane_label||null,disappear_seconds:r.disappear||0}; },
+    async myLanes(){ return Object.values(demoLanes).filter(l=>l.members.me).map(l=>({id:l.id,name:l.name,icon:l.icon,owner:l.owner,my_role:l.members.me,members:Object.keys(l.members).length})); },
+    async laneRooms(ids){ return Object.entries(rooms).filter(([,r])=>r.lane&&ids.includes(r.lane)&&r.members.me).map(([code,r])=>({code,name:r.name,lane:r.lane,lane_label:r.lane_label,lane_pos:r.lane_pos||0})); },
+    async laneMembers(lane){ return Object.entries(demoLanes[lane].members).map(([user_id,role])=>({user_id,role})); },
+    async laneCreate(name,icon,chat,label){ const id="lane"+(++demoLaneN), code="ln-demo"+demoLaneN+"a"; demoLanes[id]={id,name,icon,owner:"me",members:{me:"owner"}};
+      rooms[code]={owner:"me",token:"x",members:{me:{read:iso()}},msgs:[],name:chat||"General",lane:id,lane_label:label||"💬",lane_pos:0}; return {lane:id,room:code}; },
+    async laneAddChat(lane,name,label){ const L=demoLanes[lane]; if(!L||L.members.me==="member") throw new Error("Only the owner and helpers can add side chats.");
+      const code="ln-demo"+(++demoLaneN)+"c", pos=Object.values(rooms).filter(r=>r.lane===lane).length; const mem={}; Object.keys(L.members).forEach(u=>mem[u]={read:iso()});
+      rooms[code]={owner:L.owner,token:"x",members:mem,msgs:[],name,lane,lane_label:label||"💬",lane_pos:pos}; return code; },
+    async laneEditChat(code,name,label){ const r=rooms[code]; r.name=name; if(label) r.lane_label=label; },
+    async laneRemoveChat(code){ const r=rooms[code]; if(Object.values(rooms).filter(x=>x.lane===r.lane).length<=1) throw new Error("A Lane needs at least one side chat."); r.members={}; r.lane=null; },
+    async laneRename(lane,name,icon){ Object.assign(demoLanes[lane],{name,icon:icon||demoLanes[lane].icon}); },
+    async laneAddFriends(lane,ids){ const L=demoLanes[lane]; const who=ids.filter(u=>contacts.has(u)&&!L.members[u]); who.forEach(u=>L.members[u]="member");
+      Object.values(rooms).filter(r=>r.lane===lane).forEach(r=>who.forEach(u=>r.members[u] ||= {read:iso()})); return who.length; },
+    async laneSetRole(lane,uid,role){ if(demoLanes[lane].members[uid]&&demoLanes[lane].members[uid]!=="owner") demoLanes[lane].members[uid]=role; },
+    async laneRemoveMember(lane,uid){ delete demoLanes[lane].members[uid]; Object.values(rooms).filter(r=>r.lane===lane).forEach(r=>delete r.members[uid]); },
+    async laneLeave(lane){ const L=demoLanes[lane]; const was=L.members.me; delete L.members.me; Object.values(rooms).filter(r=>r.lane===lane).forEach(r=>delete r.members.me);
+      if(was==="owner"){ const heir=Object.keys(L.members)[0]; if(heir){ L.members[heir]="owner"; L.owner=heir; } else delete demoLanes[lane]; } },
+    async laneAttach(lane,code,label){ const r=rooms[code], L=demoLanes[lane]; if(r.owner!=="me") throw new Error("Only the room's owner can move it into a Lane."); if(r.lane) throw new Error("That room is already in a Lane.");
+      r.lane=lane; r.lane_label=label||"💬"; r.lane_pos=Object.values(rooms).filter(x=>x.lane===lane).length; r.name=r.name||code;
+      Object.keys(r.members).forEach(u=>{ if(!L.members[u]) L.members[u]="member"; }); Object.values(rooms).filter(x=>x.lane===lane).forEach(x=>Object.keys(L.members).forEach(u=>x.members[u] ||= {read:iso()})); },
     async renameRoom(room,name){ rooms[room].name=name||null; setTimeout(()=>fire("roomUpdated",{code:room,name:name||null,owner:rooms[room].owner}),40); },
     async rotateInvite(room){ return rooms[room].token="demo"+Math.random().toString(36).slice(2,8); },
     async removeMember(room,uid){ delete rooms[room].members[uid]; setTimeout(()=>fire("memberGone",uid),50); },
@@ -6386,6 +6504,7 @@ const api = sb ? live : (LIB_MISSING ? offlineApi : demo);
 $("modeNote").textContent = sb ? "" : LIB_MISSING ? "Can't reach NightLane right now. Check your connection; it'll load as soon as you're back online." : "Demo mode: no server connected, so accounts and friends are simulated.";
 
 /* ================= STATE ================= */
+let myLanesList=[], laneByRoom=new Map(), laneSheetId=null;   // 🛣️ Lanes (see the LANES section)
 let user=null, meProfile=null, room="", roomName=null, roomOwner=null, unsub=null, pendingFile=null, replyTo=null, hasMore=false, menuMsg=null;
 const cache=new Map();        // user id -> profile
 const msgs=[];                // current room, oldest first
@@ -6517,7 +6636,7 @@ async function handleAuth(u){
   checkBondNews().then(()=>{ if(user) loadContacts(); });
   paintArcanaBadge();
   if(q.get("friend")){ const tok=q.get("friend"); history.replaceState(null,"",location.pathname); setTimeout(()=>handleFriendInvite(tok),400); }
-  try{ const t=LS.get("nl-front-tab"); if(["chats","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
+  try{ const t=LS.get("nl-front-tab"); if(["chats","lanes","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
   celebrateMyBirthday(); seasonalCheck("login"); hintNudge(); dailyXP(); setTimeout(checkUnlocks,4000); setTimeout(recoveryNudge,9000); refreshAdmin(); setTimeout(maybeWelcome,1500);
   if(unsubAll) unsubAll();
   unsubAll=api.subscribeAll(onAnyMessage,onFriendAdded);   // (the icon number is set when the chat list loads)
@@ -7151,13 +7270,14 @@ async function loadInbox(){
     paintOffline();
   }
   inboxRows=list;
+  await loadLanes();
   show($("markAllRead"),list.some(r=>+r.unread>0));
   if(!isOffline()&&list.some(r=>r.dm_user)) await ensureProfiles(list.map(r=>r.dm_user).filter(Boolean));   // offline: use the names/pictures saved with the list
-  const roomRows=list.filter(r=>!r.is_dm), dmRows=list.filter(r=>r.is_dm);
+  const roomRows=list.filter(r=>!r.is_dm&&!laneByRoom.has(r.code)), dmRows=list.filter(r=>r.is_dm), laneRows=list.filter(r=>laneByRoom.has(r.code));
   show($("inboxWrap"),roomRows.length>0); show($("inboxEmpty"),!roomRows.length); show($("dmEmpty"),!dmRows.length);
   const unreadOf=rows=>rows.filter(r=>r.notify!=="off").reduce((n,r)=>n+(+r.unread||0),0);
-  setTabBadge("badgeRooms",unreadOf(roomRows)); setTabBadge("badgeDms",unreadOf(dmRows));
-  setIconBadge(unreadOf(roomRows)+unreadOf(dmRows));   // the number on the app icon
+  setTabBadge("badgeRooms",unreadOf(roomRows)); setTabBadge("badgeDms",unreadOf(dmRows)); setTabBadge("badgeLanes",unreadOf(laneRows));
+  setIconBadge(unreadOf(roomRows)+unreadOf(dmRows)+unreadOf(laneRows));   // the number on the app icon
   paintInboxLists();
 }
 /* Rooms and DMs lists stay tidy: a search box once you have 8+ chats, an All / Unread switch,
@@ -7165,9 +7285,10 @@ async function loadInbox(){
 const QUIET_DAYS=14, inboxView={rooms:{f:"all",open:false},dms:{f:"all",open:false}};
 try{ const v=JSON.parse(LS.get("nl-inbox-view")||"null"); if(v){ inboxView.rooms.f=v.rooms==="unread"?"unread":"all"; inboxView.dms.f=v.dms==="unread"?"unread":"all"; } }catch(e){}
 function paintInboxLists(){
-  const rr=inboxRows.filter(r=>!r.is_dm), dr=inboxRows.filter(r=>r.is_dm);
+  const rr=inboxRows.filter(r=>!r.is_dm&&!laneByRoom.has(r.code)), dr=inboxRows.filter(r=>r.is_dm);
   show($("inboxWrap"),rr.length>0); show($("inboxEmpty"),!rr.length); show($("dmEmpty"),!dr.length);
-  paintInboxBox($("inbox"),inboxRows.filter(r=>!r.is_dm),"rooms",$("roomTools"),$("roomFind"));
+  paintInboxBox($("inbox"),rr,"rooms",$("roomTools"),$("roomFind"));
+  paintLanes();
   paintInboxBox($("dmList"),inboxRows.filter(r=>r.is_dm),"dms",$("dmTools"),$("dmFind"));
 }
 /* ⭐ Pinned chats (coded by Cole): saved per account on this device */
@@ -7580,6 +7701,7 @@ async function enterRoom(code,token){
     if(isDm){ dmUser=(mem.find(x=>x.user_id!==user.id)||{}).user_id||null; await ensureProfiles([dmUser].filter(Boolean)); if(seq!==enterSeq) return; }
     myNotify=(mem.find(x=>x.user_id===user.id)||{}).notify||"all";
     if(info&&!info.is_dm){ if(info.icon_url) roomIcons.set(room,info.icon_url); else roomIcons.delete(room); }
+    if(info?.lane&&!laneByRoom.has(room)) await loadLanes().catch(()=>{});   // a side chat we haven't seen yet
     setRoomName(info?.name); setRoomBackground(info?.background); loadDmStyle();
     closeRoomNotifications(room);
     pinRows.forEach(p=>pins.set(p.message_id,p));
@@ -8121,8 +8243,10 @@ $("cancelReply").onclick=clearReply;
 /* ---------- room sheet ---------- */
 function setRoomName(name){
   roomName=(name||"").trim()||null;
-  const label=isDm?(roomName||(dmUser?nameOf(dmUser):"Private chat")):(roomName||"# "+room);
+  const lr=laneByRoom.get(room), ln=lr&&laneOf(lr.lane);
+  const label=isDm?(roomName||(dmUser?nameOf(dmUser):"Private chat")):ln?`${ln.icon} ${ln.name} › ${lr.lane_label||"#"} ${roomName||"chat"}`:(roomName||"# "+room);
   $("roomLabel").textContent=(isDm?"🔒 ":"")+label;
+  paintLaneBar();
   $("roomLabel").title=isDm?"Private chat":(roomName?`${roomName} (#${room})`:"#"+room);
   paintRoomTitle(); paintRoomIcon();
 }
@@ -8142,11 +8266,14 @@ $("nameForm").addEventListener("submit",async e=>{
 function inviteUrl(code,token){ return location.origin+location.pathname+"?join="+encodeURIComponent(code)+"&t="+encodeURIComponent(token); }
 $("roomBtn").onclick=async()=>{
   say("rsMsg",""); paintRoomTitle(); $("roomName").value=roomName||""; $("invLink").value="Loading…"; show($("roomSheet"));
-  show($("roomOnly"),!isDm); show($("riBox"),!isDm); paintRoomIcon(); $("leaveRoom").textContent=isDm?"Hide this chat":"Leave this room";
+  const lr=laneByRoom.get(room), ln=lr&&laneOf(lr.lane);
+  show($("roomOnly"),!isDm&&!ln); show($("riBox"),!isDm); paintRoomIcon(); $("leaveRoom").textContent=isDm?"Hide this chat":"Leave this room"; show($("leaveRoom"),!ln);
+  show($("rsLaneBox"),!!ln); if(ln) $("rsLaneText").textContent=`${lr.lane_label||"#"} ${roomName||"This side chat"} is a side chat in ${ln.icon} ${ln.name}. Add friends, side chats and helpers from the Lane.`;
+  show($("rsMoveBox"),!isDm&&!ln&&roomOwner===user.id&&myLanesList.some(l=>l.my_role!=="member"));
   paintMembers(); paintBgTiles(); paintBondStyles(); paintPins(); paintNotifyModes(); paintDisappear(); paintTasks(); show($("rsSummarize"),aiOn());
   try{
     const info=await api.roomInfo(room); if(!info) throw new Error("Couldn't find this room.");
-    roomOwner=info.owner; setRoomName(info.name); if(document.activeElement!==$("roomName")) $("roomName").value=roomName||""; paintMembers();
+    roomOwner=info.owner; setRoomName(info.name); show($("rsMoveBox"),!info.is_dm&&!info.lane&&info.owner===user.id&&myLanesList.some(l=>l.my_role!=="member")); if(document.activeElement!==$("roomName")) $("roomName").value=roomName||""; paintMembers();
     if(!info.is_dm) $("invLink").value=inviteUrl(info.code,info.invite_token);
     show($("invReset"),info.owner===user.id&&!info.is_dm); show($("invShare"),!!navigator.share);
   }catch(err){ $("invLink").value=""; say("rsMsg",err.message,true); }
@@ -8208,11 +8335,151 @@ $("leaveRoom").onclick=async()=>{
   catch(err){ say("rsMsg",err.message,true); }
 };
 $("rsClose").onclick=()=>show($("roomSheet"),false);
+$("rsLaneOpen").onclick=()=>{ const lr=laneByRoom.get(room); if(lr){ show($("roomSheet"),false); openLaneSheet(lr.lane); } };
+$("rsMoveLane").onclick=()=>{ show($("roomSheet"),false); openLaneForm({mode:"attach",code:room,name:roomName}); };
+
+/* ===================== 🛣️ LANES (2026.10.19h) =====================
+   Your crew's hangout: one Lane with side chats inside (💬 General, 🎮 Games, 🎬 Movies...). Each side chat is a
+   normal room underneath, so everything rooms can do works there. Lane people are in every side chat automatically. */
+const laneOf=id=>myLanesList.find(l=>l.id===id);
+const LANE_ICONS=["🌙","🦊","🐉","👾","🎮","🔥","🌸","⚡","🍕","🛸","🎧","🐺","🌊","💀","🦇","🍜"];
+const LANE_TAGS=[["💬","General"],["🎮","Games"],["🎬","Movies"],["📺","Shows"],["🎵","Music"],["📸","Pics"],["😂","Memes"],["🗓️","Plans"],["🎨","Art"],["📚","Books"],["🍕","Food"],["💻","Tech"],["⚽","Sports"],["🌙","Late night"]];
+async function loadLanes(){
+  if(!user) return;
+  try{
+    const ls=await api.myLanes(), rs=ls.length?await api.laneRooms(ls.map(l=>l.id)):[];
+    myLanesList=ls.map(l=>({...l,rooms:rs.filter(r=>r.lane===l.id).sort((a,b)=>(a.lane_pos||0)-(b.lane_pos||0))}));
+    laneByRoom=new Map(rs.map(r=>[r.code,r]));
+  }catch(e){}   // offline: keep what we had
+}
+function laneChatRow(r){
+  const ir=inboxRows.find(x=>x.code===r.code)||{}, n=+ir.unread||0;
+  const b=el("button","lanechat"+(n?" unread":"")); b.type="button";
+  const info=el("span","lc-info"); info.append(el("div","lc-name",r.name||"chat"));
+  const pv=ir.last_kind?previewOf({kind:ir.last_kind,text:ir.last_text,image_url:ir.last_image?"x":null,media_type:ir.last_kind==="video"||ir.last_kind==="audio"?ir.last_kind:null,sticker:ir.last_kind==="sticker"?"x":null}):"";
+  info.append(el("div","lc-prev",pv?(ir.last_sender?`${ir.last_sender}: ${pv}`:pv):"Nothing here yet"));
+  b.append(el("span","lc-tag",r.lane_label||"#"),info);
+  if(n) b.append(el("span","badge",n>99?"99+":String(n)));
+  b.setAttribute("aria-label",`${r.name||"Side chat"}${n?`, ${n} unread`:""}`);
+  b.onclick=()=>{ if(isOffline()){ offlineNotice(); return; } enterRoom(r.code); };
+  return b;
+}
+function paintLanes(){
+  const box=$("laneList"); if(!box) return; box.replaceChildren();
+  show($("laneEmpty"),!myLanesList.length);
+  myLanesList.forEach(l=>{
+    const card=el("div","lanecard"), head=el("div","lanehead"), info=el("span","ln-info");
+    info.append(el("b","",l.name),el("small","",`${l.members} ${+l.members===1?"person":"people"}${l.my_role!=="member"?" · you're the "+(l.my_role==="owner"?"owner":"helper"):""}`));
+    const gear=el("button","ln-gear","⚙️"); gear.type="button"; gear.setAttribute("aria-label","Lane settings for "+l.name); gear.onclick=()=>openLaneSheet(l.id);
+    head.append(el("span","laneicon",l.icon||"🌙"),info,gear); card.append(head);
+    l.rooms.forEach(r=>card.append(laneChatRow(r)));
+    box.append(card);
+  });
+}
+/* the strip of side chats along the top of a Lane chat: hop between them */
+function paintLaneBar(){
+  const bar=$("laneBar"); if(!bar) return;
+  const lr=!isDm&&laneByRoom.get(room), ln=lr&&laneOf(lr.lane);
+  show(bar,!!ln); bar.replaceChildren(); if(!ln) return;
+  const home=el("button","lb-home",ln.icon||"🛣️"); home.type="button"; home.title=ln.name+" settings"; home.setAttribute("aria-label",ln.name+" settings"); home.onclick=()=>openLaneSheet(ln.id); bar.append(home);
+  ln.rooms.forEach(r=>{ const ir=inboxRows.find(x=>x.code===r.code), on=r.code===room;
+    const b=el("button",!on&&+ir?.unread>0?"dot":""); b.type="button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",String(on));
+    b.append(el("span","",r.lane_label||"#"),el("span","",r.name||"chat")); b.onclick=()=>{ if(!on) enterRoom(r.code); }; bar.append(b); });
+  bar.querySelector('[aria-selected="true"]')?.scrollIntoView({inline:"center",block:"nearest"});
+}
+async function openLaneSheet(id){
+  const l=laneOf(id); if(!l) return; laneSheetId=id;
+  const mgr=l.my_role!=="member";
+  $("lsTitle").textContent=`${l.icon} ${l.name}`; $("lsSub").textContent=mgr?(l.my_role==="owner"?"You own this Lane.":"You're a helper here."):"You're in this Lane.";
+  say("lsMsg",""); show($("lsRename"),mgr); show($("lsAddChat"),mgr&&l.rooms.length<20);
+  const chats=$("lsChats"); chats.replaceChildren();
+  l.rooms.forEach(r=>{ const row=el("div","lsrow"); row.append(el("span","",r.lane_label||"#"),el("span","ls-name",r.name||"chat"));
+    if(mgr){ const ed=el("button","","✏️"); ed.type="button"; ed.setAttribute("aria-label","Edit "+(r.name||"side chat")); ed.onclick=()=>openLaneForm({mode:"chat-edit",lane:id,code:r.code,name:r.name,label:r.lane_label}); row.append(ed);
+      if(l.rooms.length>1){ const rm=el("button","","🗑️"); rm.type="button"; rm.setAttribute("aria-label","Remove "+(r.name||"side chat"));
+        rm.onclick=async()=>{ if(!confirm(`Remove the side chat "${r.name}"? Nobody will be able to open it anymore.`)) return;
+          try{ await api.laneRemoveChat(r.code); await loadInbox(); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(rm); } }
+    chats.append(row); });
+  const ppl=$("lsPeople"); ppl.replaceChildren(); ppl.append(el("p","sub","Loading…")); show($("laneSheet"));
+  let mem=[]; try{ mem=await api.laneMembers(id); await ensureProfiles(mem.map(m=>m.user_id)).catch(()=>{}); }catch(e){}
+  if(laneSheetId!==id) return;
+  ppl.replaceChildren(); const rank={owner:0,helper:1,member:2};
+  mem.sort((a,b)=>rank[a.role]-rank[b.role]||nameOf(a.user_id).localeCompare(nameOf(b.user_id))).forEach(m=>{
+    const row=el("div","lsrow"), f=el("span","face sm"); paintFace(f,cache.get(m.user_id)||{id:m.user_id});
+    row.append(f,el("span","ls-name",m.user_id===user.id?"You":nameOf(m.user_id))); if(m.role!=="member") row.append(el("span","ls-role",m.role==="owner"?"OWNER":"HELPER"));
+    if(m.user_id!==user.id){
+      if(l.my_role==="owner"&&m.role!=="owner"){ const hb=el("button","",m.role==="helper"?"Unhelper":"⭐ Helper"); hb.type="button";
+        hb.onclick=async()=>{ try{ await api.laneSetRole(id,m.user_id,m.role==="helper"?"member":"helper"); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(hb); }
+      if(m.role!=="owner"&&(l.my_role==="owner"||(l.my_role==="helper"&&m.role==="member"))){ const kb=el("button","","Remove"); kb.type="button";
+        kb.onclick=async()=>{ if(!confirm(`Remove ${nameOf(m.user_id)} from ${l.name}?`)) return; try{ await api.laneRemoveMember(id,m.user_id); await loadInbox(); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(kb); } }
+    ppl.append(row); });
+}
+$("lsClose").onclick=()=>{ show($("laneSheet"),false); laneSheetId=null; };
+$("laneSheet").addEventListener("click",e=>{ if(e.target.id==="laneSheet"){ show($("laneSheet"),false); laneSheetId=null; } });
+$("lsAddFriends").onclick=()=>{ const id=laneSheetId; show($("laneSheet"),false); openAddFriends(id); };
+$("lsAddChat").onclick=()=>openLaneForm({mode:"chat-new",lane:laneSheetId});
+$("lsRename").onclick=()=>{ const l=laneOf(laneSheetId); if(l) openLaneForm({mode:"lane-edit",lane:l.id,name:l.name,icon:l.icon}); };
+$("lsLeave").onclick=async()=>{ const l=laneOf(laneSheetId); if(!l) return;
+  if(!confirm(`Leave ${l.name}? You'll leave all its side chats.${l.my_role==="owner"?" You're the owner, so a helper (or the longest member) takes over.":""}`)) return;
+  try{ await api.laneLeave(l.id); show($("laneSheet"),false); laneSheetId=null; if(laneByRoom.get(room)?.lane===l.id) exitRoom(); await loadInbox(); toast("🛣️ Lanes",`You left ${l.name}.`); }
+  catch(err){ say("lsMsg",err.message,true); } };
+$("laneNewBtn").onclick=()=>openLaneForm({mode:"new"});
+
+/* one form for: a new Lane · rename a Lane · a new side chat · edit a side chat · move a room in */
+let lf=null;
+function openLaneForm(o){
+  lf={icon:o.icon||"🌙",label:o.label||"💬",lane:o.lane||null,...o};
+  const T={new:"New Lane","lane-edit":"Name & icon","chat-new":"New side chat","chat-edit":"Edit side chat",attach:"Move into a Lane"};
+  const G={new:"Make the Lane","lane-edit":"Save","chat-new":"Add it","chat-edit":"Save",attach:"Move it in"};
+  $("lfTitle").textContent=T[o.mode]; $("lfGo").textContent=G[o.mode]; say("lfMsg","");
+  show($("lfLaneBox"),o.mode==="new"||o.mode==="lane-edit"); show($("lfChatBox"),o.mode!=="lane-edit"); show($("lfPickBox"),o.mode==="attach");
+  $("lfChatLabel").textContent=o.mode==="new"?"First side chat":o.mode==="attach"?"Label it":"Side chat";
+  $("lfLaneName").value=o.mode==="lane-edit"?(o.name||""):"";
+  $("lfChatName").value=o.mode==="chat-edit"||o.mode==="attach"?(o.name||""):""; $("lfChatName").placeholder=o.mode==="new"?"General":"repo, movie night, whatever";
+  $("lfEmoji").value=o.mode==="chat-edit"?(o.label||""):"";
+  const icons=$("lfIcons"); icons.replaceChildren();
+  LANE_ICONS.forEach(ic=>{ const b=el("button","",ic); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(ic===lf.icon)); b.onclick=()=>{ lf.icon=ic; [...icons.children].forEach(x=>x.setAttribute("aria-checked",String(x===b))); }; icons.append(b); });
+  const tags=$("lfLabels"); tags.replaceChildren();
+  LANE_TAGS.forEach(([e,n])=>{ const b=el("button","",e+" "+n); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(e===lf.label&&o.mode!=="chat-edit"));
+    b.onclick=()=>{ lf.label=e; $("lfEmoji").value=e; const cur=$("lfChatName").value.trim(); if(!cur||LANE_TAGS.some(t=>t[1]===cur)) $("lfChatName").value=n; [...tags.children].forEach(x=>x.setAttribute("aria-checked",String(x===b))); }; tags.append(b); });
+  const pick=$("lfPick"); pick.replaceChildren();
+  if(o.mode==="attach"){ const mine=myLanesList.filter(l=>l.my_role!=="member"); if(!lf.lane) lf.lane=mine[0]?.id||null;
+    mine.forEach(l=>{ const b=el("button","",`${l.icon} ${l.name}`); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(l.id===lf.lane)); b.onclick=()=>{ lf.lane=l.id; [...pick.children].forEach(x=>x.setAttribute("aria-checked",String(x===b))); }; pick.append(b); }); }
+  show($("laneForm"));
+  setTimeout(()=>(o.mode==="new"||o.mode==="lane-edit"?$("lfLaneName"):$("lfChatName")).focus(),60);
+}
+$("lfEmoji").addEventListener("input",()=>{ lf&&(lf.label=$("lfEmoji").value.trim()||lf.label); [...$("lfLabels").children].forEach(x=>x.setAttribute("aria-checked","false")); });
+$("lfClose").onclick=()=>show($("laneForm"),false);
+$("laneForm").addEventListener("click",e=>{ if(e.target.id==="laneForm") show($("laneForm"),false); });
+$("lfGo").onclick=async()=>{
+  if(!lf) return; const m=lf.mode, lname=$("lfLaneName").value.trim().replace(/\s+/g," "), cname=$("lfChatName").value.trim().replace(/\s+/g," "), label=($("lfEmoji").value.trim()||lf.label||"💬").slice(0,8);
+  if((m==="new"||m==="lane-edit")&&!lname) return say("lfMsg","Give your Lane a name.",true);
+  if((m==="chat-new"||m==="chat-edit")&&!cname) return say("lfMsg","Name the side chat.",true);
+  if(m==="attach"&&!lf.lane) return say("lfMsg","Pick a Lane.",true);
+  $("lfGo").disabled=true; say("lfMsg","…");
+  try{
+    let go=null;
+    if(m==="new"){ const r=await api.laneCreate(lname,lf.icon,cname||"General",label); go=r?.room; }
+    if(m==="lane-edit") await api.laneRename(lf.lane,lname,lf.icon);
+    if(m==="chat-new") go=await api.laneAddChat(lf.lane,cname,label);
+    if(m==="chat-edit") await api.laneEditChat(lf.code,cname,label);
+    if(m==="attach") await api.laneAttach(lf.lane,lf.code,label);
+    show($("laneForm"),false); await loadInbox();
+    if(m==="new"){ setFrontTab("lanes"); toast("🛣️ Lanes",`${lf.icon} ${lname} is ready! Tap ⚙️ to add friends.`); }
+    if(m==="chat-new"&&go){ show($("laneSheet"),false); enterRoom(go); }
+    else if(laneSheetId&&!$("laneSheet").classList.contains("hidden")) openLaneSheet(laneSheetId);
+    if(m==="attach"||m==="chat-edit"||m==="lane-edit"){ if(room&&laneByRoom.has(room)) setRoomName(laneByRoom.get(room).name||roomName); }
+    if(m==="attach") toast("🛣️ Lanes","Moved in! It's a side chat now.");
+  }catch(err){ say("lfMsg",/lane_|schema cache|does not exist/i.test(err.message)?"Lanes need a quick setup first: run lanes.sql in Supabase.":err.message,true); }
+  finally{ $("lfGo").disabled=false; }
+};
 
 /* ---------- add friends straight into a room ---------- */
-const afPicked=new Set();
-async function openAddFriends(){
+const afPicked=new Set(); let afLane=null, afHere=null;   // afLane: adding to a Lane instead of this room
+async function openAddFriends(lane){
+  afLane=typeof lane==="string"?lane:null;
+  if(afLane){ try{ afHere=new Set((await api.laneMembers(afLane)).map(m=>m.user_id)); }catch(e){ afHere=new Set(); } } else afHere=null;
   show($("roomSheet"),false); afPicked.clear(); say("afMsg",""); paintAfButton();
+  $("afSub").textContent=afLane?"Tap the friends you want in this Lane. They'll get every side chat.":"Tap the friends you want to add.";
   const list=$("afList"); list.innerHTML=""; list.append(el("p","sub","Loading your friends…")); show($("afSheet"));
   let mine=[], them=[];
   try{ [mine,them]=await Promise.all([api.contacts(),api.addedMe()]); }catch(e){ list.innerHTML=""; list.append(el("p","sub","Couldn't load your friends. Check your connection and try again.")); return; }
@@ -8220,30 +8487,31 @@ async function openAddFriends(){
   await ensureProfiles(mutual).catch(()=>{});
   list.innerHTML="";
   if(!mutual.length){ list.append(el("p","sub","No friends to add yet. Once you and a friend have both added each other, they'll show up here.")); return; }
-  const here=mutual.filter(u=>members.has(u)), todo=mutual.filter(u=>!members.has(u));
+  const isIn=u=>afHere?afHere.has(u):members.has(u);
+  const here=mutual.filter(isIn), todo=mutual.filter(u=>!isIn(u));
   const byName=(a,b)=>nameOf(a).localeCompare(nameOf(b));
   todo.sort(byName).forEach(u=>list.append(afRow(u,false)));
   here.sort(byName).forEach(u=>list.append(afRow(u,true)));
-  if(!todo.length) list.prepend(el("p","sub","All your friends are already in this room! 🎉"));
+  if(!todo.length) list.prepend(el("p","sub",afLane?"All your friends are already in this Lane! 🎉":"All your friends are already in this room! 🎉"));
 }
 function afRow(uid,already){
   const b=el("button","afrow"+(already?" here":"")); b.type="button"; b.disabled=already;
   const f=el("span","face sm"); paintFace(f,cache.get(uid)||{id:uid,username:nameOf(uid)});
-  b.append(f,el("span","afname",cache.get(uid)?.username||nameOf(uid)),el("span","afcheck",already?"In room":""));
+  b.append(f,el("span","afname",cache.get(uid)?.username||nameOf(uid)),el("span","afcheck",already?(afLane?"In Lane":"In room"):""));
   b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label",(cache.get(uid)?.username||"Friend")+(already?", already in this room":""));
   if(!already) b.onclick=()=>{ const on=!afPicked.has(uid); on?afPicked.add(uid):afPicked.delete(uid); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on)); b.querySelector(".afcheck").textContent=on?"✓":""; paintAfButton(); };
   return b;
 }
 function paintAfButton(){ const n=afPicked.size; $("afAdd").disabled=!n; $("afAdd").textContent=n?`Add ${n} friend${n>1?"s":""}`:"Add"; }
-$("addFriendsBtn").onclick=openAddFriends;
+$("addFriendsBtn").onclick=()=>openAddFriends();
 $("afAdd").onclick=async()=>{
   const ids=[...afPicked]; if(!ids.length) return;
   $("afAdd").disabled=true; say("afMsg","Adding…");
   try{
-    const n=await api.addFriendsToRoom(room,ids);
+    const n=afLane?await api.laneAddFriends(afLane,ids):await api.addFriendsToRoom(room,ids);
     if(!n){ say("afMsg","They couldn't be added. They may already be here, or not a mutual friend anymore.",true); $("afAdd").disabled=false; return; }
     say("afMsg",`Added ${n} friend${n>1?"s":""}! 🎉 They'll get a notification.`);
-    setTimeout(()=>show($("afSheet"),false),1100);
+    setTimeout(()=>{ show($("afSheet"),false); if(afLane){ loadInbox(); if(laneSheetId===afLane) openLaneSheet(afLane); } },1100);
   }catch(err){ say("afMsg","Couldn't add them: "+err.message,true); $("afAdd").disabled=false; }
 };
 $("afClose").onclick=()=>show($("afSheet"),false);
@@ -9478,12 +9746,13 @@ function playKiss(m){
 
 /* ================= CONTACTS & PRIVATE CHATS ================= */
 function setFrontTab(t){
-  $("tabChats").setAttribute("aria-selected",t==="chats"); $("tabDms").setAttribute("aria-selected",t==="dms"); $("tabContacts").setAttribute("aria-selected",t==="contacts");
-  show($("chatsPane"),t==="chats"); show($("dmsPane"),t==="dms"); show($("contactsPane"),t==="contacts");
+  $("tabChats").setAttribute("aria-selected",t==="chats"); $("tabLanes").setAttribute("aria-selected",t==="lanes"); $("tabDms").setAttribute("aria-selected",t==="dms"); $("tabContacts").setAttribute("aria-selected",t==="contacts");
+  show($("chatsPane"),t==="chats"); show($("lanesPane"),t==="lanes"); show($("dmsPane"),t==="dms"); show($("contactsPane"),t==="contacts");
+  if(t==="lanes") paintLanes();
   if(t==="contacts") loadContacts();
   try{ LS.set("nl-front-tab",t); }catch(e){}
 }
-$("tabChats").onclick=()=>setFrontTab("chats"); $("tabDms").onclick=()=>setFrontTab("dms"); $("tabContacts").onclick=()=>setFrontTab("contacts");
+$("tabChats").onclick=()=>setFrontTab("chats"); $("tabLanes").onclick=()=>setFrontTab("lanes"); $("tabDms").onclick=()=>setFrontTab("dms"); $("tabContacts").onclick=()=>setFrontTab("contacts");
 function setTabBadge(id,n){ const bdg=$(id); bdg.textContent=n>99?"99+":String(n); show(bdg,n>0); }
 const isFriend=uid=>contactIds.includes(uid);
 const addedMe=uid=>addedMeIds.includes(uid);
@@ -14249,9 +14518,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19g";
+const APP_VERSION="2026.10.19h";
 const CHANGELOG=[
   
+    {v:"2026.10.19h", title:"Lanes 🛣️", items:["🛣️ New: Lanes! Make a hangout for your crew with side chats inside, like 🎮 Games, 🎬 Movies or 🎵 Music. Everyone in the Lane is in every side chat. Find it in the new Lanes tab.","⭐ The owner can make friends helpers, who can add, rename and remove side chats too. Anyone in the Lane can add their friends.","📦 Own a room? Move it into a Lane from Room settings and it becomes a side chat, messages and all."]},
     {v:"2026.10.19g", title:"Smoother games 🎮", items:["🎮 All games: when the server confirms a move you already see, the board no longer redraws, so card flips, dice rolls, tile and stone animations play all the way through instead of skipping to the end."]},
     {v:"2026.10.19f", title:"Mancala, smoother 🟤", items:["🟤 Mancala: the pits no longer jump to the final numbers mid-sow, and captures are easy to see: the stones leave both pits and fly into your store one by one, clicking as they land."]},
     {v:"2026.10.19e", title:"See every hop 👑", items:["👑 King's Court: each hop of a multi-jump now animates as you tap it, and your move no longer skips straight to the end when the server confirms it."]},
@@ -16355,7 +16625,7 @@ function startOffline(saved,slow){   // show your saved chats right away; the re
   cache.set(user.id,meProfile); paintMe(); applyTheme(meProfile.theme||savedTheme());
   show($("authCard"),false); show($("roomCard")); $("front").classList.add("logged");
   loadInbox(); paintOffline(); hideSplash();
-  try{ const t=LS.get("nl-front-tab"); if(["chats","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
+  try{ const t=LS.get("nl-front-tab"); if(["chats","lanes","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
 }
 addEventListener("offline",()=>paintOffline());
 addEventListener("online",async()=>{
