@@ -1089,3 +1089,58 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .nsah textarea{width:100%;box-sizing:border-box;resize:vertical}
 .nsah-note{font-size:12px;color:var(--muted)}
 .nsah .blbtn{align-self:flex-start}
+/* ===== 🌑 Blackout (2026.10.20b) ===== */
+.botile{--s:46px;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border-radius:50%;border:2px solid #07041a;box-shadow:2px 3px 0 #07041a;flex:none;position:relative;vertical-align:middle}
+.botile.sm{--s:26px;border-width:1.5px;box-shadow:1px 2px 0 #07041a}
+.botile svg{width:62%;height:62%}
+.botile.neon{background:radial-gradient(circle at 50% 45%,#16305a,#0b0a2a 70%);box-shadow:inset 0 0 0 3px var(--cyan),0 0 10px rgba(0,240,255,.55),2px 3px 0 #07041a}
+.botile.sm.neon{box-shadow:inset 0 0 0 2px var(--cyan),0 0 6px rgba(0,240,255,.5)}
+.botile.neon svg path{fill:var(--volt);stroke:#fff8a0;stroke-width:.8;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(243,255,58,.9))}
+.botile.dark{background:radial-gradient(circle at 50% 45%,#2a0b2a,#07040f 72%);box-shadow:inset 0 0 0 3px var(--mag),0 0 10px rgba(255,45,85,.45),2px 3px 0 #07041a}
+.botile.sm.dark{box-shadow:inset 0 0 0 2px var(--mag),0 0 6px rgba(255,45,85,.45)}
+.botile.dark svg circle{fill:#e8d8ff}.botile.dark svg circle.bite{fill:#120618}
+.botile.dark svg .crack{fill:none;stroke:var(--mag);stroke-width:1.4;stroke-linecap:round}
+.botile.back{background:repeating-radial-gradient(circle at 50% 50%,#2a1b5a 0 3px,#160d36 3px 6px);box-shadow:inset 0 0 0 2px #6b4fd6,2px 3px 0 #07041a}
+.botile.back::after{content:"";width:28%;height:28%;border-radius:50%;background:#07041a;box-shadow:0 0 0 2px #6b4fd6}
+.bo-icon{display:flex;gap:2px;align-items:center}.bo-gcicon{display:flex;gap:3px;align-items:center;padding:0 4px}
+.bopts{display:inline-flex;gap:3px}.bopts i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--volt);display:block}.bopts i.on{background:var(--volt);box-shadow:0 0 6px var(--volt)}
+.bocall{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;width:100%;border:2px solid var(--volt);background:rgba(243,255,58,.07);padding:6px 10px;margin:4px 0}
+.bocallwho{font-weight:700}.bocalln{font-family:var(--num);font-size:30px;line-height:1;color:var(--volt);text-shadow:2px 2px 0 var(--mag)}
+.boprog{display:inline-flex;gap:4px}.boprog i{width:14px;height:14px;border-radius:50%;border:2px solid var(--cyan);display:block}.boprog i.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.botable{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;width:100%;margin:6px 0}
+.bostack{display:grid;justify-items:center;gap:4px;min-width:70px;padding:8px 6px 6px;border:2px solid #3b2d80;background:rgba(0,0,0,.28);color:inherit;font:inherit;position:relative}
+.bostack b{font-size:12px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bostack.up{border-color:var(--volt)}.bostack.out{opacity:.4}
+.bostack.pick{cursor:pointer;border-color:var(--cyan);animation:bopick 1.2s ease-in-out infinite}
+.bostack.pick:hover,.bostack.pick:focus-visible{background:rgba(0,240,255,.12)}
+@keyframes bopick{50%{box-shadow:0 0 14px rgba(0,240,255,.6)}}
+.boflip{font-family:var(--tech);font-size:10px;color:var(--cyan);letter-spacing:1px}
+.bopile{position:relative;display:block;width:48px;height:calc(50px + var(--n,0)*7px)}
+.bopile .botile{position:absolute;bottom:calc(var(--k)*7px);left:0}
+.botile.flipin{animation:boflipin .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes boflipin{from{transform:rotateY(90deg) translateY(-10px)}to{transform:none}}
+.boempty{position:absolute;inset:auto 0 18px;text-align:center;color:var(--muted)}
+.bomine{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:4px}
+.bohand{border:2px dashed #3b2d80;padding:6px;text-align:left;display:grid;gap:4px}.bohand small{font-family:var(--tech);font-size:9px;color:var(--muted);letter-spacing:.5px}
+.botiles{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.botile.gone{opacity:.35}
+.boplace{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:6px}
+.boplace .go{font-size:15px;display:grid;line-height:1.2}.boplace .go small{font-size:10px;opacity:.75;font-family:var(--tech)}
+.bo-n{background:var(--cyan)!important;color:#07041a!important}.bo-b{background:#2a0b2a!important;color:#fff!important;border-color:var(--mag)!important}
+.bocallbox{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;width:100%;margin-top:6px}
+.bocallbox small{grid-column:1/-1;font-size:11px;color:var(--muted)}
+.bostep{display:flex;align-items:center;gap:6px}.bostep b{font-family:var(--num);font-size:28px;min-width:30px;text-align:center;color:var(--volt)}
+.bostep button{width:40px;height:40px;padding:0;font:700 26px/1 system-ui,sans-serif!important;letter-spacing:0!important;border:2px solid var(--cyan)!important;color:var(--cyan)!important;background:rgba(0,240,255,.08)!important;transform:none!important;clip-path:none!important;box-shadow:none!important}
+.bostep button:disabled{opacity:.3}
+.botl{display:inline-flex;gap:2px;align-items:center}.botl i{width:8px;height:8px;border-radius:50%;background:#6b4fd6;box-shadow:inset 0 0 0 1.5px #b7a6ff;display:block}
+.bo-call{background:var(--volt)!important;color:#07041a!important;font-size:18px}
+#boPass{grid-column:1/-1}
+.boresult{width:100%;border:2px dashed #3b2d80;padding:8px;font-size:13px;text-align:left;display:grid;gap:6px;margin-top:6px}
+.boresult.ok{border-color:var(--cyan)}.boresult.bad{border-color:var(--mag)}
+.boreveal{display:flex;flex-wrap:wrap;gap:8px}.borev{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.05);padding:3px 6px}.borev small{margin-right:3px;font-size:11px}
+.borev .botile{animation:boflipin .4s var(--d,0ms) both}
+.bo-stamp.ok{color:var(--cyan);border-color:var(--cyan)}.bo-stamp.bad{color:var(--mag);border-color:var(--mag)}
+.bogame{position:relative;width:100%;display:grid;justify-items:center}
+.bogame.boglitch{animation:boglitch .5s steps(5) 1}
+@keyframes boglitch{20%{transform:translate(-3px,1px);filter:hue-rotate(40deg) contrast(1.4)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0);filter:invert(.15)}80%{transform:translate(1px,1px)}}
+@media (prefers-reduced-motion:reduce){html:not(.motion-always) .bostack.pick,html:not(.motion-always) .botile.flipin,html:not(.motion-always) .borev .botile,html:not(.motion-always) .bogame.boglitch{animation:none}}

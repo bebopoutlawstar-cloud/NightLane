@@ -336,6 +336,11 @@ function gameSound(g,prev){
   if(t==="go"){ const caps=((b.caps?.x||0)+(b.caps?.o||0))-((a.caps?.x||0)+(a.caps?.o||0)); const at=typeof b.last==="object"?b.last?.at:b.last; if(JSON.stringify(a.last)!==JSON.stringify(b.last)&&at!=null&&at>=0) GSFX.stone(caps); return; }   // (pass / resign: no stone)
   if(t==="liarsdice"){ if(started||newRound) GSFX.dice(5); else if(L.called) GSFX.thud(); else if(L.qty) GSFX.tap(.6); return; }
   if(t==="mahjong"){ if(started) GSFX.shuffle(); else if(L.act==="discard") GSFX.tile(); else if(L.act==="claim") GSFX.tile(2); else if(L.act==="draw"||L.act==="wall") GSFX.slide(); else if(L.act==="win") GSFX.tile(3); return; }
+  if(t==="blackout"){ if(started){ GSFX.shuffle(); return; }
+    if(L.act==="place") GSFX.tile(); else if(L.act==="call"||L.act==="raise") GSFX.tap(.6);
+    else if(L.act==="flip"){ if(L.tile==="B") GSFX.thud(); else { GSFX.flick(); if(L.end) setTimeout(()=>GSFX.pop(),160); } }
+    else if(L.act==="won"&&L.tile==null) GSFX.flick();
+    return; }
   // card games: Crazy Eights, BS, Lucky 7
   if(started||newRound){ GSFX.shuffle(); return; }
   if(t==="lucky7"){ const n=r=>(r||[]).reduce((s,x)=>s+((x?.n?.length)||0)+((x?.m?.length)||0),0); if(n(b.rows)>n(a.rows)) GSFX.flick(); if((b.rows||[]).some((r,i)=>r?.st==="bust"&&a.rows?.[i]?.st!=="bust")) GSFX.thud(); return; }

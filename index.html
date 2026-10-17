@@ -23,21 +23,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&family=Pixelify+Sans:wght@400;700&family=Silkscreen&family=Jersey+15&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
 <link rel="preload" href="js/00-media.js?v=040551a3d0" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/01-boards.js?v=bb90fbe220" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/02-core.js?v=2982848156" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/02-core.js?v=3bdc20b576" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/03-chat.js?v=65f4bd8e63" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/04-lanes.js?v=9b8f8f31f2" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/04-lanes.js?v=8e1b7e8029" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/05-chat-extras.js?v=83fdb9dead" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=0b40d4fb75" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=e3171c777c" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/08-games.js?v=2406252773" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/09-install-birthdays.js?v=abe1565f05" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/10-secrets-1.js?v=6150c577b4" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/11-tools.js?v=b8c2ad6d5e" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/12-secrets-2.js?v=b263c6ebf7" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=7765920cc6" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=118683607f" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=2e36f78156" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=8dca6bca96" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=ded4ad5d22" as="fetch" crossorigin="anonymous">
@@ -46,7 +46,7 @@
 <link rel="stylesheet" href="css/2-features.css?v=f503a80040">
 <link rel="stylesheet" href="css/3-secrets.css?v=970d9b0662">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=9323efdc25">
-<link rel="stylesheet" href="css/5-games-themes-calls.css?v=35a0e3f9cd">
+<link rel="stylesheet" href="css/5-games-themes-calls.css?v=116477a477">
 </head>
 <body>
 <div id="splash" aria-hidden="true">
@@ -255,15 +255,19 @@
           <span class="gp-icon bs-icon" aria-hidden="true"><span class="e8card sm back"></span><span class="e8card sm back"></span><b>BS!</b></span>
           <span class="gp-text"><b>BS</b><small class="gp-hint">2–8 players · bluff your cards, call BS!</small></span>
         </button>
+        <button type="button" class="gamepick" data-game="blackout">
+          <span class="gp-icon bo-icon" aria-hidden="true"><span class="botile neon sm"><svg viewBox="0 0 24 24"><path d="M13.5 2 5 13.5h6L9.8 22 19 9.8h-6.2z"/></svg></span><span class="botile dark sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle class="bite" cx="15.6" cy="8.8" r="7.2"/><path class="crack" d="M4 15.5 8 13l1.5 2.5L13 12"/></svg></span></span>
+          <span class="gp-text"><b>Blackout</b><small class="gp-hint">2–6 players · NEW · stack, call, bluff, don't flip a Blackout</small></span>
+        </button>
         <button type="button" class="gamepick" data-game="mahjong">
           <span class="gp-icon mj-icon" aria-hidden="true"><span class="mjt" style="--z:1.4;--i:4"></span><span class="mjt" style="--z:1.4;--i:13"></span></span>
-          <span class="gp-text"><b>Mahjong</b><small class="gp-hint">2–4 players · NEW · collect 4 sets and a pair</small></span>
+          <span class="gp-text"><b>Mahjong</b><small class="gp-hint">2–4 players · collect 4 sets and a pair</small></span>
         </button>
         <button type="button" class="gamepick" data-game="lucky7">
           <span class="gp-icon l7-icon" aria-hidden="true"><b>7</b><i>🍀</i></span>
           <span class="gp-text"><b>Lucky 7</b><small class="gp-hint">2–8 players · push your luck, don't bust!</small></span>
         </button>
-        <p class="rulelinks">📖 Rules: <button type="button" data-rules="mahjong">Mahjong</button> · <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="go">Go</button> · <button type="button" data-rules="bs">BS</button></p>
+        <p class="rulelinks">📖 Rules: <button type="button" data-rules="blackout">Blackout</button> · <button type="button" data-rules="mahjong">Mahjong</button> · <button type="button" data-rules="lucky7">Lucky 7</button> · <button type="button" data-rules="tictactoe">Tic-tac-toe</button> · <button type="button" data-rules="kingscourt">King's Court</button> · <button type="button" data-rules="eights">Crazy Eights</button> · <button type="button" data-rules="liarsdice">Liar's Dice</button> · <button type="button" data-rules="mancala">Mancala</button> · <button type="button" data-rules="go">Go</button> · <button type="button" data-rules="bs">BS</button></p>
         <p class="note">More games coming soon 👀</p>
       </div>
     </div>
@@ -756,6 +760,26 @@
       <div class="l7round hidden" id="l7Round"></div>
       <div class="e8-actions"><button type="button" class="ghost hidden" id="l7Skip">Skip their turn</button></div>
       <button class="go hidden" type="button" id="l7Deal">Deal</button>
+    </div>
+    <div class="bogame hidden" id="boArea">
+      <div class="e8-players" id="boPlayers"></div>
+      <p class="e8-last" id="boLast"></p>
+      <div class="bocall hidden" id="boCall"></div>
+      <div class="botable" id="boTable"></div>
+      <div class="bomine hidden" id="boMine"></div>
+      <div class="boplace hidden" id="boPlace">
+        <button type="button" class="go bo-n" id="boPlaceN">Stack ⚡ Neon <small></small></button>
+        <button type="button" class="go bo-b" id="boPlaceB">Stack 🌑 Blackout <small></small></button>
+      </div>
+      <div class="bocallbox hidden" id="boCallBox">
+        <div class="bostep"><button type="button" class="ghost" id="boMinus" aria-label="Lower">−</button><b id="boN" aria-live="polite">1</b><button type="button" class="ghost" id="boPlus" aria-label="Higher">+</button></div>
+        <button type="button" class="go bo-call" id="boCallGo">🔦 Call 1</button>
+        <button type="button" class="ghost hidden" id="boPass">✋ Drop out</button>
+        <small id="boCallHint"></small>
+      </div>
+      <div class="boresult hidden" id="boResult"></div>
+      <div class="e8-actions"><button type="button" class="ghost hidden" id="boSkip">Skip</button></div>
+      <button class="go hidden" type="button" id="boDeal">Deal</button>
     </div>
     <button class="go hidden" type="button" id="gameJoin">Join game</button>
     <button class="go hidden" type="button" id="gameRematch">Rematch 🔁</button>
@@ -1384,7 +1408,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.20a";
+const APP_VERSION="2026.10.20b";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1410,21 +1434,21 @@ const APP_VERSION="2026.10.20a";
 (()=>{
   const FILES=[
   "js/00-media.js?v=040551a3d0",
-  "js/01-boards.js?v=bb90fbe220",
-  "js/02-core.js?v=2982848156",
+  "js/01-boards.js?v=82bebb9adc",
+  "js/02-core.js?v=3bdc20b576",
   "js/03-chat.js?v=65f4bd8e63",
-  "js/04-lanes.js?v=9b8f8f31f2",
+  "js/04-lanes.js?v=8e1b7e8029",
   "js/05-chat-extras.js?v=83fdb9dead",
   "js/06-effects.js?v=0b40d4fb75",
   "js/07-friends.js?v=e3171c777c",
-  "js/08-games.js?v=2406252773",
+  "js/08-games.js?v=3188c36dec",
   "js/09-install-birthdays.js?v=abe1565f05",
   "js/10-secrets-1.js?v=6150c577b4",
   "js/11-tools.js?v=b8c2ad6d5e",
   "js/12-secrets-2.js?v=b263c6ebf7",
   "js/13-gifs-search.js?v=7765920cc6",
   "js/14-secrets-3.js?v=118683607f",
-  "js/15-bonds-news.js?v=2e36f78156",
+  "js/15-bonds-news.js?v=8dca6bca96",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=ded4ad5d22",

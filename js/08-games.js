@@ -52,6 +52,7 @@ function gameCard(m){
   if(g?.type==="bs"||(!g&&m.text==="BS")) return bsGameCard(m,g);
   if(g?.type==="lucky7"||(!g&&m.text==="Lucky 7")) return l7GameCard(m,g);
   if(g?.type==="mahjong"||(!g&&m.text==="Mahjong")) return mjGameCard(m,g);
+  if(g?.type==="blackout"||(!g&&m.text==="Blackout")) return boGameCard(m,g);
   const card=el("div","gamecard");
   const isMC=g?.type==="mancala"||(!g&&m.text==="Mancala"), isGO=g?.type==="go"||(!g&&m.text==="Go");
   const top=el("div","gc-top"); top.append(isMC?mcMini(g):isGO?goMini(g):g?.type==="kingscourt"?kcMiniBoard(g):miniGrid(g));
@@ -82,8 +83,9 @@ function paintGame(prev){
   // the same game state again (usually the server confirming a move we already drew): don't redraw, so animations play out
   if(prev&&prev!==g&&prev.status===g.status&&prev.player_x===g.player_x&&prev.player_o===g.player_o&&JSON.stringify(prev.state)===JSON.stringify(g.state)) return;
   paintGameRules(g);
-  const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7", mj=g.type==="mahjong";
-  show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); show($("mjArea"),mj); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7||mj); show($("board"),!e8&&!ld&&!bs&&!l7&&!mj);
+  const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7", mj=g.type==="mahjong", bo=g.type==="blackout";
+  show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); show($("mjArea"),mj); show($("boArea"),bo); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7||mj||bo); show($("board"),!e8&&!ld&&!bs&&!l7&&!mj&&!bo);
+  if(bo){ paintBlackout(g,prev); return; }
   if(mj){ paintMahjong(g,prev); return; }
   if(l7){ paintLucky(g,prev); return; }
   if(e8){ paintEights(g,prev); return; }
@@ -187,7 +189,7 @@ $("gameJoin").onclick=async()=>{
   const g=gamesById.get(openGameId); if(!g) return;
   $("gameJoin").disabled=true;
   try{ await api.joinGame(g.message_id); const before=JSON.parse(JSON.stringify(g));
-    if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"){ if(!g.state.players.includes(user.id)) g.state.players.push(user.id); } else { g.player_o=user.id; g.status="active"; }
+    if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"||g.type==="blackout"){ if(!g.state.players.includes(user.id)) g.state.players.push(user.id); } else { g.player_o=user.id; g.status="active"; }
     paintGame(before); refreshMsg(g.message_id); }
   catch(err){ say("gameMsg","Couldn't join: "+err.message,true); }
   finally{ $("gameJoin").disabled=false; }
@@ -204,6 +206,15 @@ $("gameRematch").onclick=async()=>{
    Plain-language rules for every game. They open by themselves the first time you open a game type,
    any time from "📖 How to play", and from the Rules links in the Games tray. */
 const GAME_RULES={
+  blackout:{name:"Blackout",emoji:"🌑",players:"2–6 players (best with 3+)",goal:"Be the first to score 2 points, or the last one with tiles.",
+    steps:["Everyone starts with 4 tiles: 3 <b>Neon</b> "+boTileHtml("N",1)+" and 1 <b>Blackout</b> "+boTileHtml("B",1)+". Only you can see yours.",
+           "Each round starts with everyone setting <b>one tile face down</b> "+boTileHtml("back",1)+" on their stack.",
+           "Then, in turn, either <b>stack another tile</b> or make a <b>call</b>: how many Neon tiles you can flip without hitting a Blackout.",
+           "Once someone calls, everyone after them must <b>raise</b> the number or <b>drop out</b> for the round.",
+           "When everyone else has dropped out, the caller flips. <b>Your own stack flips first</b>, top to bottom. Then you pick other stacks and flip their top tile, one at a time.",
+           "Flip enough Neon and you score <b>1 point</b>. Hit a Blackout and you <b>lose one of your tiles</b> at random (only you find out which).",
+           "Score <b>2 points</b> to win, or be the last player who still has tiles."],
+    tip:"Your Blackout is your best bluff: stack it, then call big, and nobody will want to flip your stack. But if you win the call, you flip your own stack first!"},
   mahjong:{name:"Mahjong (Lite)",emoji:"🀄",players:"2–4 players",goal:"Be the first to make a hand of 4 sets and 1 pair (14 tiles).",
     steps:["There are 3 suits: <b>Dots</b> "+mjTileHtml("d3")+", <b>Bamboo</b> "+mjTileHtml("b3")+" and <b>Characters</b> "+mjTileHtml("c3")+", numbered 1–9, with 4 of each tile.",
            "Everyone starts with <b>13 tiles</b>. On your turn, <b>draw 1</b> tile, then <b>throw 1 away</b>.",
@@ -376,7 +387,7 @@ function e8GameCard(m,g){
   card.append(btn); return card;
 }
 let e8Busy=false, e8PendingEight=null;
-setInterval(()=>{ const g=gamesById.get(openGameId); if(g?.status==="active"&&!e8Busy){ if(g.type==="eights") paintEights(g); else if(g.type==="liarsdice") paintDice(g); else if(g.type==="bs") paintBS(g); else if(g.type==="lucky7") paintLucky(g); else if(g.type==="mahjong") paintMahjong(g); } },20000);
+setInterval(()=>{ const g=gamesById.get(openGameId); if(g?.status==="active"&&!e8Busy){ if(g.type==="eights") paintEights(g); else if(g.type==="liarsdice") paintDice(g); else if(g.type==="bs") paintBS(g); else if(g.type==="lucky7") paintLucky(g); else if(g.type==="mahjong") paintMahjong(g); else if(g.type==="blackout") paintBlackout(g); } },20000);
 async function e8Act(fn){
   if(e8Busy) return; e8Busy=true; say("gameMsg","");
   const id=openGameId;
@@ -1030,3 +1041,188 @@ $("bsAccept").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>a
 $("bsSkip").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.bsSkip(g.message_id)); };
 $("bsDeal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.bsStart(g.message_id)); };
 
+/* ================= 🌑 BLACKOUT (2026.10.20b) =================
+   A bluffing game for 2–6 players (best with 3+), an original NightLane game.
+   Everyone has 4 tiles: 3 ⚡ Neon and 1 🌑 Blackout. Each round you set tiles face down on your stack, then someone
+   CALLS how many Neon tiles they can flip without hitting a Blackout. The others raise or drop out. The last caller
+   flips their own stack first, then picks other stacks. Make it = 1 point (2 wins). Hit a Blackout = lose a tile.
+   The server (blackout.sql) keeps every stack secret and checks every move. */
+function boTileHtml(t,small){   // (a function declaration so the rules card can use it before this point)
+  const svg=t==="N"?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13.5h6L9.8 22 19 9.8h-6.2z"/></svg>'
+    :t==="B"?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle class="bite" cx="15.6" cy="8.8" r="7.2"/><path class="crack" d="M4 15.5 8 13l1.5 2.5L13 12"/></svg>':"";
+  const label=t==="N"?"Neon tile":t==="B"?"Blackout tile":"face-down tile";
+  return `<span class="botile ${t==="N"?"neon":t==="B"?"dark":"back"}${small?" sm":""}" role="img" aria-label="${label}">${svg}</span>`;
+}
+function boTileEl(t,{sm=false,cls=""}={}){ const w=document.createElement("span"); w.innerHTML=boTileHtml(t,sm); const e=w.firstChild; if(cls) e.classList.add(...cls.split(" ").filter(Boolean)); return e; }
+const boSeat=g=>(g.state.players||[]).indexOf(user.id);
+const boName=(u,cap)=>u===user.id?(cap?"You":"you"):nameOf(u);
+const boTotal=s=>(s.piles||[]).reduce((a,b)=>a+b,0);
+function boStatus(g){
+  const s=g.state, P=s.players||[], me=boSeat(g), host=s.host;
+  if(g.status==="waiting"){
+    if(me<0) return {text:`${nameOf(host)} wants to play! (${P.length}/6)`,turn:P.length<6};
+    return {text:host===user.id?`${P.length} player${P.length===1?"":"s"} in. Deal when everyone's here (best with 3+).`:`Waiting for ${nameOf(host)} to deal… (${P.length} in)`,turn:false};
+  }
+  if(g.status==="done") return s.winner===user.id?{text:"You won! 🏆⚡",won:true}:{text:`${nameOf(s.winner)} won 🏆`};
+  const up=P[s.turn], out=me>=0&&!(s.tiles?.[me]>0);
+  if(out) return {text:"You're out of tiles. Watch the others finish it!"};
+  if(s.phase==="place"){
+    if(me>=0&&!s.placed?.[me]) return {text:"Set a tile face down on your stack.",turn:true};
+    const wait=P.filter((u,i)=>s.tiles[i]>0&&!s.placed[i]).map(u=>nameOf(u));
+    return {text:`Waiting for ${wait.join(", ")} to set a tile…`};
+  }
+  if(s.phase==="play"){
+    if(up===user.id){ const empty=!(s.tiles[me]-s.piles[me]>0); return {text:empty?"Your turn! No tiles left to stack, so make a call.":"Your turn! Stack another tile, or make a call.",turn:true}; }
+    return {text:`${nameOf(up)}'s turn · round ${s.round}`};
+  }
+  if(s.phase==="bid"){
+    const b=s.bid; if(up===user.id) return {text:`${boName(P[b.seat],true)} called ${b.n}. Raise it, or drop out.`,turn:true};
+    return {text:`${nameOf(up)} is deciding… (the call is ${b.n})`};
+  }
+  if(s.phase==="flip"){
+    const f=P[s.flipper]; if(f===user.id) return {text:`Flip ${s.need-s.lit} more Neon! Pick a stack.`,turn:true};
+    return {text:`${nameOf(f)} is flipping… ${s.lit}/${s.need} Neon`};
+  }
+  return {text:""};
+}
+function boLastText(g){
+  const l=g.state.last, P=g.state.players; if(!l) return "";
+  const who=boName(l.by,true);
+  if(l.act==="place") return `${who} stacked a tile`;
+  if(l.act==="call") return `${who} called ${l.n} 🔦`;
+  if(l.act==="raise") return `${who} raised it to ${l.n} 🔦`;
+  if(l.act==="pass") return `${who} dropped out ✋`;
+  if(l.act==="won") return `${who} won the call: ${l.n}. Flipping…`;
+  if(l.act==="flip"){ const owner=P[l.seat], whose=owner===l.by?(l.by===user.id?"your own":"their own"):owner===user.id?"your":nameOf(owner)+"'s";
+    return `${who} flipped ${whose} tile: ${l.tile==="B"?"🌑 BLACKOUT!":"⚡ Neon"}`; }
+  if(l.act==="skip") return l.skipped?`${nameOf(l.skipped)} was away, so their turn was played for them`:"Tiles were set for the players who were away";
+  return "";
+}
+function boResultText(r,P){
+  if(!r) return "";
+  const who=boName(r.by,true);
+  if(r.ok) return `🔦 ${who} lit up ${r.need}! +1 point`;
+  const whose=r.hit===r.by?(r.by===user.id?"your own":"their own"):r.hit===user.id?"your":nameOf(r.hit)+"'s";
+  return `🌑 ${who} hit ${whose} Blackout and lost a tile${r.out?`… and ${r.by===user.id?"you're":"they're"} OUT`:""}`;
+}
+function boGameCard(m,g){
+  const card=el("div","gamecard e8gc"), top=el("div","gc-top");
+  const ic=el("span","bo-gcicon"); ic.append(boTileEl("N",{sm:true}),boTileEl("B",{sm:true})); top.append(ic);
+  const info=el("div"); info.append(el("div","gc-title","🌑 BLACKOUT"));
+  if(!g){ info.append(el("div","gc-status","Loading…")); top.append(info); card.append(top); return card; }
+  const st=boStatus(g); info.append(el("div","gc-status"+(st.turn?" turn":""),st.text)); top.append(info); card.append(top);
+  const inIt=boSeat(g)>=0;
+  const label=g.status==="waiting"?(inIt?(g.state.host===user.id?"Open lobby":"Open game"):"Join game"):g.status==="done"?(inIt?"See results · Rematch":"See results"):(st.turn?"Play your turn":inIt?"Open game":"Watch game");
+  const btn=el("button","play"+(st.turn?" big":""),label); btn.type="button"; btn.onclick=e=>{ e.stopPropagation(); openGame(m.id); };
+  card.append(btn); return card;
+}
+let boN=1, boNKey="", boPaintTok=0;
+function boStamp(text,cls){ const s=el("div","ld-stamp bo-stamp "+cls,text); $("boArea").append(s); setTimeout(()=>s.remove(),1700); }
+/* one player's stack on the table: face-down tiles, with anything flipped sitting face up on top */
+function boStackEl(g,i,{canFlip,fresh}){
+  const s=g.state, P=s.players, shown=s.shown?.[i]||[], down=Math.max(0,(s.piles?.[i]||0)-shown.length);
+  const col=el(canFlip?"button":"div","bostack"+(canFlip?" pick":"")+(i===s.turn&&g.status==="active"?" up":"")+(!(s.tiles?.[i]>0)?" out":""));
+  if(canFlip){ col.type="button"; col.setAttribute("aria-label",`Flip ${P[i]===user.id?"your":nameOf(P[i])+"'s"} top tile`); col.onclick=()=>e8Act(()=>api.boFlip(g.message_id,i)); }
+  const pile=el("div","bopile");
+  for(let k=0;k<down;k++){ const t=boTileEl("back"); t.style.setProperty("--k",k); pile.append(t); }
+  shown.forEach((x,k)=>{ const t=boTileEl(x,{cls:"up"+(fresh&&fresh.seat===i&&k===shown.length-1?" flipin":"")}); t.style.setProperty("--k",down+k); pile.append(t); });
+  if(!down&&!shown.length) pile.append(el("span","boempty",s.phase==="place"&&s.tiles?.[i]>0?"…":"—"));
+  pile.style.setProperty("--n",Math.max(0,down+shown.length-1));
+  col.append(pile,el("b","",P[i]===user.id?"You":nameOf(P[i])));
+  if(canFlip) col.append(el("small","boflip","Flip!"));
+  return col;
+}
+async function paintBlackout(g,prev){
+  const s=g.state, P=s.players||[], me=boSeat(g), st=boStatus(g), playing=g.status!=="waiting";
+  show($("kcChainBar"),false);
+  $("gameTitle").textContent="Blackout"; $("gameSub").textContent="Stack tiles, call how many Neon you can flip, and don't hit a Blackout!"; show($("gameSub"),g.status==="waiting");
+  $("gameStatus").textContent=st.text; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
+  const fresh=prev&&prev.moves!==g.moves&&s.last?.act==="flip"&&!s.last.end&&JSON.stringify(s.last)!==JSON.stringify(prev.state?.last)?s.last:null;
+  // players: points (⚡⚡ wins) and tiles left
+  const row=$("boPlayers"); row.innerHTML="";
+  P.forEach((u,i)=>{ const out=playing&&!(s.tiles?.[i]>0);
+    const chip=el("div","e8p"+(g.status==="active"&&i===s.turn&&s.phase!=="place"?" turn":"")+(g.status==="done"&&u===s.winner?" won":"")+(out?" out":""));
+    chip.dataset.uid=u; const f=el("span","face"); paintFace(f,cache.get(u)); chip.append(f,el("span","pname",u===user.id?"You":nameOf(u)));
+    if(playing){ const pts=el("span","bopts"); for(let k=0;k<(s.goal||2);k++) pts.append(el("i",k<(s.pts?.[i]||0)?"on":"")); pts.title=`${s.pts?.[i]||0} of ${s.goal||2} points`; chip.append(pts);
+      if(out) chip.append(el("span","e8count","OUT")); else { const tl=el("span","botl"); for(let k=0;k<(s.tiles?.[i]??4);k++) tl.append(el("i")); tl.title=`${s.tiles?.[i]??4} tiles left`; chip.append(tl); }
+      if(g.status==="active"&&s.phase==="place"&&!out) chip.append(el("span","l7tag",s.placed?.[i]?"✓":"…"));
+      if(g.status==="active"&&s.phase==="bid"&&s.passed?.[i]) chip.append(el("span","l7tag","✋")); }
+    row.append(chip); });
+  $("boLast").textContent=g.status==="active"?boLastText(g):"";
+  // the call
+  const call=$("boCall"); call.innerHTML=""; const calling=g.status==="active"&&(s.phase==="bid"||s.phase==="flip")&&s.bid;
+  show(call,!!calling);
+  if(calling){ call.append(el("span","bocallwho",`🔦 ${boName(P[s.bid.seat],true)} ${s.phase==="flip"?"must flip":"called"}`),el("b","bocalln",String(s.bid.n)));
+    if(s.phase==="flip"){ const pr=el("span","boprog"); for(let k=0;k<s.need;k++) pr.append(el("i",k<s.lit?"on":"")); call.append(pr); } }
+  // the table
+  show($("boTable"),playing&&g.status==="active");
+  const tb=$("boTable"); tb.innerHTML="";
+  if(g.status==="active"){
+    const flipping=s.phase==="flip"&&P[s.flipper]===user.id, ownDone=flipping&&(s.shown[me]||[]).length>=s.piles[me];
+    P.forEach((u,i)=>{ if(!(s.tiles?.[i]>0)&&!(s.piles?.[i]>0)) return;
+      tb.append(boStackEl(g,i,{canFlip:ownDone&&i!==me&&(s.shown[i]||[]).length<s.piles[i],fresh})); });
+  }
+  // your tiles (only you see these)
+  const tok=++boPaintTok;
+  let cards=[];
+  if(g.status==="active"&&me>=0&&s.tiles?.[me]>0){ cards=await e8Hand(g); if(openGameId!==g.message_id||tok!==boPaintTok) return; }
+  const hand=cards.filter(c=>c[0]!=="p"), mine=cards.filter(c=>c[0]==="p").map(c=>c.slice(1)).reverse();   // your stack, top first
+  const mb=$("boMine"); mb.innerHTML=""; show(mb,cards.length>0);
+  if(cards.length){
+    const h=el("div","bohand"); h.append(el("small","","Your hand"));
+    const ht=el("div","botiles"); hand.forEach(t=>ht.append(boTileEl(t))); if(!hand.length) ht.append(el("span","note","empty")); h.append(ht);
+    const sk=el("div","bohand"); sk.append(el("small","","Your stack (top first, only you see it)"));
+    const stt=el("div","botiles"); mine.forEach((t,k)=>stt.append(boTileEl(t,{sm:true,cls:k<(s.shown?.[me]||[]).length?"gone":""}))); if(!mine.length) stt.append(el("span","note","nothing yet")); sk.append(stt);
+    mb.append(h,sk);
+  }
+  // what you can do
+  const myTurn=g.status==="active"&&me>=0&&P[s.turn]===user.id&&s.tiles?.[me]>0;
+  const canPlace=g.status==="active"&&me>=0&&s.tiles?.[me]>0&&((s.phase==="place"&&!s.placed?.[me])||(s.phase==="play"&&myTurn));
+  const nN=hand.filter(t=>t==="N").length, nB=hand.filter(t=>t==="B").length;
+  show($("boPlace"),canPlace&&hand.length>0);
+  $("boPlaceN").disabled=e8Busy||!nN; $("boPlaceB").disabled=e8Busy||!nB;
+  $("boPlaceN").querySelector("small").textContent=nN?`(${nN} in hand)`:"(none left)";
+  $("boPlaceB").querySelector("small").textContent=nB?"(your only one)":"(not in hand)";
+  const total=boTotal(s), canCall=myTurn&&(s.phase==="play"||s.phase==="bid");
+  const lo=s.phase==="bid"?(s.bid?.n||0)+1:1;
+  const key=`${g.message_id}|${s.round}|${s.phase}|${s.bid?.n||0}`; if(key!==boNKey){ boNKey=key; boN=lo; }
+  boN=Math.max(lo,Math.min(total,boN));
+  show($("boCallBox"),canCall); show($("boPass"),canCall&&s.phase==="bid");
+  if(canCall){ const room=lo<=total; $("boN").textContent=room?String(boN):"—";
+    $("boMinus").disabled=!room||boN<=lo||e8Busy; $("boPlus").disabled=!room||boN>=total||e8Busy;
+    $("boCallGo").disabled=!room||e8Busy; $("boCallGo").textContent=s.phase==="bid"?(room?`Raise to ${boN}`:"Can't go higher"):`🔦 Call ${boN}`;
+    $("boCallHint").textContent=`${total} tile${total===1?"":"s"} on the table. Your own stack gets flipped first.`; }
+  $("boPass").disabled=e8Busy;
+  // the last round, flipped face up
+  const r=s.result, rb=$("boResult"); rb.innerHTML=""; show(rb,playing&&!!r);
+  if(r){ rb.classList.toggle("ok",!!r.ok); rb.classList.toggle("bad",!r.ok);
+    rb.append(el("b","",`Round ${r.round}: `+boResultText(r,P)));
+    const flips=el("div","boreveal"); let k=0;
+    P.forEach((u,i)=>{ const sh=r.shown?.[i]||[]; if(!sh.length) return; const one=el("span","borev"); one.append(el("small","",u===user.id?"You":nameOf(u)));
+      sh.forEach(t=>{ const e=boTileEl(t,{sm:true}); e.style.setProperty("--d",(k++*90)+"ms"); one.append(e); }); flips.append(one); });
+    rb.append(flips); }
+  // big moments
+  const newResult=prev&&JSON.stringify(prev.state?.result)!==JSON.stringify(r)&&r&&prev.state?.round!==undefined;
+  if(newResult){
+    if(r.ok){ boStamp("LIT!","ok"); if(r.by===user.id&&navigator.vibrate) navigator.vibrate([30,40,30]); }
+    else { boStamp("BLACKOUT!","bad"); $("boArea").classList.remove("boglitch"); void $("boArea").offsetWidth; $("boArea").classList.add("boglitch");
+      if(e8Motion()) pxfx("boom",{at:$("boResult"),scale:3}); if(r.by===user.id&&navigator.vibrate) navigator.vibrate([60,40,140]); }
+  }
+  if(g.status==="done"&&prev&&prev.status!=="done"&&s.winner===user.id){ gainXP("gamewin"); if(fxEnabled()){ FX.play("confetti"); pxWin(); } }
+  // somebody's away
+  const stuck=g.status==="active"?(s.phase==="place"?P.filter((u,i)=>s.tiles[i]>0&&!s.placed[i]&&u!==user.id):[P[s.turn]].filter(u=>u!==user.id)):[];
+  const stale=g.status==="active"&&me>=0&&stuck.length>0&&!(s.phase!=="place"&&P[s.turn]===user.id)&&Date.now()-new Date(g.updated_at||Date.now()).getTime()>120000;
+  show($("boSkip"),stale); if(stale) $("boSkip").textContent=`${stuck.map(u=>nameOf(u)).join(", ")} ${stuck.length>1?"are":"is"} away: play for them`;
+  show($("boDeal"),g.status==="waiting"&&s.host===user.id); $("boDeal").disabled=P.length<2; $("boDeal").textContent=P.length<2?"Waiting for players…":`Deal (${P.length} players)`;
+  show($("gameJoin"),g.status==="waiting"&&me<0&&P.length<6);
+  show($("gameRematch"),g.status==="done"&&me>=0);
+}
+const boRepaint=()=>{ const g=gamesById.get(openGameId); if(g) paintBlackout(g); };
+$("boPlaceN").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.boPlace(g.message_id,"N")); };
+$("boPlaceB").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.boPlace(g.message_id,"B")); };
+$("boMinus").onclick=()=>{ boN--; boRepaint(); };
+$("boPlus").onclick=()=>{ boN++; boRepaint(); };
+$("boCallGo").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.boCall(g.message_id,boN)); };
+$("boPass").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.boPass(g.message_id)); };
+$("boSkip").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(()=>api.boSkip(g.message_id)); };
+$("boDeal").onclick=()=>{ const g=gamesById.get(openGameId); if(g) e8Act(async()=>{ try{ await api.boStart(g.message_id); }catch(err){ if(/bo_start|schema cache|does not exist/i.test(err.message)) throw new Error("Blackout needs a quick setup: run blackout.sql in Supabase."); throw err; } }); };

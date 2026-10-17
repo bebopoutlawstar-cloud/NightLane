@@ -330,7 +330,7 @@ async function loadPinnedContext(){
   if(games.length){ await loadGames(games).catch(()=>{}); const ids=new Set(games.flatMap(m=>{ const g=gamesById.get(m.id); return g?[g.player_x,g.player_o,...(g.state?.players||[])]:[]; }).filter(Boolean)); if(ids.size) await ensureProfiles([...ids]).catch(()=>{}); }
 }
 // "whose turn / who won" for any game, for the pin bar
-function anyGameStatus(g){ return g.type==="eights"?e8Status(g):g.type==="liarsdice"?ldStatus(g):g.type==="bs"?bsStatus(g):g.type==="lucky7"?l7Status(g):g.type==="mahjong"?mjStatus(g):gameStatusText(g); }
+function anyGameStatus(g){ return g.type==="eights"?e8Status(g):g.type==="liarsdice"?ldStatus(g):g.type==="bs"?bsStatus(g):g.type==="lucky7"?l7Status(g):g.type==="blackout"?boStatus(g):g.type==="mahjong"?mjStatus(g):gameStatusText(g); }
 const pinnedGameUp=m=>{ const g=m?.kind==="game"&&gamesById.get(m.id); return !!(g&&g.status!=="done"&&anyGameStatus(g).turn); };
 function pinnedList(){   // games waiting on you come first
   return [...pins.values()].sort((a,b)=>a.created_at<b.created_at?1:-1).map(p=>byId.get(p.message_id)||contextById.get(p.message_id)).filter(m=>m&&!blocked.has(m.user_id))

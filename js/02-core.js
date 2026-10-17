@@ -335,6 +335,12 @@ const live = {
   async l7Freeze(id,seat){ must(await sb.rpc("l7_freeze",{p_message:id,p_target:seat})); },
   async l7Skip(id){ must(await sb.rpc("l7_skip",{p_message:id})); },
   async mjStart(id){ must(await sb.rpc("mj_start",{p_message:id})); },
+  async boStart(id){ must(await sb.rpc("bo_start",{p_message:id})); },
+  async boPlace(id,t){ must(await sb.rpc("bo_place",{p_message:id,p_tile:t})); },
+  async boCall(id,n){ must(await sb.rpc("bo_call",{p_message:id,p_n:n})); },
+  async boPass(id){ must(await sb.rpc("bo_pass",{p_message:id})); },
+  async boFlip(id,seat){ must(await sb.rpc("bo_flip",{p_message:id,p_seat:seat})); },
+  async boSkip(id){ must(await sb.rpc("bo_skip",{p_message:id})); },
   async mjDraw(id){ return must(await sb.rpc("mj_draw",{p_message:id})); },
   async mjDiscard(id,t){ must(await sb.rpc("mj_discard",{p_message:id,p_tile:t})); },
   async mjWin(id){ must(await sb.rpc("mj_win",{p_message:id})); },
@@ -551,6 +557,84 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     const who=st.players[st.turn]; if(who==="me") return; const r=st.rows[st.turn];
     if(r.n.length&&(l7RowScore(r)>=22||r.n.length>=5)) l7DemoMove(g,who,{stay:true}); else l7DemoMove(g,who,{hit:true});
   }
+  // ---- Blackout (demo mirror of blackout.sql) ----
+  const boUnstack=h=>h.map(c=>c.replace(/^p/,""));
+  function boNextD(st,from,skipPassed){ const n=st.players.length; for(let i=1;i<=n;i++){ const s=(from+i)%n; if(st.tiles[s]>0&&!(skipPassed&&st.passed[s])) return s; } return from; }
+  function boPlaceTurnD(st){ const n=st.players.length; for(let i=0;i<n;i++){ const s=(st.starter+i)%n; if(st.tiles[s]>0&&!st.placed[s]) return s; } return null; }
+  function boDemoRound(g,starter){ const st=g.state, n=st.players.length, d=demoE8[g.message_id];
+    st.players.forEach(u=>d.hands[u]=boUnstack(d.hands[u])); let s=starter; if(!(st.tiles[s]>0)) s=boNextD(st,s,false);
+    Object.assign(st,{phase:"place",round:(st.round||0)+1,starter:s,turn:s,piles:Array(n).fill(0),shown:Array.from({length:n},()=>[]),placed:Array(n).fill(false),passed:Array(n).fill(false),bid:null,flipper:null,need:0,lit:0}); }
+  function boDemoBegin(g){ const P=g.state.players; demoE8[g.message_id]={hands:Object.fromEntries(P.map(u=>[u,["N","N","N","B"]]))};
+    Object.assign(g.state,{tiles:P.map(()=>4),pts:P.map(()=>0),round:0,winner:null,last:null,result:null,goal:2}); boDemoRound(g,Math.floor(Math.random()*P.length)); g.status="active"; }
+  function boDemoResolve(g,ok,hit,last){
+    const st=g.state, f=st.flipper, d=demoE8[g.message_id], P=st.players; let w=null;
+    const res={round:st.round,by:P[f],seat:f,need:st.need,ok,hit:hit==null?null:P[hit],shown:JSON.parse(JSON.stringify(st.shown)),piles:[...st.piles],lost:false,out:false};
+    if(ok){ st.pts[f]++; if(st.pts[f]>=st.goal) w=P[f]; }
+    else { const cs=boUnstack(d.hands[P[f]]); cs.splice(Math.floor(Math.random()*cs.length),1); d.hands[P[f]]=cs; st.tiles[f]=cs.length; res.lost=true; res.out=!cs.length;
+      if(st.tiles.filter(t=>t>0).length<=1) w=P[st.tiles.findIndex(t=>t>0)]; }
+    const nxt=st.tiles[f]>0?f:(hit!=null&&hit!==f&&st.tiles[hit]>0?hit:boNextD(st,f,false));
+    st.result=res; st.last=last;
+    if(w){ P.forEach(u=>d.hands[u]=boUnstack(d.hands[u])); g.status="done"; st.winner=w; st.phase="over"; st.bid=null; return; }
+    boDemoRound(g,nxt); st.turn=boPlaceTurnD(st);
+  }
+  function boDemoReveal(g,seat,by){
+    const st=g.state, d=demoE8[g.message_id], pile=d.hands[st.players[seat]].filter(c=>c[0]==="p"), k=st.shown[seat].length;
+    if(k>=pile.length) throw new Error("That stack is all flipped.");
+    const tile=pile[pile.length-1-k].slice(1); st.shown[seat].push(tile); const last={by,act:"flip",seat,tile};
+    if(tile==="B"){ boDemoResolve(g,false,seat,{...last,end:true}); return true; }
+    st.lit++; if(st.lit>=st.need){ boDemoResolve(g,true,null,{...last,end:true}); return true; }
+    st.last=last; return false;
+  }
+  function boDemoFlipStart(g,by){ const st=g.state, f=st.bid.seat;
+    Object.assign(st,{phase:"flip",flipper:f,need:st.bid.n,lit:0,turn:f,last:{by,act:"won",seat:f,n:st.bid.n}});
+    for(let k=0;k<st.piles[f];k++) if(boDemoReveal(g,f,st.players[f])) return; }
+  function boDemoMove(g,who,act){
+    const st=g.state, P=st.players, seat=P.indexOf(who), d=demoE8[g.message_id], total=st.piles.reduce((a,b)=>a+b,0);
+    if(g.status!=="active") throw new Error("This game isn't being played right now.");
+    if(seat<0) throw new Error("You're not playing in this game.");
+    if(act.place){
+      if(!(st.tiles[seat]>0)) throw new Error("You're out of tiles.");
+      if(st.phase==="place"){ if(st.placed[seat]) throw new Error("You already set your tile. Waiting on the others."); }
+      else if(st.phase==="play"){ if(st.turn!==seat) throw new Error("It's not your turn."); }
+      else throw new Error("Someone already made a call. Raise or drop out.");
+      const h=d.hands[who], k=h.indexOf(act.place); if(k<0) throw new Error("You don't have that tile in your hand.");
+      h.splice(k,1); h.push("p"+act.place); st.piles[seat]++; st.last={by:who,act:"place",seat};
+      if(st.phase==="place"){ st.placed[seat]=true; const nt=boPlaceTurnD(st); if(nt==null){ st.phase="play"; st.turn=st.starter; } else st.turn=nt; }
+      else st.turn=boNextD(st,seat,false);
+    } else if(act.call!==undefined){
+      if(st.phase!=="play"&&st.phase!=="bid") throw new Error("You can't call right now.");
+      if(st.turn!==seat) throw new Error("It's not your turn.");
+      const raising=st.phase==="bid", n=act.call;
+      if(!(n>=1)) throw new Error("Call at least 1.");
+      if(raising&&n<=st.bid.n) throw new Error(`Call higher than ${st.bid.n}, or drop out.`);
+      if(n>total) throw new Error(`There are only ${total} tiles on the table.`);
+      st.phase="bid"; st.bid={seat,n}; st.last={by:who,act:raising?"raise":"call",seat,n};
+      const nt=boNextD(st,seat,true); if(n>=total||nt===seat) boDemoFlipStart(g,who); else st.turn=nt;
+    } else if(act.pass){
+      if(st.phase!=="bid") throw new Error("Nobody has called yet."); if(st.turn!==seat) throw new Error("It's not your turn.");
+      st.passed[seat]=true; st.last={by:who,act:"pass",seat}; const nt=boNextD(st,seat,true);
+      if(nt===st.bid.seat) boDemoFlipStart(g,who); else st.turn=nt;
+    } else if(act.flip!==undefined){
+      const i=act.flip; if(st.phase!=="flip"||st.flipper!==seat) throw new Error("You're not the one flipping.");
+      if(st.shown[seat].length<st.piles[seat]) throw new Error("Flip your own stack first.");
+      if(i===seat||!(st.shown[i]?.length<st.piles[i])) throw new Error("That stack is all flipped.");
+      boDemoReveal(g,i,who);
+    }
+    e8DemoAfter(g);
+  }
+  // the bots (and "play for someone who's away")
+  function boDemoBot(g,forAway){
+    const st=g.state; if(g.status!=="active") return; const P=st.players, d=demoE8[g.message_id];
+    const who=st.phase==="place"?P.find((u,i)=>st.tiles[i]>0&&!st.placed[i]&&u!=="me"):P[st.turn];
+    if(!who||who==="me") return;
+    const seat=P.indexOf(who), h=d.hands[who], hand=h.filter(c=>c[0]!=="p"), pileN=h.filter(c=>c==="pN").length, myB=h.includes("pB"), total=st.piles.reduce((a,b)=>a+b,0);
+    const pick=()=>hand.includes("B")&&Math.random()<.3?"B":hand.includes("N")?"N":"B";
+    if(st.phase==="place") return boDemoMove(g,who,{place:pick()});
+    if(st.phase==="play"){ if(hand.length&&(Math.random()<.5||total<2)) return boDemoMove(g,who,{place:pick()});
+      return boDemoMove(g,who,{call:Math.max(1,Math.min(total,myB?Math.max(1,total-1):pileN+(Math.random()<.5?1:0)))}); }
+    if(st.phase==="bid"){ const want=myB?0:pileN+1; if(st.bid.n+1<=Math.min(total,want)&&Math.random()<.6) return boDemoMove(g,who,{call:st.bid.n+1}); return boDemoMove(g,who,{pass:true}); }
+    if(st.phase==="flip"){ const opts=P.map((u,i)=>i).filter(i=>i!==seat&&st.shown[i].length<st.piles[i]); if(opts.length) return boDemoMove(g,who,{flip:opts[Math.floor(Math.random()*opts.length)]}); }
+  }
   function e8DemoTake(d,u,k){ for(let i=0;i<k;i++){ if(!d.deck.length&&d.discard.length>1){ const top=d.discard.pop(); d.deck=d.discard.sort(()=>Math.random()-.5); d.discard=[top]; } if(!d.deck.length) break; d.hands[u].push(d.deck.shift()); } }
   function e8DemoDeal(g,mode){
     const deck=[]; for(const r of ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]) for(const su of ["S","H","D","C"]) deck.push(r+su);
@@ -689,6 +773,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     const who=g.state.players[g.state.turn];
     if(g.type==="bs"){ if(g.status==="active") setTimeout(()=>bsDemoBots(g),1300); return; }
     if(g.type==="mahjong"){ if(g.status==="active") setTimeout(()=>mjDemoBot(g),900); return; }
+    if(g.type==="blackout"){ if(g.status==="active") setTimeout(()=>boDemoBot(g),1000); return; }
     if(g.type==="lucky7"){ const f=g.state.freezer!=null?g.state.players[g.state.freezer]:null; if(g.status==="active"&&(f?f!=="me":who!=="me")) setTimeout(()=>l7DemoBot(g),1000); return; }
     if(g.status==="active"&&who!=="me") setTimeout(()=>g.type==="liarsdice"?ldDemoBot(g,who):e8DemoBot(g,who),900);
   }
@@ -744,8 +829,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async unpin(id){ const p=pins[id]; delete pins[id]; setTimeout(()=>fire("pin",{message_id:id},false),30); },
     async games(ids){ return ids.map(i=>games[i]).filter(Boolean).map(g=>JSON.parse(JSON.stringify(g))); },
     async createGame(room,type){
-      if(type==="eights"||type==="liarsdice"||type==="bs"||type==="lucky7"||type==="mahjong"){
-        const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="eights"?"Crazy Eights":type==="bs"?"BS":type==="lucky7"?"Lucky 7":type==="mahjong"?"Mahjong":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
+      if(type==="eights"||type==="liarsdice"||type==="bs"||type==="lucky7"||type==="mahjong"||type==="blackout"){
+        const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="eights"?"Crazy Eights":type==="bs"?"BS":type==="lucky7"?"Lucky 7":type==="mahjong"?"Mahjong":type==="blackout"?"Blackout":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
         games[m.id]={message_id:m.id,room,type,player_x:"me",player_o:null,status:"waiting",state:{players:["me"],host:"me"},moves:0,updated_at:iso()};
         ["vee","rook"].forEach((b,i)=>setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting"||g.state.players.includes(b)) return; g.state.players.push(b); g.moves++; fire("game",JSON.parse(JSON.stringify(g))); },700+i*700));
         return m;
@@ -757,7 +842,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       if(!other) setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting") return; g.player_o=Object.keys(r.members).find(u=>u!=="me")||"rook"; g.status="active"; fire("game",JSON.parse(JSON.stringify(g))); if(type==="kingscourt"&&g.player_x!=="me") setTimeout(()=>kcBotTurn(m.id),900); },1500);
       return m;
     },
-    async joinGame(id){ const g=games[id]; if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"){ if(g.status!=="waiting") throw new Error("This game already started."); if(!g.state.players.includes("me")) g.state.players.push("me"); g.moves++; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); return; } g.player_o="me"; g.status="active"; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); setTimeout(()=>demoBot(id),900); },
+    async joinGame(id){ const g=games[id]; if(g.type==="eights"||g.type==="liarsdice"||g.type==="bs"||g.type==="lucky7"||g.type==="mahjong"||g.type==="blackout"){ if(g.status!=="waiting") throw new Error("This game already started."); if(!g.state.players.includes("me")) g.state.players.push("me"); g.moves++; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); return; } g.player_o="me"; g.status="active"; setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30); setTimeout(()=>demoBot(id),900); },
     async playTicTacToe(id,cell){
       const g=games[id], mark=g.player_x==="me"?"x":"o";
       if(g.status!=="active"||g.state.turn!==mark||g.state.board[cell]) throw new Error("Not your turn.");
@@ -803,6 +888,12 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async l7Freeze(id,seat){ l7DemoMove(games[id],"me",{freeze:seat}); },
     async l7Skip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); },
     async mjStart(id){ const g=games[id]; if(g.state.host!=="me") throw new Error("Only the person who started the game can deal."); mjDemoBegin(g); e8DemoAfter(g); },
+    async boStart(id){ const g=games[id]; if(g.state.host!=="me") throw new Error("Only the person who started the game can deal."); boDemoBegin(g); e8DemoAfter(g); },
+    async boPlace(id,t){ boDemoMove(games[id],"me",{place:t}); },
+    async boCall(id,n){ boDemoMove(games[id],"me",{call:n}); },
+    async boPass(id){ boDemoMove(games[id],"me",{pass:true}); },
+    async boFlip(id,seat){ boDemoMove(games[id],"me",{flip:seat}); },
+    async boSkip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); boDemoBot(g,true); },
     async mjDraw(id){ return mjDemoMove(games[id],"me",{draw:true}); },
     async mjDiscard(id,t){ mjDemoMove(games[id],"me",{discard:t}); },
     async mjWin(id){ mjDemoMove(games[id],"me",{win:true}); },
@@ -815,9 +906,9 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async eightsPass(id){ e8DemoMove(games[id],"me",{pass:true}); },
     async eightsSkip(id){ const g=games[id]; if(Date.now()-new Date(g.updated_at).getTime()<120000) throw new Error("Give them a couple of minutes first."); const n=g.state.players.length; g.state.last={by:"me",skipped:g.state.players[g.state.turn]}; g.state.turn=(g.state.turn+1)%n; g.state.drew=false; e8DemoAfter(g); },
     async rematch(id){
-      if(games[id].type==="eights"||games[id].type==="liarsdice"||games[id].type==="bs"||games[id].type==="lucky7"||games[id].type==="mahjong"){ const old=games[id], r=rooms[old.room]; const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:old.type==="eights"?"Crazy Eights":old.type==="bs"?"BS":old.type==="lucky7"?"Lucky 7":old.type==="mahjong"?"Mahjong":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
+      if(games[id].type==="eights"||games[id].type==="liarsdice"||games[id].type==="bs"||games[id].type==="lucky7"||games[id].type==="mahjong"||games[id].type==="blackout"){ const old=games[id], r=rooms[old.room]; const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:old.type==="eights"?"Crazy Eights":old.type==="bs"?"BS":old.type==="lucky7"?"Lucky 7":old.type==="mahjong"?"Mahjong":old.type==="blackout"?"Blackout":"Liar's Dice",created_at:iso()}; r.msgs.push(m);
         games[m.id]={message_id:m.id,room:old.room,type:old.type,player_x:"me",player_o:null,status:"waiting",state:{players:[...old.state.players],host:"me"},moves:0,updated_at:iso()};
-        if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else if(old.type==="mahjong") mjDemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
+        if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else if(old.type==="mahjong") mjDemoBegin(games[m.id]); else if(old.type==="blackout") boDemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
       const old=games[id], r=rooms[old.room], label=old.type==="kingscourt"?"King's Court":old.type==="mancala"?"Mancala":old.type==="go"?"Go":"Tic-tac-toe";
       const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:label,created_at:iso()}; r.msgs.push(m);
       const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,mv_x:0,mv_o:0,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : old.type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
@@ -1668,7 +1759,7 @@ function openGamesTray(pick){
 
 /* --- 🎲 surprise me: something fun to try right now --- */
 const SURPRISE_WORDS=[["let's go","🏆"],["boom","💥"],["congrats","🎉"],["good night","🌠"],["lol","😂"],["lit","🔥"],["mwah","💋"],["love you","💖"]];
-const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7",mahjong:"Mahjong",go:"Go"};
+const GAME_NAMES={tictactoe:"Tic-tac-toe",kingscourt:"King's Court",eights:"Crazy Eights",liarsdice:"Liar's Dice",mancala:"Mancala",bs:"BS",lucky7:"Lucky 7",mahjong:"Mahjong",go:"Go",blackout:"Blackout"};
 let lastSurprise=-1;
 function surpriseMe(){
   if(!room) return;
