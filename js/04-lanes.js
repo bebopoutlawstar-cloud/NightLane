@@ -84,6 +84,7 @@ function laneChatRow(r){
 function paintLanes(){
   const box=$("laneList"); if(!box) return; box.replaceChildren();
   show($("laneEmpty"),!myLanesList.length);
+  { const how=$("laneHow"); if(how&&!how.dataset.touched&&how.open!==!myLanesList.length){ how.dataset.auto="1"; how.open=!myLanesList.length; } }   // the explainer starts open until you have a Lane (then it folds up, unless you opened it yourself)
   myLanesList.forEach(l=>{
     const card=el("div","lanecard"), head=el("div","lanehead"), info=el("span","ln-info");
     info.append(el("b","",l.name),el("small","",`${l.members} ${+l.members===1?"person":"people"}${l.my_role!=="member"?" · you're the "+(l.my_role==="owner"?"owner":"helper"):""}`));
@@ -878,3 +879,5 @@ $("gameList").querySelectorAll(".gamepick").forEach(bt=>bt.onclick=async()=>{
   catch(err){ $("status").textContent="Couldn't start a game: "+err.message; }
 });
 $("trayPoll").onclick=()=>{ closeTray(); openPollSheet(); };
+
+$("laneHow")?.addEventListener("toggle",e=>{ const d=e.currentTarget.dataset; if(d.auto){ delete d.auto; return; } d.touched="1"; });   // (the toggle event also fires when the code opens it)
