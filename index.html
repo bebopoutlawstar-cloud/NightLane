@@ -3681,6 +3681,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 #lofiNowRow #lofiSkip{flex:none;width:auto!important;min-width:0;padding:6px 12px;margin:0;font-size:13px}
 .growlock{opacity:.5;position:relative}
 .growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
+#lofiQuick.growlock::after,#callBtn.growlock::after{content:"🔒";position:absolute;right:-5px;top:-7px;font-size:10px;letter-spacing:0}   /* icon buttons: just a small lock */
 .growroad #growRoad{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;padding:0 18px 0 6px}   /* clear of the slanted sheet edge */
 .growstep{display:grid;grid-template-columns:44px 1fr 20px;gap:8px;align-items:center;font-size:14px;text-align:left;opacity:.6}
 .growstep.got{opacity:1}
@@ -14730,9 +14731,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19l";
+const APP_VERSION="2026.10.19m";
 const CHANGELOG=[
   
+    {v:"2026.10.19m", title:"Longer level road 🛣️", items:["🛣️ New accounts unlock more as they level up, so there's less to take in on day one: 🎧 Radio at level 2, 📞 Calls at level 3, and making your own Lanes at level 5.","📞 You can always answer a call, join a group call or voice lounge, and hang out in a friend's Lane, whatever your level.","🙌 Accounts made before the level road keep everything."]},
     {v:"2026.10.19l", title:"Bigger Lane tabs 🛣️", items:["🛣️ On computers, the Lane side chat tabs at the top of a chat are a bit bigger, and they (and the \"is here\" bar) no longer get squashed flat."]},
     {v:"2026.10.19k", title:"Room themes on computers 🌌", items:["🌌 Room backgrounds on computers now match your phone: the Synthwave grid stays on the floor, the Sunset sun sits low, and the Burning city skyline is back at the bottom instead of hanging from the top.","✨ Stars on a computer now has its own twinkling starfield (it used to be a plain dark screen with the odd shooting star).","🔁 Spider-Verse and the ink map now follow your account, so your phone and computer stay in the same look.","💻 On computers, the top bar, the Transmit bar and the chat's scrollbar now reach all the way across the chat pane, with no open gaps at the sides."]},
     {v:"2026.10.19j", title:"Laptop fixes 💻", items:["💻 On computers: slim dark scrollbars everywhere instead of chunky white ones, and the \"is here\" bar no longer shows scroll arrows.","💻 Touch-screen laptops with a trackpad now get the full computer layout.","🕷️ Spider-Verse theme on computers: calmer background, plain yellow caption boxes, slimmer outlines and bigger text, so chats read cleaner.","🌙 Browsers with \"force dark pages\" (like Opera GX) no longer repaint NightLane's colors."]},
@@ -15563,9 +15565,12 @@ const _afcLofi=audioForCapture; audioForCapture=function(on){ LOFI.capture=!!on;
 const GROW_START="2026-10-17T00:00:00Z";   // accounts created after this follow the level road
 const GROW_STEPS=[
   {lvl:2, ids:["trayGames","trayPoll"],                 label:"🎮 Games and 📊 Polls",            where:"the ➕ menu in any chat"},
+  {lvl:2, ids:["lofiQuick","lofiBtn"],                  label:"🎧 Radio",                          where:"the 🎧 button next to your name"},
   {lvl:3, ids:["openBacklog","trayBacklog","trayCard"], label:"🎬 Media Backlog and 💌 Cards",     where:"your Profile and the ➕ menu"},
-  {lvl:4, ids:["openHabits","openQuiz","openSignal"],   label:"🎯 Habits, 🃏 Who are you? and 📡 Night Signal", where:"your Profile"}
-];   // (your Partner egg isn't locked: it hatches from chatting, so it already grows with you)
+  {lvl:3, ids:["callBtn"],                              label:"📞 Calls (voice, video and group)", where:"the 📞 button at the top of a chat"},
+  {lvl:4, ids:["openHabits","openQuiz","openSignal"],   label:"🎯 Habits, 🃏 Who are you? and 📡 Night Signal", where:"your Profile"},
+  {lvl:5, ids:["laneNewBtn"],                           label:"🛣️ Making your own Lanes",          where:"the Lanes tab"}
+];   // locks only STARTING these: answering a call, joining a group call or voice lounge, and being in a friend's Lane always work   // (your Partner egg isn't locked: it hatches from chatting, so it already grows with you)
 const GROW_PERKS=[
   {lvl:6,  label:"🎤 Voice notes up to 3 minutes"},
   {lvl:10, label:"🎤 Voice notes up to 5 minutes"}
