@@ -3501,6 +3501,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .nssq:hover,.nssq:focus-visible{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 #nsEnds{width:100%;display:flex;justify-content:space-between;font-family:"Silkscreen",var(--tech);font-size:10px;color:var(--muted);margin-top:6px}
 .nsres #nsAsk{font-family:"Pixelify Sans",var(--body)!important;font-size:30px!important;letter-spacing:0!important;margin:6px 0 10px;text-shadow:0 0 12px currentColor}
+.signalchip{display:inline-flex;align-items:center;gap:6px;font-family:"Silkscreen",var(--tech);font-size:11px;letter-spacing:1px;color:var(--c);border:2px solid var(--c);padding:3px 8px;background:#07041a;box-shadow:0 0 8px color-mix(in srgb,var(--c) 45%,transparent);margin-top:4px}
+.signalchip .nsglyph .ng-halo{animation:none;opacity:.5}
+.growlock{opacity:.5;position:relative}
+.growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
+.growroad #growRoad{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;padding:0 18px 0 6px}   /* clear of the slanted sheet edge */
+.growstep{display:grid;grid-template-columns:44px 1fr 20px;gap:8px;align-items:center;font-size:14px;text-align:left;opacity:.6}
+.growstep.got{opacity:1}
+.growstep b{font-family:var(--tech);font-size:10px;color:var(--cyan)}
+.growstep i{font-style:normal;text-align:right}
 .nsres #nsScale{padding:0 18px 0 22px;box-sizing:border-box}   /* keep the bar labels clear of the slanted sheet edge */
 .nsres .nsbar{grid-template-columns:76px 1fr}
 #nsGlyph{display:flex;justify-content:center;margin:8px 0 4px}
@@ -3767,6 +3776,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <input type="file" id="avatarPicker" accept="image/*" class="sr">
     <button class="linkbtn" type="button" id="changePhoto">📷 Change photo</button>
     <div class="xpbox"><div class="xphead"><b id="xpLevel">LV 1</b><span id="xpTitle">Newcomer</span></div><div class="xpbar"><i id="xpFill"></i></div><div class="xptext" id="xpText"></div><button type="button" class="xpmore" id="xpMore" aria-expanded="false" aria-controls="xpWays">How to earn XP ▾</button><div class="xpways" id="xpWays"></div></div>
+    <details class="proflist growroad"><summary id="growSummary">🛣️ Level road</summary><div id="growRoad"></div></details>
 
     <div class="proftabs" role="tablist" aria-label="Profile sections">
       <button type="button" role="tab" data-tab="me">🧑 Me</button>
@@ -4210,6 +4220,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h2 id="personName"></h2>
     <span class="pronouns hidden" id="personPronouns"></span>
     <span class="relstatus hidden" id="personRelStatus"></span>
+    <span class="signalchip hidden" id="personSignal"></span>
     <div class="plinks" id="personLinks"></div>
     <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
@@ -5546,6 +5557,7 @@ const live = {
   async updateBacklog(id,patch){ must(await sb.from("backlog_items").update(patch).eq("id",id)); },
   async deleteBacklog(id){ must(await sb.from("backlog_items").delete().eq("id",id)); },
   async mySignal(){ return must(await sb.from("night_signal").select("*").eq("user_id",user.id).maybeSingle()); },
+  async signalOf(uid){ const r=must(await sb.from("night_signal").select("top").eq("user_id",uid).maybeSingle()); return r?.top||null; },   // friends only (the database checks)
   async saveSignal(scores,top){ must(await sb.from("night_signal").upsert({user_id:user.id,scores,top,taken_at:new Date().toISOString()},{onConflict:"user_id"})); },
   async afterHours(){ const r=must(await sb.from("night_signal_after_hours").select("answer").eq("user_id",user.id).maybeSingle()); return r?.answer||""; },
   async saveAfterHours(answer){
@@ -5844,7 +5856,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   return {
     async session(){ return user; },
     onAuth(cb){ listeners.push(cb); },
-    async signUp(username,email){ user={id:"me",email,user_metadata:{username}}; people.me={id:"me",username,avatar_url:null,invite_token:"demo-me"}; people.rook.last_seen=new Date(Date.now()-7*60000).toISOString(); listeners.forEach(f=>f(user,"SIGNED_IN")); return "in"; },
+    async signUp(username,email){ user={id:"me",email,user_metadata:{username},created_at:new Date().toISOString()}; people.me={id:"me",username,avatar_url:null,invite_token:"demo-me"}; people.rook.last_seen=new Date(Date.now()-7*60000).toISOString(); listeners.forEach(f=>f(user,"SIGNED_IN")); return "in"; },
     async signIn(email){ const n=email.includes("@")?(email.split("@")[0]||"you"):email; user={id:"me",email,user_metadata:{username:n}}; people.me=people.me||{id:"me",username:n,avatar_url:null}; listeners.forEach(f=>f(user,"SIGNED_IN")); },
     async signOut(){ user=null; listeners.forEach(f=>f(null,"SIGNED_OUT")); },
     async resetPassword(){}, async updatePassword(){},
@@ -6058,6 +6070,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async updateBacklog(id,patch){ const r=(demoBl.me||[]).find(x=>x.id===id); if(r) Object.assign(r,patch); },
     async deleteBacklog(id){ demoBl.me=(demoBl.me||[]).filter(x=>x.id!==id); },
     async mySignal(){ return demoSignal.me?{...demoSignal.me}:null; },
+    async signalOf(uid){ return uid==="me"?(demoSignal.me?.top||null):({rook:"static",vee:"glow",kai:"beacon"}[uid]||null); },
     async saveSignal(scores,top){ demoSignal.me={user_id:"me",scores,top,taken_at:iso()}; },
     async afterHours(){ return demoSignal.ah||""; },
     async saveAfterHours(answer){ demoSignal.ah=answer||""; },
@@ -6152,7 +6165,7 @@ function paintFace(node,p){
   if(bday){ const c=document.createElement("span"); c.className="cake"; c.textContent="🎂"; c.setAttribute("aria-hidden","true"); node.append(c); node.title=`It's ${p?.username||"their"}'s birthday today!`; }
   else if(node.title&&node.title.startsWith("It's ")) node.removeAttribute("title");
 }
-function paintHomeLevel(){ try{ const L=xpLevel(xpData().xp); $("homeLevel").textContent="LV "+L.lvl; }catch(e){} }
+function paintHomeLevel(){ try{ const L=xpLevel(xpData().xp); $("homeLevel").textContent="LV "+L.lvl; }catch(e){} try{ paintGrow(); }catch(e){} }
 function paintMe(){ paintHomeLevel(); paintMyStatus();
   ["meFace","openProfile2","profFace"].forEach(id=>paintFace($(id),meProfile));
   $("meName").textContent=meProfile?.username||""; $("profName").textContent=meProfile?.username||""; $("profEmail").textContent=user?.email||"";
@@ -8474,7 +8487,7 @@ $("micBtn").onclick=async()=>{
   mr.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   rec={mr,stream,chunks,start:Date.now(),cancelled:false,timer:setInterval(()=>{
     const s=(Date.now()-rec.start)/1000; $("recTime").textContent=fmtDur(s);
-    if(s>=MAX_VOICE_SECONDS) finishRecording(true);
+    if(s>=maxVoiceSeconds()) finishRecording(true);
   },250)};
   mr.start();   // one continuous recording (saving it in little 1/4-second pieces made the file stutter on some phones)
   $("recTime").textContent="0:00"; show($("composeRow"),false); show($("recBar"));
@@ -9439,6 +9452,7 @@ function paintPerson(){
     });
     paintPersonLinks(card?.links); }
   paintPersonPartner(uid);
+  paintPersonSignal(uid);
   paintPersonJoin(uid);
   $("personName").textContent=nick||p.username;
   { const sl=statusLine(p); $("personStatus").textContent=sl; show($("personStatus"),!!sl); }
@@ -12047,7 +12061,7 @@ function gainXP(kind,mult=1){
   const now=xpLevel(d.xp);
   if(!$("profile").classList.contains("hidden")) paintXP(); paintHomeLevel();
   if(now.lvl>before) whenEffectsQuiet(()=>{   // wait for any easter egg on screen to finish first, so they don't pile up
-    setTimeout(checkUnlocks,2500); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
+    setTimeout(checkUnlocks,2500); setTimeout(()=>growCelebrate(before,now.lvl),4800); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
     const t=el("div","toast mention"); const body=el("span","tbody"); body.append(el("div","ttitle",`⬆ Level ${now.lvl} · ${LEVEL_TITLES[Math.min(now.lvl-1,LEVEL_TITLES.length-1)]}`), el("div","ttext","Keep going, you're on a roll."));
     { const ic=el("span","sx-lock"); ic.append(pxIcon("goldkey",32,"")); t.append(ic,body); } $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },5000);
     if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
@@ -13916,9 +13930,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18f";
+const APP_VERSION="2026.10.18g";
 const CHANGELOG=[
   
+    {v:"2026.10.18g", title:"The app grows with you 🌱", items:["🛣️ New: the Level road, in your Profile under your XP. See what unlocks as you level up.","⭐ Level perks for everyone: voice notes up to 3 minutes at level 6, and up to 5 minutes at level 10.","📡 Friends' profile cards now show their Night Signal.","🌱 New accounts start simple and unlock games, polls, the backlog, cards, habits and quizzes as they level up. Already here? You keep everything."]},
     {v:"2026.10.18f", title:"Night Signal polish 📡", items:["📡 Your Night Signal bars no longer get clipped by the angled edge of the screen."]},
     {v:"2026.10.18e", title:"Night Signal 📡", items:["📡 New: Night Signal! Profile → 📡 Night Signal. Answer 28 \"how likely are you to…\" questions and find your signal: Spark, Glow, Drift, Static, Beacon, Shade or Pulse.","🌙 After Hours: one last question after your result. Only you can ever see your answer.","↻ Retake it any time from your Profile."]},
     {v:"2026.10.18d", title:"Easier to spot 🔒", items:["🔒 Private backlog items now show a pink \"🔒 Private\" button, so you can tell at a glance what only you can see."]},
@@ -14464,6 +14479,65 @@ QX.rankup=function(name,arcana,rank){
   setTimeout(()=>w.remove(),3000);
 };
 
+/* ================= THE APP GROWS WITH YOU 🌱 =================
+   New accounts start simple (chat, DMs, stickers, GIFs, photos) and features unlock as they level up.
+   Anyone who joined before GROW_START keeps everything. Only STARTING a feature is locked: a friend's game,
+   poll or card always works for you. Perks at higher levels are for everyone. */
+const GROW_START="2026-10-17T00:00:00Z";   // accounts created after this follow the level road
+const GROW_STEPS=[
+  {lvl:2, ids:["trayGames","trayPoll"],                 label:"🎮 Games and 📊 Polls",            where:"the ➕ menu in any chat"},
+  {lvl:3, ids:["openBacklog","trayBacklog","trayCard"], label:"🎬 Media Backlog and 💌 Cards",     where:"your Profile and the ➕ menu"},
+  {lvl:4, ids:["openHabits","openQuiz","openSignal"],   label:"🎯 Habits, 🃏 Who are you? and 📡 Night Signal", where:"your Profile"}
+];   // (your Partner egg isn't locked: it hatches from chatting, so it already grows with you)
+const GROW_PERKS=[
+  {lvl:6,  label:"🎤 Voice notes up to 3 minutes"},
+  {lvl:10, label:"🎤 Voice notes up to 5 minutes"}
+];
+function maxVoiceSeconds(){ const l=myLevel(); return l>=10?300:l>=6?180:MAX_VOICE_SECONDS; }
+function growNew(){ const t=Date.parse(user?.created_at||""); return isFinite(t)&&t>Date.parse(GROW_START); }
+function growNeed(id){   // the level a button needs, or 0 if it's open
+  if(!growNew()) return 0;
+  const st=GROW_STEPS.find(s=>s.ids.includes(id));
+  return st&&myLevel()<st.lvl ? st.lvl : 0;
+}
+function paintGrow(){
+  GROW_STEPS.forEach(st=>st.ids.forEach(id=>{
+    const b=$(id); if(!b) return; const need=growNeed(id);
+    b.classList.toggle("growlock",!!need); b.dataset.lvl=need||"";
+    if(need) b.setAttribute("aria-disabled","true"); else b.removeAttribute("aria-disabled");
+  }));
+  const road=$("growRoad"); if(!road) return; road.innerHTML="";
+  const lvl=myLevel(), fresh=growNew();
+  const row=(need,label,sub)=>{ const ok=lvl>=need||(!fresh&&sub!=="perk"); const r=el("div","growstep"+(ok?" got":""));
+    r.append(el("b","","LV "+need), el("span","",label), el("i","",ok?"✓":"🔒")); return r; };
+  if(!fresh) road.append(el("p","note","You were here early, so every feature is already yours. Perks still unlock as you level up."));
+  GROW_STEPS.forEach(st=>road.append(row(st.lvl,st.label,"feature")));
+  GROW_PERKS.forEach(pk=>road.append(row(pk.lvl,pk.label,"perk")));
+  const got=GROW_PERKS.filter(pk=>lvl>=pk.lvl).length+(fresh?GROW_STEPS.filter(st=>lvl>=st.lvl).length:GROW_STEPS.length);
+  $("growSummary").textContent=`🛣️ Level road: ${got}/${GROW_STEPS.length+GROW_PERKS.length}`;
+}
+// a locked button explains itself instead of opening (capture phase runs before the button's own click)
+document.addEventListener("click",e=>{
+  const b=e.target.closest?.(".growlock"); if(!b) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  const st=GROW_STEPS.find(s=>s.ids.includes(b.id));
+  const L=xpLevel(xpData().xp);
+  $("status").textContent=`🔒 Level ${b.dataset.lvl} unlocks ${st?st.label:"this"}. You're level ${L.lvl}: keep chatting!`;
+  growToast("🔒 Unlocks at level "+b.dataset.lvl, `You're level ${L.lvl} · ${L.need-L.rem} XP to the next level`);
+},true);
+function growToast(title,text){
+  const t=el("div","toast mention"); const body=el("span","tbody"); body.append(el("div","ttitle",title), el("div","ttext",text));
+  const ic=el("span","sx-lock"); ic.append(pxIcon("goldkey",32,"")); t.append(ic,body);
+  $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },6000);
+}
+function growCelebrate(from,to){   // called after a level-up: say what just opened
+  paintGrow();
+  const news=[];
+  if(growNew()) GROW_STEPS.filter(st=>st.lvl>from&&st.lvl<=to).forEach(st=>news.push([`🔓 New: ${st.label}`,`Find it in ${st.where}.`]));
+  GROW_PERKS.filter(pk=>pk.lvl>from&&pk.lvl<=to).forEach(pk=>news.push(["⭐ New perk",pk.label]));
+  news.forEach(([a,b],i)=>setTimeout(()=>growToast(a,b),i*1400));
+}
+
 /* ================= NIGHT SIGNAL 📡 ================= */
 const NS_QUESTIONS=[
   {text:"be the first to talk in a new group chat", signal:"spark"},
@@ -14578,6 +14652,17 @@ function nsShowResult(scores, top){
   nsResultExtras(top);
 }
 
+/* a friend's Night Signal on their profile card (the database only answers for friends who added you) */
+async function paintPersonSignal(uid){
+  const tok=personPaintTok, c=$("personSignal"); show(c,false); c.innerHTML="";
+  let top=null; try{ top=await api.signalOf(uid); }catch(e){}
+  if(personUid!==uid||tok!==personPaintTok||!top||!NS_INFO[top]) return;
+  const info=NS_INFO[top];
+  c.style.setProperty("--c",info.color);
+  c.append(nsGlyph(top,2), el("span","",`${info.name}`));
+  c.title=info.blurb; c.setAttribute("aria-label",`Night Signal: ${info.name}. ${info.blurb}`);
+  show(c,true);
+}
 /* ---- Night Signal: finishing touches (pixel icon, saving, After Hours, retake) ---- */
 const NS_GLYPHS={   // 9×9 pixel art from the concept board: # = lit pixel
   spark:  ["....##...","...##....","..##.....",".#######.","....##...","...##....","..##.....",".##......","........."],
