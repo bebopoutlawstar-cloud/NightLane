@@ -185,7 +185,7 @@ function bootSequence(){
   if(!isDesktop()) return;
   if(typeof hideSplash==="function") hideSplash(); try{ if(sessionStorage.getItem("nl-booted")) return; sessionStorage.setItem("nl-booted","1"); }catch(e){}
   const lines=["NIGHTLANE//OS  v1.0  —  neon shell","> initializing uplink ......... OK","> resolving signal path ....... OK","> loading cutout renderer ..... OK","> mounting secret vault ....... 99 entries","> checking clearance .......... netrunner","",`> ${new Date().toLocaleString([],{weekday:"long",hour:"numeric",minute:"2-digit"})}`,"> welcome back. jack in when ready."];
-  const b=document.createElement("div"); b.className="boot"; b.innerHTML=`<h1>NIGHTLANE</h1><pre id="bootText"></pre><span class="cur"></span><div class="skip">click or press any key to skip</div>`; document.body.append(b);
+  const b=document.createElement("div"); b.className="boot"; b.innerHTML=`<h1>NIGHTLANE</h1><pre id="bootText"></pre><span class="cur"></span><div class="skip">▸ CLICK OR PRESS ANY KEY TO ENTER</div><div class="bootbar"><i></i></div>`; document.body.append(b);
   const pre=b.querySelector("#bootText"); let li=0,ci=0,done=false;
   const chime=(f,len)=>{ try{ const ac=window.__sxac||(window.__sxac=new (window.AudioContext||window.webkitAudioContext)()); const o=ac.createOscillator(),g=ac.createGain(); o.type="square"; o.frequency.value=f; g.gain.value=.02; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+len); }catch(e){} };
   const finish=()=>{ if(done) return; done=true; b.classList.add("out"); setTimeout(()=>b.remove(),520); removeEventListener("keydown",finish); };
@@ -193,6 +193,7 @@ function bootSequence(){
     const line=lines[li]; if(ci<line.length){ pre.textContent+=line[ci++]; if(ci%3===0) chime(600+Math.random()*300,.01); setTimeout(tick,line.startsWith(">")?8:22); }
     else { pre.textContent+="\n"; li++; ci=0; setTimeout(tick,line.includes("OK")?90:220); } };
   b.onclick=finish; addEventListener("keydown",finish); setTimeout(tick,300);
+  setTimeout(finish,3600);   // never make anyone wait: it lets you in by itself after ~3.5 seconds (the bar along the bottom shows how long)
 }
 bootSequence();
 

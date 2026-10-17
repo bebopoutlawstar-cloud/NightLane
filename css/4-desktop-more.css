@@ -116,7 +116,11 @@ body.desktop #authCard .tabs .tab{font-family:inherit;font-size:14px}
 .boot::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.7));pointer-events:none}
 .boot pre{margin:0;white-space:pre-wrap;font:inherit}
 .boot .cur{display:inline-block;width:.6em;height:1.1em;background:var(--term);vertical-align:-2px;animation:sxblink .9s steps(1) infinite}
-.boot .skip{position:absolute;right:20px;bottom:16px;opacity:.6;font-size:12px}
+.boot .skip{position:absolute;left:0;right:0;bottom:34px;text-align:center;font-size:16px;font-weight:700;letter-spacing:2px;color:var(--term,#7CFF6B);text-shadow:0 0 10px rgba(124,255,107,.8);z-index:3;animation:bootpulse 1.4s ease-in-out infinite alternate}
+@keyframes bootpulse{to{opacity:.55}}
+.boot .bootbar{position:absolute;z-index:3;left:8vw;right:8vw;bottom:18px;height:4px;background:rgba(124,255,107,.18)}
+.boot .bootbar i{display:block;height:100%;width:0;background:var(--term,#7CFF6B);box-shadow:0 0 8px var(--term,#7CFF6B);animation:bootfill 3.6s linear forwards}
+@keyframes bootfill{to{width:100%}}
 .boot.out{animation:bootout .5s ease forwards}
 @keyframes bootout{to{opacity:0;transform:scaleY(.002)}}
 .boot h1{font-family:var(--num);font-size:56px;color:#fff;letter-spacing:2px;margin:0 0 10px;text-shadow:-3px 0 var(--cyan),4px 4px var(--mag)}

@@ -550,6 +550,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20f", title:"Quicker start on PC 💻", items:["💻 The computer start-up screen now lets you in by itself after about 3 seconds (a bar shows how long), and says clearly that you can click or press any key to enter."]},
     {v:"2026.10.20e", title:"Lanes, explained 🛣️", items:["🛣️ The Lanes tab now explains the difference: a Room is one chat, a Lane is your crew's home with several chats inside (like a Discord server, but simpler). Tap \"Rooms vs Lanes\" at the top of the tab."]},
     {v:"2026.10.20d", title:"Get the app 📲", items:["📲 New download page at nightlane.chat/download: one place to get NightLane on Android (Google Play), iPhone and computers, with a one-tap Install button where your browser allows it.","🔑 The sign-in screen now has a big Get the app button, and the Install sheet links to the full download page."]},
     {v:"2026.10.20c", title:"Lanes tab click 🔊", items:["🔊 The Lanes tab now makes the same click as Rooms, DMs and Friends when you switch to it."]},
