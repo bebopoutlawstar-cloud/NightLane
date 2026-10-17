@@ -2030,13 +2030,21 @@ body.desktop #authCard .tabs .tab{font-family:inherit;font-size:14px}
 /* keyboard hint chips */
 .kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid rgba(124,255,107,.5);padding:0 5px;color:var(--term)}
 body.desktop #chat .feed,body.desktop #chat .compose,body.desktop #chat .top,body.desktop #chat .pinbar,body.desktop #chat .catchup{max-width:820px;width:100%;margin-left:auto;margin-right:auto}
+/* the top bar, pinned bar and Transmit bar run edge to edge across the chat pane (only the messages stay a readable width) */
+body.desktop #chat .compose,body.desktop #chat .top,body.desktop #chat .pinbar{max-width:none;margin-left:0;margin-right:0;box-sizing:border-box}
+/* the message list fills the pane too (so its scrollbar sits on the pane's edge), with the messages kept to a readable column in the middle */
+body.desktop #chat .feed{max-width:none;margin-left:0;margin-right:0;box-sizing:border-box;padding-left:max(14px,calc(50% - 410px));padding-right:max(14px,calc(50% - 410px))}
 body.desktop .bubble{max-width:520px}
 /* ===== desktop fixes: full-height panes, backgrounds, compact date ===== */
 body.desktop .deskframe{grid-template-rows:minmax(0,1fr);height:100dvh;overflow:hidden}
 body.desktop #front,body.desktop #chat{height:100%;min-height:0}
 body.desktop #chat{display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
 body.desktop #chat .feed{flex:1 1 auto;min-height:0}
-body.desktop #chat::before,body.desktop #chat::after{position:absolute;inset:0;z-index:-1}
+body.desktop #chat::before,body.desktop #chat::after{position:absolute;z-index:-1}   /* (no inset here: it was stretching each theme's sun, skyline and grid to fill the whole pane) */
+/* 🌌 Stars on a computer: on phones the starfield behind the app shows through; the computer frame hides it, so the room draws its own */
+body.desktop #chat[data-bg="stars"]::before{background:radial-gradient(ellipse at 80% 0%,rgba(80,60,200,.35),transparent 55%),radial-gradient(ellipse at 10% 100%,rgba(0,140,200,.18),transparent 50%),linear-gradient(180deg,#07041A,#140A3A)}
+body.desktop #chat[data-bg="stars"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 1.6px),radial-gradient(circle,rgba(0,240,255,.9) 0 1px,transparent 1.6px),radial-gradient(circle,rgba(255,255,255,.7) 0 1.4px,transparent 2.2px),radial-gradient(circle,rgba(255,61,139,.8) 0 1px,transparent 1.6px);background-size:97px 89px,151px 137px,233px 211px,311px 173px;background-position:0 0,40px 60px,120px 30px,70px 140px;animation:twinkle 3.2s ease-in-out infinite alternate}
+body.desktop #chat[data-bg="stars"]>.bgfx::before{background-image:radial-gradient(circle,rgba(255,255,255,.45) 0 .8px,transparent 1.3px);background-size:41px 47px;opacity:.6}
 body.desktop #chat .compose{flex:none}
 body.desktop #front.logged .stamp{display:none}
 .deskdate{display:none}
@@ -5791,6 +5799,8 @@ const live = {
     if(r.error&&/tz/.test(r.error.message||"")) return must(await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana").in("id",ids));
     return must(r); },
   async saveTz(uid,tz){ await sb.from("profiles").update({tz}).eq("id",uid); },
+  async getLook(uid){ const r=await sb.from("profiles").select("look").eq("id",uid).maybeSingle(); if(r.error) return undefined; return r.data?.look??null; },   // undefined = look-sync.sql not run yet
+  async setLook(look){ const r=await sb.rpc("set_my_look",{p_look:look}); if(r.error&&!/set_my_look|function|schema cache/i.test(r.error.message||"")) throw r.error; },
   async setStatus(uid,emoji,text,until){
     const row={status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null};
     const r=await sb.from("profiles").update({...row,status_until:(emoji||text)&&until?until:null}).eq("id",uid);
@@ -6308,6 +6318,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async adminDeleteMessage(mid){ for(const r of Object.values(rooms)) r.msgs=r.msgs.filter(m=>m.id!==mid); demoReports.filter(x=>x.message_id===mid).forEach(r=>r.status="handled"); setTimeout(()=>fire("msgGone",mid),30); },
     async roomIcons(){ return Object.entries(rooms).filter(([,r])=>r.members.me&&r.icon_url).map(([code,r])=>({code,icon_url:r.icon_url})); },
     async saveTz(){},
+    async getLook(){ return null; },
+    async setLook(){},
     async setNickname(room,uid,nick){ rooms[room].members[uid].nick=nick||null; setTimeout(()=>fire("member",{user_id:uid,last_read_at:rooms[room].members[uid].read,nickname:nick||null}),30); },
     async pins(room){ return Object.values(pins).filter(p=>p.room===room).sort((a,b)=>a.created_at<b.created_at?1:-1); },
     async pin(room,id){ pins[id]={room,message_id:id,pinned_by:"me",created_at:iso()}; setTimeout(()=>fire("pin",pins[id],true),30); },
@@ -6635,6 +6647,7 @@ async function refreshMe(){
   meProfile=p||(cached&&cached.id===user.id?cached:null)||{id:user.id,username:user.user_metadata?.username||"you",avatar_url:null};
   cache.set(user.id,meProfile); paintMe(); applyTheme(meProfile.theme||savedTheme());
   const tz=myTz(); if(tz&&meProfile.tz!==tz){ meProfile.tz=tz; api.saveTz(user.id,tz).catch(()=>{}); }   // so friends see your times in theirs
+  try{ LOOKSYNC.pull(); }catch(e){}
 }
 
 /* ================= AUTH ================= */
@@ -12729,6 +12742,27 @@ const VERSE={
 };
 try{ if(LS.get(VERSE.KEY)==="1"&&LS.get(INKMAP.KEY)!=="1"){ document.body.classList.add("verse"); setTimeout(()=>VERSE.loop(true),1500); } }catch(e){}
 { const _imset=INKMAP.set; INKMAP.set=function(on){ if(on&&VERSE.isOn()) VERSE.set(false); _imset.call(INKMAP,on); try{ paintTyping(); }catch(e){} }; }
+/* 🔁 secret looks (Spider-Verse / the ink map) follow your account, so your phone and computer match */
+const LOOKSYNC={
+  _quiet:false, _t:null,
+  now(){ return VERSE.isOn()?"verse":INKMAP.isOn()?"inkmap":"none"; },
+  apply(look){   // switch this device to the account's look, quietly (no save back)
+    if(!look||look===this.now()) return;
+    this._quiet=true;
+    try{ if(look==="verse") VERSE.set(true); else if(look==="inkmap") INKMAP.set(true); else { if(VERSE.isOn()) VERSE.set(false); if(INKMAP.isOn()) INKMAP.set(false); } }
+    finally{ this._quiet=false; }
+  },
+  changed(){ if(this._quiet||!user) return; clearTimeout(this._t); this._t=setTimeout(()=>api.setLook(this.now()).catch(()=>{}),400); },
+  async pull(){
+    if(!user) return; const look=await api.getLook(user.id).catch(()=>undefined);
+    if(look===undefined) return;                       // SQL not run yet: each device keeps its own
+    if(look===null){ if(this.now()!=="none") api.setLook(this.now()).catch(()=>{}); return; }   // first time: this device's look becomes the account's
+    this.apply(look);
+  }
+};
+{ const _vs=VERSE.set; VERSE.set=function(on){ _vs.call(VERSE,on); LOOKSYNC.changed(); };
+  const _is=INKMAP.set; INKMAP.set=function(on){ _is.call(INKMAP,on); LOOKSYNC.changed(); }; }
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&user) LOOKSYNC.pull(); });
 function svBeep(kind){   // a stuttery synth zap (portal) or a tape-glitch crunch (canon)
   try{ const ac=sfxCtx(); if(!uiSoundOn()||!ac) return; if(ac.state==="suspended") ac.resume(); const t=ac.currentTime;
     const notes=kind==="in"?[220,330,440,660,880,1320]:[880,523,659,330,247,165];
@@ -14687,9 +14721,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19j";
+const APP_VERSION="2026.10.19k";
 const CHANGELOG=[
   
+    {v:"2026.10.19k", title:"Room themes on computers 🌌", items:["🌌 Room backgrounds on computers now match your phone: the Synthwave grid stays on the floor, the Sunset sun sits low, and the Burning city skyline is back at the bottom instead of hanging from the top.","✨ Stars on a computer now has its own twinkling starfield (it used to be a plain dark screen with the odd shooting star).","🔁 Spider-Verse and the ink map now follow your account, so your phone and computer stay in the same look.","💻 On computers, the top bar, the Transmit bar and the chat's scrollbar now reach all the way across the chat pane, with no open gaps at the sides."]},
     {v:"2026.10.19j", title:"Laptop fixes 💻", items:["💻 On computers: slim dark scrollbars everywhere instead of chunky white ones, and the \"is here\" bar no longer shows scroll arrows.","💻 Touch-screen laptops with a trackpad now get the full computer layout.","🕷️ Spider-Verse theme on computers: calmer background, plain yellow caption boxes, slimmer outlines and bigger text, so chats read cleaner.","🌙 Browsers with \"force dark pages\" (like Opera GX) no longer repaint NightLane's colors."]},
     {v:"2026.10.19i", title:"Lane looks 🎨", items:["🎨 Lanes get NightLane-style neon icons, plus emoji or your own uploaded picture.","🌆 Pick a Lane banner: Neon City, Night Drive, Moonrise, Rain, Static, Vapor, or upload your own.","📷 Side chats can have their own picture too, or a neon icon.","🔊 New side chat type: Voice lounge. It's a call that's always open, so you can hop in and out without pinging anybody, and see who's in from the Lanes tab.","✨ Screen effects now play for messages that arrive a little late (some iPhones missed them)."]},
     {v:"2026.10.19h", title:"Lanes 🛣️", items:["🛣️ New: Lanes! Make a hangout for your crew with side chats inside, like 🎮 Games, 🎬 Movies or 🎵 Music. Everyone in the Lane is in every side chat. Find it in the new Lanes tab.","⭐ The owner can make friends helpers, who can add, rename and remove side chats too. Anyone in the Lane can add their friends.","📦 Own a room? Move it into a Lane from Room settings and it becomes a side chat, messages and all."]},
