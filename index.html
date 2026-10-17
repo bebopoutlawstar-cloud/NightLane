@@ -3505,6 +3505,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .nssq:hover,.nssq:focus-visible{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 #nsEnds{width:100%;display:flex;justify-content:space-between;font-family:"Silkscreen",var(--tech);font-size:10px;color:var(--muted);margin-top:6px}
 .nsres #nsAsk{font-family:"Pixelify Sans",var(--body)!important;font-size:30px!important;letter-spacing:0!important;margin:6px 0 10px;text-shadow:0 0 12px currentColor}
+.previewnote{display:none}
+#personSheet.preview .previewnote{display:block;width:100%;box-sizing:border-box;margin:0 0 10px;padding:8px 10px;font-family:var(--tech);font-size:11px;letter-spacing:.5px;color:var(--night);background:var(--cyan);text-align:center}
+#personSheet.preview #personFriend,#personSheet.preview #personDm,#personSheet.preview #personJoin,#personSheet.preview #personBond,#personSheet.preview #personTag,#personSheet.preview #personMutual{display:none!important}
 .pids{display:flex;gap:10px;width:100%;margin:6px 0 10px;box-sizing:border-box;padding:0 6px}
 .pids:not(:has(> :not(.hidden))){display:none}
 .pids>*{flex:1 1 0;min-width:0;margin:0!important;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 8px;border:2px solid #3b2d80;background:#0b0820;text-align:center}
@@ -3826,6 +3829,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="openPartner">🥚 My Partner</button>
     <button class="ghost" type="button" id="openBonds">💫 My Social Bonds</button>
     <button class="ghost" type="button" id="openCard">🪪 Profile card &amp; links</button>
+    <button class="ghost" type="button" id="openPreview">👁️ See how friends see you</button>
     <button type="button" class="ghost" id="openBacklog">🎮 Media Backlog</button>
     <button type="button" class="ghost" id="openHabits">🎯 Habits &amp; Stats</button>
     <details class="proflist"><summary id="unlockSummary">🎁 Unlockables</summary><div class="unlockbox"><div id="unlockList"></div></div></details>
@@ -4258,6 +4262,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 <!-- ============ PERSON CARD ============ -->
 <div class="overlay hidden" id="personSheet" role="dialog" aria-modal="true" aria-labelledby="personName">
   <div class="sheet"><div class="sheetbody">
+    <p class="previewnote" id="personPreviewNote">👁️ This is how friends see your profile</p>
     <div class="pcard-banner hidden" id="personBanner" aria-hidden="true"></div>
     <div class="face lg" id="personFace"></div>
     <h2 id="personName"></h2>
@@ -9480,9 +9485,18 @@ function paintPersonLinks(links){
 }
 function openPerson(uid){
   if(!uid||uid===user.id){ if(uid===user.id) openProfile(); return; }
+  $("personSheet").classList.remove("preview");
   personUid=uid; say("personMsg",""); paintPerson(); show($("personSheet"));
   refreshProfiles([uid]).then(()=>{ if(personUid===uid&&!$("personSheet").classList.contains("hidden")) paintPerson(); });
 }
+/* 👁️ preview your own card exactly as friends see it (thanks beef!) */
+function openProfilePreview(){
+  show($("profile"),false);
+  if(meProfile) cache.set(user.id,meProfile);
+  $("personSheet").classList.add("preview");
+  personUid=user.id; say("personMsg",""); paintPerson(); show($("personSheet"));
+}
+$("openPreview").onclick=openProfilePreview;
 let personPaintTok=0;   // a profile gets drawn twice (right away, then with fresh info): only the newest draw may add server answers
 function paintPerson(){
   const tok=++personPaintTok;
@@ -13989,9 +14003,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18o";
+const APP_VERSION="2026.10.18p";
 const CHANGELOG=[
   
+    {v:"2026.10.18p", title:"See yourself 👁️", items:["👁️ New: Profile → \"See how friends see you\" shows your profile card exactly the way friends see it. Thanks beef!"]},
     {v:"2026.10.18o", title:"Both on your profile 📡🃏", items:["📡🃏 Your own profile now shows your Night Signal next to your Arcana, just like friends see it."]},
     {v:"2026.10.18n", title:"Night Signal: change your mind 📡", items:["📡 Tapping an answer now just lights it up. Change it as much as you like, then tap NEXT. You can go BACK too."]},
     {v:"2026.10.18m", title:"Even smoother lofi 🎧", items:["🎧 The lofi music's vinyl static is now just a whisper."]},
