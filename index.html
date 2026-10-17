@@ -4996,8 +4996,22 @@ function kcAllChains(b,start,mark){
 function kcCourtCount(b,mark){ return b.reduce((n,v,i)=>n+(v===mark&&kcInCourt(i)?1:0),0); }
 function kcPieceCount(b,mark){ return b.reduce((n,v)=>n+(v===mark?1:0),0); }
 
-let kcSel=null, kcPath=null, kcChaining=false, kcPreview=null;
-function kcReset(){ kcSel=null; kcPath=null; kcChaining=false; kcPreview=null; }
+let kcSel=null, kcPath=null, kcChaining=false, kcPreview=null, kcHopsShown=0, kcOwn=null, kcAnimUntil=0;
+function kcReset(){ kcSel=null; kcPath=null; kcChaining=false; kcPreview=null; kcHopsShown=0; }
+/* one hop, played on the board as it is now: the piece arcs from -> to, a captured piece flashes and vanishes */
+function kcHopAnim(from,to,capSq,opp,per=520){
+  try{
+    const board=$("board").querySelector(".kcboard"); if(!board||!e8Motion()){ GSFX.tap(); if(capSq!=null) GSFX.pop(); return; }
+    const cells=board.children, piece=cells[to]?.querySelector(".kcpc"); if(!piece) return;
+    const c=i=>{ const r=cells[i].getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; }, a=c(from), d=c(to);
+    piece.style.zIndex="3";
+    piece.animate([{transform:`translate(${a.x-d.x}px,${a.y-d.y}px)`},{transform:`translate(${(a.x-d.x)/2}px,${(a.y-d.y)/2-30}px) scale(1.3)`},{transform:"none"}],{duration:per,easing:"ease-in-out",fill:"backwards"}).onfinish=()=>piece.style.zIndex="";
+    setTimeout(()=>GSFX.tap(),per-30); kcAnimUntil=Date.now()+per+600;
+    if(capSq!=null&&cells[capSq]){ const gh=el("span","kcpc "+opp+" kcgone"); gh.style.zIndex="4"; cells[capSq].append(gh); setTimeout(()=>gh.remove(),per+700);
+      gh.animate([{transform:"scale(1)",opacity:1},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0}],{duration:420,delay:per*.55,easing:"ease-out",fill:"both"});
+      setTimeout(()=>GSFX.pop(),per*.55); }
+  }catch(e){}
+}
 function kcBoardEl(g){
   const s=g.state, me=myMark(g), board=el("div","kcboard");
   const showBoard = kcPreview || s.board;
@@ -5026,6 +5040,11 @@ function kcBoardEl(g){
 /* older iPhones: their Safari can lack (or half-support) the animation tools, so never let a hiccup leave pieces behind */
 function kcAnimateMove(g,prev,force){
   const board=$("board").querySelector(".kcboard"); if(!board) return;
+  const p0=g.state.last||[];
+  if(!force&&kcOwn&&kcOwn.key===JSON.stringify(p0)){ const sh=kcOwn.shown; kcOwn=null;
+    if(sh>0){ const hops=p0.length-1; if(sh<hops){ const A=p0[hops-1], C=p0[hops], mid=((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0), mover=g.state.board[C], opp=mover==="x"?"o":"x";
+        kcHopAnim(A,C,(prev?.state?.board?.[mid]===opp&&!g.state.board[mid])?mid:null,opp); }
+      return; } }
   const wipe=()=>board.querySelectorAll(".kcgone").forEach(n=>n.remove());
   const path=g.state.last||[];
   if(path.length>=2&&(force||JSON.stringify(path)!==JSON.stringify(prev?.state?.last||[]))){   // outline the path while it plays, then clear it
@@ -5057,6 +5076,7 @@ function kcAnimateMoveRaw(g,prev,force){
   });
   frames[frames.length-1]={transform:"translate(0,0) scale(1)",offset:1};
   const per=force?(jump?720:540):(jump?460:340);   // replays are slow so you can follow every hop
+  kcAnimUntil=Date.now()+per*(path.length-1)+900;
   piece.style.zIndex="3"; piece.animate(frames,{duration:per*hops,easing:"ease-in-out",fill:"backwards"}).onfinish=()=>piece.style.zIndex="";
   for(let h=1;h<=hops;h++) setTimeout(()=>GSFX.tap(jump?1:.7),per*h-30);   // tap as it lands each time
   // captured pieces: whatever of the opponent's disappeared (except the moving piece's start square)
@@ -5279,9 +5299,9 @@ function kcTap(g,i){
   if(kcChaining){
     if(i===kcSel) return;
     const jt=kcJumpTargets(board,kcSel); const hit=jt.find(j=>j.land===i); if(!hit) return;
-    const nb=board.slice(); const opp=me==="x"?"o":"x"; if(nb[hit.mid]===opp) nb[hit.mid]=""; nb[i]=me; nb[kcSel]="";
+    const nb=board.slice(); const opp=me==="x"?"o":"x", cap=nb[hit.mid]===opp; if(cap) nb[hit.mid]=""; nb[i]=me; const from=kcSel; nb[kcSel]="";
     kcPreview=nb; kcPath.push(i); kcSel=i;
-    if(!kcJumpTargets(nb,i).length) kcFinish(g); else paintGame();
+    if(!kcJumpTargets(nb,i).length) kcFinish(g); else { paintGame(); kcHopAnim(from,i,cap?hit.mid:null,opp); kcHopsShown=kcPath.length-1; }
     return;
   }
   if(board[i]===me){ kcSel=(kcSel===i)?null:i; paintGame(); return; }
@@ -5291,12 +5311,14 @@ function kcTap(g,i){
   if(simple.includes(i)&&(!wasFirst||kcInCourt(i))){ kcPath=[kcSel,i]; kcFinish(g); return; }
   const hit=jumps.find(j=>j.land===i);
   if(hit&&!wasFirst&&!kcNoJump(s,me,g.moves)){ const nb=board.slice(); const opp=me==="x"?"o":"x"; if(nb[hit.mid]===opp) nb[hit.mid]=""; nb[i]=me; nb[kcSel]="";
+    const from=kcSel, cap=board[hit.mid]===opp;
     kcPreview=nb; kcPath=[kcSel,i]; kcSel=i; kcChaining=true;
-    if(!kcJumpTargets(nb,i).length) kcFinish(g); else paintGame();
+    if(!kcJumpTargets(nb,i).length) kcFinish(g); else { paintGame(); kcHopAnim(from,i,cap?hit.mid:null,opp); kcHopsShown=1; }
   }
 }
 async function kcFinish(g){
-  const path=kcPath, before=JSON.parse(JSON.stringify(g)); kcReset();
+  const path=kcPath, before=JSON.parse(JSON.stringify(g)), shown=kcChaining?kcHopsShown:0; kcReset();
+  kcOwn={key:JSON.stringify(path),shown};
   let applied; try{ applied=kcApplyPath(g.state,myMark(g),path,g.moves); }catch(err){ say("gameMsg",err.message,true); paintGame(); return; }
   g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,mv_x:applied.mv_x,mv_o:applied.mv_o,last:applied.last};
   g.status=applied.done?"done":"active"; paintGame(before); refreshMsg(g.message_id);
@@ -9982,7 +10004,9 @@ function paintGame(prev){
     else if(st.turn) statusText=`Your turn! (${kcCourtCount(s.board,me)} in the Court)`;
   }
   $("gameStatus").textContent=statusText; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
-  const board=$("board"); board.innerHTML="";
+  const board=$("board");
+  const kcKeep=isKC&&prev&&!kcPreview&&Date.now()<kcAnimUntil&&kcLastKey(prev)===kcLastKey(g)&&JSON.stringify(prev.state.board)===JSON.stringify(g.state.board)&&!!board.querySelector(".kcboard");
+  if(!kcKeep) board.innerHTML="";
   if(isGO){
     board.className="goboard-host"; board.removeAttribute("role"); board.removeAttribute("aria-label"); board.append(goBoardEl(g,prev));
     show($("kcChainBar"),false); $("gameStatus").textContent=goStatus(g);
@@ -9992,8 +10016,9 @@ function paintGame(prev){
     if(prev&&JSON.stringify(prev.state?.last)!==JSON.stringify(g.state.last)&&g.state.last) mcAnimate(g,prev);
     if(g.status==="active"&&g.state.turn===me&&g.state.last?.extra&&g.state.last.by===me) $("gameStatus").textContent="Extra turn! Go again 🎉";
   } else if(isKC){
-    board.className="kcboard-wrap"; board.append(kcBoardEl(g));
-    if(prev&&!kcPreview) kcAnimateMove(g,prev);
+    if(!kcKeep){ board.className="kcboard-wrap"; board.append(kcBoardEl(g)); }
+    if(kcKeep){}
+    else if(prev&&!kcPreview) kcAnimateMove(g,prev);
     else if(!prev&&!kcPreview&&kcSel==null&&g.status==="active"&&s.turn===me&&(s.last?.length||0)>=2&&kcSeenKey(g)!==kcLastKey(g)){   // opening the board on your turn: show what they just did
       const want=kcLastKey(g); setTimeout(()=>{ const cur=gamesById.get(g.message_id); if(cur&&openGameId===g.message_id&&kcLastKey(cur)===want&&kcSel==null&&!kcPreview) kcReplay(cur); },350); }
     if(s.last?.length>=2) kcSeen.set(g.message_id,kcLastKey(g));
@@ -14212,9 +14237,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19d";
+const APP_VERSION="2026.10.19e";
 const CHANGELOG=[
   
+    {v:"2026.10.19e", title:"See every hop 👑", items:["👑 King's Court: each hop of a multi-jump now animates as you tap it, and your move no longer skips straight to the end when the server confirms it."]},
     {v:"2026.10.19d", title:"Game sounds 🔊", items:["🔊 Every game has sound now: card flicks and riffle shuffles (Crazy Eights, BS, Lucky 7), rattling dice (Liar's Dice), clacking tiles (Mahjong), slate stones (Go), and piece taps and capture pops (King's Court, Tic-tac-toe). Turn them off with Sounds in your Profile."]},
     {v:"2026.10.19c", title:"Slow it down 🐢", items:["👑 King's Court moves and replays play slower, so you can follow every hop.","🟤 Mancala shows your score (stones in your store) under your name instead of X and O.","🟤 Mancala: watch each stone hop pit to pit. The counts tick up as it lands, with a wooden click (and a clack when it hits other stones)."]},
     {v:"2026.10.19b", title:"King's Court rule 👑", items:["👑 King's Court: no jumping on your first TWO moves now (the first one still has to step into the Court). Thanks JKWrangler09!"]},
