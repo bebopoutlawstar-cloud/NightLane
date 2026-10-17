@@ -3478,6 +3478,27 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .hudbtn:active{transform:translateY(2px)}
 @media (prefers-reduced-motion:reduce){html:not(.motion-always) .callreticle,html:not(.motion-always) .callchip i{animation:none}}
 #callBtn img{display:block;width:24px;height:24px;image-rendering:pixelated}
+/* 🖥️ screen share: show the whole screen (no cropping), and don't mirror your own */
+.callscreen.theysharing #remoteVideo{object-fit:contain;background:#000}
+/* 👥 group calls: a box per person, your own video stays in the corner */
+.callgrid{position:absolute;z-index:1;left:10px;right:10px;top:calc(env(safe-area-inset-top) + 138px);bottom:calc(env(safe-area-inset-bottom) + 226px);display:none;gap:8px;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr);transition:bottom .25s}
+.callscreen.group #remoteVideo,.callscreen.group #callVol,.callscreen.group.live #localVideo{display:none}   /* in a group you're a box in the grid */
+.callscreen.group.live .callgrid{display:grid}
+.callscreen.group.uihidden .callgrid{bottom:calc(env(safe-area-inset-bottom) + 20px)}
+.callgrid[data-n="3"],.callgrid[data-n="4"]{grid-template-columns:1fr 1fr}.callgrid[data-n="3"] .gtile:first-child{grid-column:span 2}
+@media (min-aspect-ratio:1/1){.callgrid[data-n="2"]{grid-template-columns:1fr 1fr}.callgrid[data-n="3"]{grid-template-columns:1fr 1fr 1fr}.callgrid[data-n="3"] .gtile:first-child{grid-column:auto}}
+.gtile.me{border-color:#ff4fd8;box-shadow:3px 3px 0 var(--cyan)}.gtile.me b{background:#ff4fd8}.gtile.me video{transform:scaleX(-1)}.gtile.me.back video{transform:none}
+.gtile{position:relative;overflow:hidden;min-height:0;display:grid;place-items:center;background:#0d0826;border:2px solid var(--cyan);box-shadow:3px 3px 0 #ff4fd8;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.gtile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent}
+.gtile .face{width:72px!important;height:72px!important;font-size:28px;position:relative;z-index:1;opacity:0}
+.gtile:not(.live) .face,.gtile.camoff .face,.callscreen.callvoice .gtile .face{opacity:1}
+.gtile.camoff video,.callscreen.callvoice .gtile video{opacity:0}
+.gtile.sharing video{object-fit:contain;background:#000}
+.gtile b{position:absolute;left:10px;bottom:8px;z-index:2;font-family:var(--tech);font-size:12px;letter-spacing:1px;color:#07041a;background:var(--cyan);padding:3px 8px;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gtile:not(.live) b::after{content:" · connecting…"}
+.callscreen.group.live .calltarget{display:none}
+.callscreen.group.live .callinfo{position:absolute;top:calc(env(safe-area-inset-top) + 40px);left:24px;margin:0;justify-items:start}
+.callscreen.group.live .callinfo b{font-size:22px}
 #localVideo.camoff{opacity:.15}
 .calllog{display:flex;align-items:center;gap:10px;min-width:180px}.calllog img{image-rendering:pixelated;flex:none}
 .calllog .cltext{font-family:var(--tech);font-size:13px;letter-spacing:.5px;flex:1}.calllog.missed .cltext{color:#ff4fd8}
@@ -4139,6 +4160,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 <!-- ============ CALL SCREEN (HUD look: NULLSIGNAL UI, recolored for NightLane) ============ -->
 <div class="callscreen hidden" id="callScreen" role="dialog" aria-label="Call">
   <video id="remoteVideo" autoplay playsinline></video>
+  <div class="callgrid" id="callGrid" data-n="0"></div>   <!-- group calls: one box per person -->
   <div class="callhud" aria-hidden="true"><svg class="cbr tl" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr tr" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr bl" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg><svg class="cbr br" viewBox="0 0 160 160" aria-hidden="true"><path d="M16 80 L16 16 L80 16" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 44 L44 16" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/><rect x="23" y="23" width="9" height="9" fill="#ff4fd8"/><path d="M98 16 L122 16 M16 98 L16 122" fill="none" stroke="currentColor" stroke-width="3"/></svg></div>
   <video id="localVideo" autoplay playsinline muted></video>
   <div class="callinfo">
@@ -4159,6 +4181,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button type="button" class="hudbtn mini" id="callFlip" aria-label="Flip camera"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/></svg><span>FLIP</span></button>
     <button type="button" class="hudbtn mini" id="callGlitch" aria-label="Privacy glitch: hide your face" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 5h7M14 5h7M3 9h4M10 9h11M3 13h10M16 13h5M3 17h6M12 17h9"/><path d="M5 21h4M14 21h5"/></svg><span>MASK</span></button>
     <button type="button" class="hudbtn mini on" id="callVol" aria-label="Volume: loud (tap for quiet)" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave2" d="M18.5 7a7 7 0 0 1 0 10"/></svg><span id="callVolTxt">LOUD</span></button>
+    <button type="button" class="hudbtn mini hidden" id="callShare" aria-label="Share your screen" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/><path d="M12 13V7M9 10l3-3 3 3"/></svg><span id="callShareTxt">SHARE</span></button>
     <button type="button" class="hudbtn mini" id="callHide" aria-label="Hide the buttons (tap the screen to bring them back)"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 21L21 3"/></svg><span>HIDE</span></button>
   </div>
   <div class="callflash" id="callFlash" aria-live="polite"></div>
@@ -7368,7 +7391,8 @@ async function enterRoom(code,token){
     const [latest,mem,info,pinRows]=await Promise.all([api.loadLatest(room),api.members(room).catch(()=>[]),api.roomInfo(room).catch(()=>null),api.pins(room).catch(()=>[])]);
     if(seq!==enterSeq) return;
     roomOwner=info?.owner||null; isDm=!!info?.is_dm; dmUser=null; disappear=+info?.disappear_seconds||0; delete $("catchUp").dataset.dismissed; show($("catchUp"),false); translations.clear(); showOriginal.clear(); loadTasks();
-    show($("callBtn"), isDm);
+    show($("callBtn"), true);   // DMs: 1:1 call, rooms: group call
+    $("callPickVoice").textContent=isDm?"🎧 Voice call":"🎧 Group voice call"; $("callPickVideo").textContent=isDm?"📹 Video call":"📹 Group video call";
     if(isDm){ dmUser=(mem.find(x=>x.user_id!==user.id)||{}).user_id||null; await ensureProfiles([dmUser].filter(Boolean)); if(seq!==enterSeq) return; }
     myNotify=(mem.find(x=>x.user_id===user.id)||{}).notify||"all";
     if(info&&!info.is_dm){ if(info.icon_url) roomIcons.set(room,info.icon_url); else roomIcons.delete(room); }
@@ -9610,7 +9634,7 @@ const toastSeen=new Set();
 async function onAnyMessage(m){
   if(!user||!m||m.user_id===user.id||blocked.has(m.user_id)||toastSeen.has(m.id)) return;
   toastSeen.add(m.id);
-  if(m.kind==="call" && Date.now() - new Date(m.created_at).getTime() < 30000){ showIncomingCall(m); return; }   // a fresh call rings
+  if(m.kind==="call" && Date.now() - new Date(m.created_at).getTime() < 30000){ if(String(m.room).startsWith("dm-")) showIncomingCall(m); else showGroupInvite(m); return; }   // a fresh call rings
   if(String(m.room).startsWith("dm-")) bondCheckSoon();
   const viewingIt = m.room===room && !$("chat").classList.contains("hidden") && !document.hidden;
   if(!$("front").classList.contains("hidden")) loadInboxSoon();
@@ -14004,9 +14028,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18q";
+const APP_VERSION="2026.10.18r";
 const CHANGELOG=[
   
+    {v:"2026.10.18r", title:"Group calls + screen share 📞🖥️", items:["👥 New: group calls in rooms! Tap 📞 in any room for a group voice or video call, up to 4 people. Everyone in the room gets a banner to join, and the call note in the chat has a Join button while it's going.","🖥️ New: share your screen during a video call (DMs and group calls). Sharing works from a computer, and phones can watch."]},
     {v:"2026.10.18q", title:"Name in the middle ✨", items:["✨ Names on profile cards now sit centered under the picture."]},
     {v:"2026.10.18p", title:"See yourself 👁️", items:["👁️ New: Profile → \"See how friends see you\" shows your profile card exactly the way friends see it. Thanks beef!"]},
     {v:"2026.10.18o", title:"Both on your profile 📡🃏", items:["📡🃏 Your own profile now shows your Night Signal next to your Arcana, just like friends see it."]},
@@ -16071,7 +16096,7 @@ $("micHelpClose").onclick=()=>show($("micHelp"),false);
 $("micHelp").addEventListener("click",e=>{ if(e.target.id==="micHelp") show($("micHelp"),false); });
 
 let callVoice=false;   // true = voice-only call (no cameras)
-function setCallVoice(v){ callVoice=!!v; show($("callCam"),!callVoice); show($("callFlip"),!callVoice); show($("callGlitch"),!callVoice); updateCallLook(); }
+function setCallVoice(v){ callVoice=!!v; show($("callShare"),!callVoice&&canShare()); show($("callCam"),!callVoice); show($("callFlip"),!callVoice); show($("callGlitch"),!callVoice); updateCallLook(); }
 
 /* ===== 16e: what each phone is doing with its camera, and how loud the call is =====
    myCam / theirCam: is a picture being sent (privacy glitch counts as on).
@@ -16122,17 +16147,18 @@ function useRawMic(){
   micRaw.enabled=old.enabled; audioSender?.replaceTrack(micRaw).catch(()=>{});
   callStream.removeTrack(old); callStream.addTrack(micRaw); old.stop(); micGain=null;
 }
-function paintLocal(){ $("localVideo").srcObject=new MediaStream(callStream?callStream.getVideoTracks():[]); $("localVideo").classList.toggle("back",camFacing==="environment"&&!glitch); }
+function paintLocal(){ $("localVideo").srcObject=new MediaStream(callStream?callStream.getVideoTracks():[]); $("localVideo").classList.toggle("back",(camFacing==="environment"&&!glitch)||!!shareTrack); if(typeof gc!=="undefined"&&gc) gSelf(); }
 async function swapSentVideo(track){   // send a different picture without redialing
   const old=callStream.getVideoTracks()[0];
   if(old!==track){ if(old) callStream.removeTrack(old); callStream.addTrack(track); }
   if(videoSender) await videoSender.replaceTrack(track).catch(()=>{});
+  if(gc) await Promise.all([...gc.peers.values()].map(p=>p.vs?.replaceTrack(track).catch(()=>{})));
   paintLocal();
 }
 function setMyCam(on){
   myCam=!!on; if(camTrack) camTrack.enabled=myCam; if(glitch) glitch.track.enabled=myCam;
   const b=$("callCam"); b.classList.toggle("off",!myCam); b.setAttribute("aria-pressed",String(!myCam)); b.setAttribute("aria-label",myCam?"Camera off":"Camera on");
-  $("localVideo").classList.toggle("camoff",!myCam);
+  $("localVideo").classList.toggle("camoff",!myCam); if(gc) gSelf();
   loudPick=null; sendSignal("cam",{on:myCam}); updateCallLook();
 }
 /* 🔄 front <-> back camera */
@@ -16143,7 +16169,7 @@ async function flipCam(){
     camTrack.stop();   // some phones can't open 2 cameras at once
     const fresh=(await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:want}}})).getVideoTracks()[0];
     camFacing=want; camTrack=fresh; camTrack.enabled=myCam;
-    if(glitch) glitch.v.srcObject=new MediaStream([camTrack]); else await swapSentVideo(camTrack);
+    if(glitch) glitch.v.srcObject=new MediaStream([camTrack]); else if(!shareTrack) await swapSentVideo(camTrack);
     paintLocal();
   }catch(e){ $("callState").textContent="Couldn't switch camera"; }
 }
@@ -16179,6 +16205,7 @@ function startGlitch(){
 function stopGlitch(){ if(!glitch) return; clearInterval(glitch.timer); glitch.track.stop(); glitch.v.srcObject=null; glitch=null; }
 async function toggleGlitch(){
   if(!camTrack||!callStream) return;
+  if(shareTrack) await stopShare();
   if(glitch){ const g=glitch; glitch=null; await swapSentVideo(camTrack); glitch=g; stopGlitch(); }
   else { startGlitch(); await swapSentVideo(glitch.track); }
   const on=!!glitch, b=$("callGlitch"); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
@@ -16214,7 +16241,8 @@ function callLogEl(m){
   const missed=/missed|declined/i.test(m.text||""), box=el("div","calllog"+(missed?" missed":""));
   const ic=document.createElement("img"); ic.src=missed?CALL_ICON_MISSED:CALL_ICON; ic.alt=""; ic.width=ic.height=32; box.append(ic);
   box.append(el("span","cltext",(m.text||"📞 Call").replace(/^📞\s*/,"")));
-  if(isDm&&m.room===room){ const b=el("button","clback","Call back"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openCall(/voice/i.test(m.text||"")); }; box.append(b); }
+  if(isGroupCallOpen(m)){ const b=el("button","clback","Join"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openGroupCall(/voice/i.test(m.text||""),m); }; box.append(b); }
+  else if(isDm&&m.room===room&&!/^📞 Group/.test(m.text||"")){ const b=el("button","clback","Call back"); b.type="button"; b.onclick=e=>{ e.stopPropagation(); openCall(/voice/i.test(m.text||"")); }; box.append(b); }
   return box;
 }
 /* the "call line": a private live channel only the 2 people in this DM can use (set up by calls.sql) */
@@ -16228,8 +16256,8 @@ function joinCallLine(code){
       .subscribe(s=>{ if(s==="SUBSCRIBED") resolve(); });
   });
 }
-function sendSignal(type,data={}){ callLine?.send({type:"broadcast",event:"signal",payload:{type,...data}}); }
-function leaveCallLine(){ if(callLine){ sb.removeChannel(callLine); callLine=null; } }
+function sendSignal(type,data={}){ callLine?.send({type:"broadcast",event:"signal",payload:{type,from:user?.id,...data}}); }
+function leaveCallLine(){ if(callLine){ if(callLine.local) callLine.close(); else sb.removeChannel(callLine); callLine=null; } }
 
 /* ===== network routes: STUN finds your address; TURN relays the call when a network blocks direct links =====
    The TURN password comes from our "turn-credentials" server function (Cloudflare), so it's never in this file.
@@ -16269,6 +16297,7 @@ async function onIce(c){ if(!pc||!pc.remoteDescription){ pendingIce.push(c); ret
 function stopPeer(){ if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("callScreen").classList.remove("live"); }
 
 function endCall(){
+  if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
   sendSignal("end");   // tell the other phone we hung up
   leaveCallLine();
   stopPeer(); stopRinging();
@@ -16282,11 +16311,11 @@ function endCall(){
   if(callStream){
     callStream.getTracks().forEach(track => track.stop());
   }
-  stopGlitch(); [camTrack,micRaw].forEach(t=>t&&t.stop());
+  stopGlitch(); if(shareTrack){ shareTrack.onended=null; shareTrack.stop(); shareTrack=null; } paintShareBtn(); [camTrack,micRaw].forEach(t=>t&&t.stop());
   if(callCtx){ callCtx.onstatechange=null; callCtx.close().catch(()=>{}); }
   camTrack=micRaw=callCtx=micGain=audioSender=videoSender=null; camFacing="user"; myCam=theirCam=true; loudPick=null;
   $("callGlitch").classList.remove("on"); $("callGlitch").setAttribute("aria-pressed","false");
-  $("localVideo").classList.remove("back"); $("callScreen").classList.remove("theyoff","uihidden");
+  $("localVideo").classList.remove("back"); $("callScreen").classList.remove("theyoff","uihidden","theysharing","group"); callRoom=null;
   callStream=null; audioForCapture(false); updateCallLook();
   $("localVideo").srcObject=null;
   ["callMute","callCam"].forEach(id=>{ $(id).classList.remove("off"); $(id).setAttribute("aria-pressed","false"); });
@@ -16325,6 +16354,8 @@ async function declineCall(){
 $("callDecline").onclick=declineCall;
 
 function onCallSignal(s){
+  if(gc){ groupSignal(s); return; }
+  if(s.type==="share") $("callScreen").classList.toggle("theysharing",!!s.on);   // they started / stopped sharing their screen
   if(s.type==="decline"){ callOutcome="declined"; stopRinging(); callBlip("decline"); $("callState").textContent="Declined"; setTimeout(endCall,1500); }
   if(s.type==="end"){ callBlip("decline"); leaveCallLine(); endCall(); }   // they hung up (leave first so we don't say "end" back)
   if(s.type==="offer") onOffer(s.sdp);     // video link notes (handled by the helpers above)
@@ -16398,10 +16429,185 @@ $("callScreen").addEventListener("click",e=>{
 
 /* 📞 opens a small picker: 🎧 voice call or 📹 video call */
 $("callBtn").onclick=e=>{ e.stopPropagation(); const open=$("callPick").classList.contains("hidden"); show($("callPick"),open); $("callBtn").setAttribute("aria-expanded",String(open)); };
-$("callPickVoice").onclick=()=>{ show($("callPick"),false); openCall(true); };
-$("callPickVideo").onclick=()=>{ show($("callPick"),false); openCall(false); };
+$("callPickVoice").onclick=()=>{ show($("callPick"),false); isDm?openCall(true):openGroupCall(true); };
+$("callPickVideo").onclick=()=>{ show($("callPick"),false); isDm?openCall(false):openGroupCall(false); };
 document.addEventListener("click",e=>{ if(!$("callPick").classList.contains("hidden")&&!e.target.closest("#callPick,#callBtn")) show($("callPick"),false); });
 $("callEnd").onclick=()=>{ callBlip("decline"); endCall(); };
+
+/* ===== 🖥️ SCREEN SHARE (2026.10.18r) =====
+   Same trick as the camera flip: getDisplayMedia() hands us the screen as a video track, and replaceTrack()
+   sends it in place of the camera, no redial. Phones' browsers can't share their screen, so the button
+   only shows on computers (phones can still watch). */
+let shareTrack=null;
+const canShare=()=>!!navigator.mediaDevices?.getDisplayMedia&&!(BROWSER.ios||BROWSER.android||isIOS||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent));
+function paintShareBtn(){ const on=!!shareTrack, b=$("callShare"); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on)); b.setAttribute("aria-label",on?"Stop sharing your screen":"Share your screen"); $("callShareTxt").textContent=on?"STOP":"SHARE"; }
+async function startShare(){
+  if(!callStream||shareTrack||callVoice) return;
+  let t;
+  try{ t=(await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:30}},audio:false})).getVideoTracks()[0]; }
+  catch(e){ if(e?.name!=="NotAllowedError"&&e?.name!=="AbortError") callFlash("Couldn't share your screen"); return; }   // closing the picker isn't an error
+  if(!callStream||!t){ t?.stop(); return; }   // the call ended while the picker was open
+  if(glitch) await toggleGlitch();
+  try{ t.contentHint="detail"; }catch(e){}   // keep text sharp
+  shareTrack=t; t.onended=()=>stopShare();   // the browser's own "Stop sharing" bar
+  await swapSentVideo(t);
+  if(!myCam) setMyCam(true);   // a shared screen counts as your camera being on
+  sendSignal("share",{on:true}); paintShareBtn(); paintLocal(); callFlash("🖥️ Sharing your screen");
+}
+async function stopShare(){
+  const t=shareTrack; if(!t) return;
+  shareTrack=null; t.onended=null; t.stop();
+  if(callStream&&camTrack) await swapSentVideo(glitch?glitch.track:camTrack);   // back to your camera
+  sendSignal("share",{on:false}); paintShareBtn(); paintLocal();
+}
+$("callShare").onclick=()=>shareTrack?stopShare():startShare();
+
+/* ===== 👥 GROUP CALLS in rooms (2026.10.18r) =====
+   "Mesh": everyone links straight to everyone else, so it's capped at 4 people (each phone sends its video
+   once per person). Everybody meets on the room's call line ("call:<room code>", only room members can join)
+   and uses its PRESENCE list to see who's in the call. For each pair, the one with the smaller user id sends
+   the offer, so two phones never offer to each other at the same time. */
+const GC_MAX=4;
+let gc=null;   // {room, voice, peers: Map(uid -> {pc, vs, ice, tile, ready}), msgId, msgAt, aloneT}
+
+/* demo mode has no server: tabs in the same browser talk over a BroadcastChannel instead (same shape as a Supabase channel) */
+function localLine(topic){
+  const bc=new BroadcastChannel("nl-"+topic), hs={broadcast:[],sync:[]}, others=new Map(); let mine=null, me=null, closed=false;
+  const sync=()=>hs.sync.forEach(f=>f());
+  bc.onmessage=({data:d})=>{ if(closed||!d) return;
+    if(d.k==="sig") hs.broadcast.forEach(f=>f({payload:d.p}));
+    if(d.k==="pres"){ others.set(d.key,d.meta); if(d.ask&&mine) bc.postMessage({k:"pres",key:me,meta:mine}); sync(); }
+    if(d.k==="gone"){ others.delete(d.key); sync(); } };
+  return { local:true,
+    on(type,filter,cb){ hs[type==="presence"?"sync":"broadcast"].push(cb); return this; },
+    subscribe(cb){ setTimeout(()=>cb("SUBSCRIBED"),0); return this; },
+    async track(meta){ mine=meta; me=user.id; bc.postMessage({k:"pres",key:me,meta,ask:true}); sync(); },
+    presenceState(){ const st={}; others.forEach((m,k)=>st[k]=[m]); if(mine) st[me]=[mine]; return st; },
+    send(msg){ if(!closed) bc.postMessage({k:"sig",p:msg.payload}); },
+    close(){ if(closed) return; closed=true; if(mine) bc.postMessage({k:"gone",key:me}); bc.close(); } };
+}
+function joinGroupLine(code){
+  leaveCallLine();
+  const ch=sb?sb.channel("call:"+code,{config:{private:true,broadcast:{self:false},presence:{key:user.id}}}):localLine("call:"+code);
+  ch.on("broadcast",{event:"signal"},({payload})=>onCallSignal(payload)).on("presence",{event:"sync"},()=>gSync());
+  callLine=ch;
+  return Promise.race([
+    new Promise(res=>ch.subscribe(async st=>{ if(st==="SUBSCRIBED"){ try{ await ch.track({at:Date.now()}); }catch(e){} res(); } })),
+    new Promise((res,rej)=>setTimeout(()=>rej(new Error("Couldn't reach the call. Check your connection.")),12000))]);
+}
+const isGroupCallOpen=m=>/^📞 Group/.test(m.text||"")&&!/·/.test(m.text)&&Date.now()-new Date(m.created_at).getTime()<3*3600e3&&!gc;
+const roomTitle=code=>{ const r=inboxRows.find(x=>x.code===code); return r?.name||(code===room&&roomName)||"#"+code; };
+
+async function openGroupCall(voice=false,joinMsg=null){
+  if(callStream||gc) return;   // already in a call
+  const code=joinMsg?joinMsg.room:room; if(!code||String(code).startsWith("dm-")) return;
+  gc={room:code, voice:!!voice, peers:new Map(), msgId:joinMsg?.id??null, msgAt:joinMsg?new Date(joinMsg.created_at).getTime():Date.now(), aloneT:null, full:false};
+  setCallVoice(voice===true); audioForCapture(true); makeCallCtx();
+  try{
+    await getCallMedia();
+    const cs=$("callScreen"); cs.classList.add("group"); theirCam=true; updateCallLook();
+    $("callName").textContent=roomTitle(code); paintFace($("callFace"),meProfile||cache.get(user.id));
+    $("callState").textContent=joinMsg?"Joining…":"Starting…"; $("callGrid").replaceChildren(); $("callGrid").dataset.n="0";
+    show($("callScreen")); callRoom=code; prefetchIce();
+    await joinGroupLine(code);
+    if(!gc) return;   // hung up while joining
+    if(!joinMsg){ const m=await sendFields({kind:"call",text:voice?"📞 Group voice call":"📞 Group call"}); if(gc){ gc.msgId=m?.id??null; gc.msgAt=Date.now(); } }
+    gPaintState();
+    gc.aloneT=setTimeout(()=>{ if(gc&&!callStartAt){ callFlash("Nobody joined this time",2000); setTimeout(endCall,2000); } },120000);   // give up after 2 minutes alone
+  }catch(err){
+    const v=voice===true; endCall();
+    if(/reach the call/.test(err?.message||"")) toast("📞 Call",err.message); else showMicHelp(err,v);
+  }
+}
+
+/* who's here? (runs every time someone joins or leaves the line) */
+function gSync(){
+  if(!gc||!callLine) return;
+  const st=callLine.presenceState();
+  const list=Object.entries(st).map(([uid,arr])=>({uid,at:Math.min(...arr.map(x=>+x.at||0))})).sort((a,b)=>a.at-b.at||(a.uid<b.uid?-1:1));
+  if(!list.some(x=>x.uid===user.id)) return;   // our own join hasn't shown up yet
+  const inCall=list.slice(0,GC_MAX).map(x=>x.uid);
+  if(!inCall.includes(user.id)){ if(!gc.full){ gc.full=true; callFlash(`This call is full (${GC_MAX} people max)`,2200); setTimeout(endCall,2200); } return; }
+  inCall.forEach(uid=>{ if(uid!==user.id&&!gc.peers.has(uid)) gPeer(uid,user.id<uid); });
+  [...gc.peers.keys()].forEach(uid=>{ if(!inCall.includes(uid)) gDrop(uid); });
+}
+function gTile(uid){
+  gSelf(); const t=el("div","gtile"+(callVoice?" camoff":"")), v=document.createElement("video"), f=el("span","face"), b=el("b","",nameOf(uid));
+  v.autoplay=true; v.playsInline=true; t.append(v,f,b); t.dataset.uid=uid;
+  paintFace(f,cache.get(uid)); ensureProfiles([uid]).then(()=>{ paintFace(f,cache.get(uid)); b.textContent=nameOf(uid); }).catch(()=>{});
+  $("callGrid").append(t); gLayout(); return t;
+}
+function gLayout(){ const g=$("callGrid"), me=g.querySelector(".gtile.me"); if(me&&me!==g.lastElementChild) g.append(me); g.dataset.n=String(Math.min(4,g.children.length)); }
+/* your own box in the grid (muted, so you don't hear yourself) */
+function gSelf(){
+  const g=$("callGrid"); let t=g.querySelector(".gtile.me");
+  if(!t){ t=el("div","gtile me live"); const v=document.createElement("video"), f=el("span","face"); v.autoplay=v.playsInline=v.muted=true; t.append(v,f,el("b","","You")); paintFace(f,meProfile||cache.get(user.id)); g.append(t); }
+  const v=t.querySelector("video"), src=$("localVideo").srcObject; if(v.srcObject!==src){ v.srcObject=src; v.play().catch(()=>{}); }
+  t.classList.toggle("camoff",!myCam||callVoice); t.classList.toggle("back",$("localVideo").classList.contains("back")); gLayout();
+}
+function gPeer(uid,offerer){
+  const p={uid,pc:null,vs:null,ice:[],tile:gTile(uid)}; gc.peers.set(uid,p);
+  p.ready=(async()=>{
+    const servers=await getIceServers(); if(!gc||gc.peers.get(uid)!==p||!callStream) return;
+    const pc=p.pc=new RTCPeerConnection(servers);
+    callStream.getTracks().forEach(t=>{ const sn=pc.addTrack(t,callStream); if(t.kind==="video") p.vs=sn; });   // my camera + mic, to this person
+    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); } if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
+    pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{to:uid,c:e.candidate.toJSON()}); };
+    pc.onconnectionstatechange=()=>{ if(pc.connectionState==="failed"&&gc?.peers.get(uid)===p) gDrop(uid); };
+    if(offerer){ const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{to:uid,sdp:pc.localDescription.toJSON()}); }
+  })().catch(()=>{});
+  gPaintState(); return p;
+}
+function gDrop(uid){
+  const p=gc?.peers.get(uid); if(!p) return;
+  gc.peers.delete(uid); try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
+  p.tile.querySelector("video").srcObject=null; p.tile.remove(); gLayout(); gPaintState();
+}
+function gLive(){   // someone's picture/sound arrived
+  if(!callStartAt){ clearTimeout(gc.aloneT); playConnectChime(); callStartAt=Date.now(); clearInterval(callTimer); callTimer=setInterval(gPaintState,1000); }
+  sendSignal("cam",{on:myCam}); if(shareTrack) sendSignal("share",{on:true});   // so the newcomer sees the right thing
+  gPaintState();
+}
+function gPaintState(){
+  if(!gc) return;
+  const live=[...gc.peers.values()].some(p=>p.tile.classList.contains("live"));
+  $("callScreen").classList.toggle("live",live);
+  $("callState").textContent=live?`LIVE ${callClock(Date.now()-callStartAt)} · ${gc.peers.size+1} IN CALL`:gc.peers.size?"Connecting…":"Waiting for others…";
+}
+async function groupSignal(s){
+  if(!gc||!s||(s.to&&s.to!==user.id)) return;
+  const from=s.from; if(!from||from===user.id) return;
+  if(s.type==="bye"){ gDrop(from); return; }
+  if(s.type==="cam"||s.type==="share"){ const t=gc.peers.get(from)?.tile; if(t) t.classList.toggle(s.type==="cam"?"camoff":"sharing",s.type==="cam"?!s.on:!!s.on); return; }
+  if(!["offer","answer","ice"].includes(s.type)) return;
+  const p=gc.peers.get(from)||(s.type!=="answer"?gPeer(from,false):null); if(!p) return;
+  await p.ready; const pc=p.pc; if(!pc||gc?.peers.get(from)!==p) return;
+  try{
+    if(s.type==="offer"){ await pc.setRemoteDescription(s.sdp); for(const c of p.ice.splice(0)) await pc.addIceCandidate(c).catch(()=>{}); const a=await pc.createAnswer(); await pc.setLocalDescription(a); sendSignal("answer",{to:from,sdp:pc.localDescription.toJSON()}); }
+    if(s.type==="answer"){ await pc.setRemoteDescription(s.sdp); for(const c of p.ice.splice(0)) await pc.addIceCandidate(c).catch(()=>{}); }
+    if(s.type==="ice"){ if(!pc.remoteDescription) p.ice.push(s.c); else await pc.addIceCandidate(s.c).catch(()=>{}); }
+  }catch(e){}
+}
+function leaveGroup(){
+  const g=gc; if(!g) return;
+  let others=0; try{ others=Object.keys(callLine?.presenceState()||{}).filter(k=>k!==user.id).length; }catch(e){}
+  sendSignal("bye");
+  // last one out closes the note in the chat, so it stops showing Join
+  if(!others&&!g.full&&g.msgId!=null) api.callLog(g.msgId,`${g.voice?"📞 Group voice call":"📞 Group call"} · ${callClock(Date.now()-g.msgAt)}`).catch(()=>{});
+  clearTimeout(g.aloneT);
+  [...g.peers.keys()].forEach(gDrop);
+  gc=null; leaveCallLine();
+  $("callGrid").replaceChildren(); $("callGrid").dataset.n="0";
+}
+/* someone started a call in a room: a banner you can tap to join (no full-screen ringing for rooms) */
+async function showGroupInvite(m){
+  if(gc||callStream) return;
+  const row=inboxRows.find(r=>r.code===m.room); if((row?.notify||"all")==="off") return;
+  await ensureProfiles([m.user_id]).catch(()=>{});
+  const voice=/voice/i.test(m.text||"");
+  try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){} if(typeof sfx==="function") sfx("notify");
+  toast(voice?"🎧 Group voice call":"📹 Group call",`${nameOf(m.user_id)} started a call in ${roomTitle(m.room)}. Tap to join.`,()=>openGroupCall(voice,m));
+}
 </script>
 </body>
 </html>
