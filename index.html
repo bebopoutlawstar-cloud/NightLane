@@ -3506,6 +3506,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 #nsEnds{width:100%;display:flex;justify-content:space-between;font-family:"Silkscreen",var(--tech);font-size:10px;color:var(--muted);margin-top:6px}
 .nsres #nsAsk{font-family:"Pixelify Sans",var(--body)!important;font-size:30px!important;letter-spacing:0!important;margin:6px 0 10px;text-shadow:0 0 12px currentColor}
 .previewnote{display:none}
+#personSheet h2{justify-self:center;margin:-4px auto 6px}
 #personSheet.preview .previewnote{display:block;width:100%;box-sizing:border-box;margin:0 0 10px;padding:8px 10px;font-family:var(--tech);font-size:11px;letter-spacing:.5px;color:var(--night);background:var(--cyan);text-align:center}
 #personSheet.preview #personFriend,#personSheet.preview #personDm,#personSheet.preview #personJoin,#personSheet.preview #personBond,#personSheet.preview #personTag,#personSheet.preview #personMutual{display:none!important}
 .pids{display:flex;gap:10px;width:100%;margin:6px 0 10px;box-sizing:border-box;padding:0 6px}
@@ -14003,9 +14004,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18p";
+const APP_VERSION="2026.10.18q";
 const CHANGELOG=[
   
+    {v:"2026.10.18q", title:"Name in the middle ✨", items:["✨ Names on profile cards now sit centered under the picture."]},
     {v:"2026.10.18p", title:"See yourself 👁️", items:["👁️ New: Profile → \"See how friends see you\" shows your profile card exactly the way friends see it. Thanks beef!"]},
     {v:"2026.10.18o", title:"Both on your profile 📡🃏", items:["📡🃏 Your own profile now shows your Night Signal next to your Arcana, just like friends see it."]},
     {v:"2026.10.18n", title:"Night Signal: change your mind 📡", items:["📡 Tapping an answer now just lights it up. Change it as much as you like, then tap NEXT. You can go BACK too."]},
