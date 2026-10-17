@@ -3555,7 +3555,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .kccell.kcstep{box-shadow:inset 0 0 0 3px var(--volt)!important}
 .kccell.kccap::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:var(--volt);font-weight:900;font-size:22px;text-shadow:0 0 6px #000}
 #gameSheet .kcreplay{width:auto;align-self:center;justify-self:center;padding:8px 16px;font-size:13px;margin:0}
-.lofistations{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;width:100%;margin:0 0 6px}
+.lofistations{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;width:100%;margin:0 0 6px}
 .lofistations button{padding:9px 4px;font-size:12.5px;line-height:1.2;background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);cursor:pointer;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
 .lofistations button[aria-checked="true"]{border-color:var(--cyan);background:rgba(0,240,255,.12);color:var(--cyan)}
 .lofistations button i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
@@ -4730,7 +4730,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p class="sub">Call sounds: CyberFinance Terminal UI Sounds by pegadance · Call screen UI: NULLSIGNAL by nkyo · Phone icons: Cyberpunk Icon Pack by XaCaleboo</p>
     <p class="sub">Pixel effects: Super Pixel Effects Gigapack by Will Tice / unTied Games · Item icons: Assorted Icons by Quintino Pixels · Pixel font: monogram by datagoblin · recolored for NightLane</p>
     <h3>Music</h3>
-    <p class="sub">Lofi radio: Dust &amp; Sunlight Vol. 1 by Gent Byci · Night Lofi made live in the app</p>
+    <p class="sub">Lofi radio: Dust &amp; Sunlight Vol. 1 by Gent Byci · Cozy Lofi Vol. 1 by Cristiano Leone · Night Lofi made live in the app</p>
     <h3>Powered by</h3>
     <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA) · Book info from Open Library · Manga info from Kitsu</p>
     <h3>🐛Bug hunters & testers</h3>
@@ -14097,9 +14097,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18w";
+const APP_VERSION="2026.10.18x";
 const CHANGELOG=[
   
+    {v:"2026.10.18x", title:"Cozy Lofi 🔥", items:["🔥 New radio station: Cozy Lofi, 12 warm lofi songs by Cristiano Leone. Find it next to Dust & Sunlight in Profile → Look → Lofi music."]},
     {v:"2026.10.18w", title:"My Music 📁", items:["👑 King's Court: the yellow outline of the last move now only shows while the move replays, then clears, and Replay works on older iPhones too.","📁 New: a My Music station on the 🎧 radio! Add songs from your own phone and NightLane shuffles them like the lofi stations. Your songs stay on your phone and are never uploaded. Find it in Profile → Look → Lofi music."]},
     {v:"2026.10.18v", title:"Replay fix ↺", items:["👑 King's Court: Replay no longer leaves extra pieces sitting on the board."]},
     {v:"2026.10.18u", title:"Clearer captures 👑", items:["👑 King's Court: when a piece gets jumped, the jumper now arcs higher over it and the captured piece flashes white and vanishes, so it doesn't look like it changed color."]},
@@ -14688,7 +14689,7 @@ const LOFI_STATIONS={
   dust:{icon:"☀️", name:"Dust & Sunlight", by:"Gent Byci", tracks:[
     ["ds-01-piano-hour","Piano Hour"],["ds-02-afternoon-company","Afternoon Company"],["ds-03-piano-music-box","Piano Music Box"],
     ["ds-04-coasting-through-time","Coasting Through Time"],["ds-05-golden-blue","Golden Blue"]]},
-  cozy:{icon:"🔥", name:"Cozy Lofi", by:"Cristiano Leone", hidden:true, tracks:[   // hidden until its songs are uploaded
+  cozy:{icon:"🔥", name:"Cozy Lofi", by:"Cristiano Leone", ext:"mp3", tracks:[
     ["cl-01-fireplace","Fireplace"],["cl-02-sunset","Sunset"],["cl-03-raining-days","Raining Days"],["cl-04-good-old-days","Good Old Days"],
     ["cl-05-daydreaming","Daydreaming"],["cl-06-yesterday","Yesterday"],["cl-07-sunrise","Sunrise"],["cl-08-memory-lane","Memory Lane"],
     ["cl-09-five-years","Five Years"],["cl-10-empty-roads","Empty Roads"],["cl-11-lonesome","Lonesome"],["cl-12-unwind","Unwind"]]}
@@ -14727,7 +14728,7 @@ function lofiNext(){   // shuffle: every song plays once before any repeats
   const go=src=>{ if(LOFI.track!==track) return; if(LOFI.blobUrl&&LOFI.blobUrl!==src){ URL.revokeObjectURL(LOFI.blobUrl); LOFI.blobUrl=null; }
     LOFI.el.src=src; if(LOFI.on&&!document.hidden) LOFI.el.play().catch(()=>{}); };
   if(LOFI_STATIONS[st].local) mmBlob(file).then(b=>{ if(!b) throw 0; const u=URL.createObjectURL(b); LOFI.blobUrl=u; go(u); }).catch(()=>{ if(LOFI.track===track) LOFI.el.dispatchEvent(new Event("error")); });
-  else go(MUSIC_BASE+file+".m4a");
+  else go(MUSIC_BASE+file+"."+(LOFI_STATIONS[st].ext||"m4a"));
   paintLofiNow();
 }
 function lofiStation(id){
