@@ -115,7 +115,7 @@ $("installCopy").onclick=async()=>{
 };
 $("installClose").onclick=()=>show($("installSheet"),false);
 $("installSheet").addEventListener("click",e=>{ if(e.target.id==="installSheet") show($("installSheet"),false); });
-[$("installLink1"),$("installLink2"),$("installBarHow")].forEach(x=>x.onclick=openInstallSheet);
+[$("installLink2"),$("installBarHow")].forEach(x=>x.onclick=openInstallSheet);   // (the sign-in screen's "Get the app" is a plain link to download.html)
 $("installBarClose").onclick=()=>{ show($("installBar"),false); try{ LS.set("nl-install-bar","off"); }catch(e){} };
 paintInstallEntry();
 try{ matchMedia("(display-mode: standalone)").addEventListener("change",paintInstallEntry); }catch(e){}

@@ -792,6 +792,14 @@ details.fgroup[open] > summary.fsec::after{content:" ▾"}
 .installbar .send{padding:8px 12px;font-size:12px}
 .installbar .ib-x{background:none;border:none;color:var(--muted);font-size:18px;padding:4px}
 .installlink{justify-self:center;margin-top:2px}
+/* 📲 "Get the app" on the sign-in screen: a real button to nightlane.chat/download */
+.getapp{display:flex;align-items:center;gap:12px;justify-self:stretch;margin-top:6px;padding:10px 14px;text-decoration:none;color:var(--white);border:2px solid var(--cyan);background:rgba(0,240,255,.08);box-shadow:3px 3px 0 var(--mag);text-align:left}
+.getapp.hidden{display:none}
+.getapp:hover,.getapp:focus-visible{background:rgba(0,240,255,.16);color:var(--white)}
+.getapp .ga-ico{font-size:24px;line-height:1}
+.getapp b{display:block;font-family:var(--num);font-size:18px;letter-spacing:1px;color:var(--cyan)}
+.getapp small{display:block;font-size:13px;color:var(--muted)}
+.installfull{display:block;margin:4px 0 2px;text-align:left}
 .steps{list-style:none;counter-reset:s;display:grid;gap:10px;width:100%;text-align:left}
 .steps li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;font-size:17px;line-height:1.3}
 .steps li::before{content:counter(s);flex:none;width:26px;height:26px;display:grid;place-items:center;font-family:var(--tech);font-size:12px;color:var(--night);background:var(--cyan);clip-path:polygon(10% 0,100% 8%,90% 100%,0 92%)}
