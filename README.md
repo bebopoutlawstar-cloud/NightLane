@@ -20,7 +20,8 @@ It installs straight from the browser like a real app (no app store needed), wor
 | 🥚 **Partners** | A pixel pet that hatches and evolves as you chat (shinies exist) |
 | 💫 **Social Bonds** | Friendship ranks and tarot Arcana that grow the more you talk |
 | 🪪 **Profiles** | Banner and photo cropper, effects, stickers, frames, pronouns, relationship status, partner tags, mutual friends, social links |
-| 🎬 **Media Backlog** | Track and share the games, shows, movies and books you're into |
+| 🎬 **Media Backlog** | Track and share the games, shows, movies and books you're into, with a 🔒 lock for anything you'd rather keep to yourself |
+| 📡 **Night Signal** | A 28-question pixel-style quiz that finds your signal (Spark, Glow, Drift, Static, Beacon, Shade or Pulse), plus a private After Hours question only you can see |
 | 🔍 **Secrets** | 187 hidden phrases with their own effects, plus secret themes and two full secret modes |
 | 🔔 **Notifications** | Push on every platform, unread count on the app icon, quiet while you're already reading the chat |
 | 🛡️ **Safety** | Reporting, blocking, private profiles and a 13+ age minimum |
@@ -78,7 +79,7 @@ Every update gets a new version number (`APP_VERSION`) and a note at the top of 
 
 ## 👤 Credits
 
-**Created by [Cole Eggly](https://nightlane.chat)**: design, direction, testing with real users, and hand-coded features including the Welcome intro, Tips page, Credits screen, message reporting and the admin reports review, pinned chats, update screens, part of video calling, ink-map footprints, relationship status and mutual friends.
+**Created by [Cole Eggly](https://nightlane.chat)**: design, direction, testing with real users, and hand-coded features including the Welcome intro, Tips page, Credits screen, message reporting and the admin reports review, pinned chats, update screens, part of video calling, ink-map footprints, relationship status and mutual friends, private backlog items, and most of the Night Signal quiz.
 
 Built with AI pair-programming (Claude) for the rest.
 
