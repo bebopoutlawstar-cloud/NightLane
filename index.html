@@ -3552,6 +3552,13 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .lofiq.on{color:var(--night);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 .lofivol{display:flex;align-items:center;gap:10px;width:100%;font-size:14px;color:var(--muted);margin:-2px 0 6px}
 .lofivol input{flex:1;accent-color:var(--cyan)}
+.lofistations{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;width:100%;margin:0 0 6px}
+.lofistations button{padding:9px 4px;font-size:12.5px;line-height:1.2;background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);cursor:pointer;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.lofistations button[aria-checked="true"]{border-color:var(--cyan);background:rgba(0,240,255,.12);color:var(--cyan)}
+.lofistations button i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
+.lofinow{display:flex;align-items:center;gap:8px;width:100%;font-size:13px;color:var(--muted);margin:-2px 0 6px;text-align:left}
+.lofinow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lofinow b{color:var(--cyan);font-weight:600}
+#lofiNowRow #lofiSkip{flex:none;width:auto!important;min-width:0;padding:6px 12px;margin:0;font-size:13px}
 .growlock{opacity:.5;position:relative}
 .growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
 .growroad #growRoad{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;padding:0 18px 0 6px}   /* clear of the slanted sheet edge */
@@ -3893,6 +3900,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
     <button class="ghost" type="button" id="lofiBtn">🎧 Lofi music: Off</button>
     <div class="lofivol hidden" id="lofiVolRow"><label for="lofiVol">Music volume</label><input type="range" id="lofiVol" min="5" max="100" step="5" value="60"></div>
+    <div class="lofistations hidden" id="lofiStations" role="radiogroup" aria-label="Radio station"></div>
+    <div class="lofinow hidden" id="lofiNowRow"><span id="lofiNow"></span><button type="button" class="ghost" id="lofiSkip" aria-label="Next song">Skip ⏭</button></div>
     </div>
 
     <div class="profpane" data-pane="alerts" role="tabpanel">
@@ -4701,6 +4710,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h3>Effects, icons &amp; font</h3>
     <p class="sub">Call sounds: CyberFinance Terminal UI Sounds by pegadance · Call screen UI: NULLSIGNAL by nkyo · Phone icons: Cyberpunk Icon Pack by XaCaleboo</p>
     <p class="sub">Pixel effects: Super Pixel Effects Gigapack by Will Tice / unTied Games · Item icons: Assorted Icons by Quintino Pixels · Pixel font: monogram by datagoblin · recolored for NightLane</p>
+    <h3>Music</h3>
+    <p class="sub">Lofi radio: Dust &amp; Sunlight Vol. 1 by Gent Byci · Night Lofi made live in the app</p>
     <h3>Powered by</h3>
     <p class="sub">Supabase and GIPHY · Game info from RAWG · Anime info from Kitsu · TV info from TVmaze (CC BY-SA) · Book info from Open Library · Manga info from Kitsu</p>
     <h3>🐛Bug hunters & testers</h3>
@@ -14028,9 +14039,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18r";
+const APP_VERSION="2026.10.18s";
 const CHANGELOG=[
   
+    {v:"2026.10.18s", title:"Radio stations 📻", items:["📻 New: the 🎧 Lofi radio has stations! Pick 🌙 Night Lofi (made live in the app) or ☀️ Dust & Sunlight, real piano lofi by Gent Byci. Find it in Profile → Look. Songs shuffle, and Skip ⏭ jumps to the next one."]},
     {v:"2026.10.18r", title:"Group calls + screen share 📞🖥️", items:["👥 New: group calls in rooms! Tap 📞 in any room for a group voice or video call, up to 4 people. Everyone in the room gets a banner to join, and the call note in the chat has a Join button while it's going.","🖥️ New: share your screen during a video call (DMs and group calls). Sharing works from a computer, and phones can watch."]},
     {v:"2026.10.18q", title:"Name in the middle ✨", items:["✨ Names on profile cards now sit centered under the picture."]},
     {v:"2026.10.18p", title:"See yourself 👁️", items:["👁️ New: Profile → \"See how friends see you\" shows your profile card exactly the way friends see it. Thanks beef!"]},
@@ -14603,7 +14615,67 @@ const LOFI_PROGS=[
 ];
 const lofiHz=m=>440*Math.pow(2,(m-69)/12);
 const lofiPrefs=()=>{ try{ return JSON.parse(LS.get("nl-lofi"))||{}; }catch(e){ return {}; } };
-function lofiSave(){ try{ LS.set("nl-lofi",JSON.stringify({on:LOFI.on,vol:LOFI.vol})); }catch(e){} }
+function lofiSave(){ try{ LS.set("nl-lofi",JSON.stringify({on:LOFI.on,vol:LOFI.vol,station:LOFI.station})); }catch(e){} }
+
+/* 📻 STATIONS (2026.10.18s): the generated radio, plus two packs of real lofi Cole bought.
+   The song files live in Supabase Storage (bucket "music"), NOT in the GitHub repo: the licenses let us play them
+   in the app but not hand the files out. Demo mode looks in a local "music/" folder instead. */
+const MUSIC_BASE=SUPABASE_URL?SUPABASE_URL+"/storage/v1/object/public/music/":"music/";
+const LOFI_STATIONS={
+  night:{icon:"🌙", name:"Night Lofi", gen:true},
+  dust:{icon:"☀️", name:"Dust & Sunlight", by:"Gent Byci", tracks:[
+    ["ds-01-piano-hour","Piano Hour"],["ds-02-afternoon-company","Afternoon Company"],["ds-03-piano-music-box","Piano Music Box"],
+    ["ds-04-coasting-through-time","Coasting Through Time"],["ds-05-golden-blue","Golden Blue"]]},
+  cozy:{icon:"🔥", name:"Cozy Lofi", by:"Cristiano Leone", hidden:true, tracks:[   // hidden until its songs are uploaded
+    ["cl-01-fireplace","Fireplace"],["cl-02-sunset","Sunset"],["cl-03-raining-days","Raining Days"],["cl-04-good-old-days","Good Old Days"],
+    ["cl-05-daydreaming","Daydreaming"],["cl-06-yesterday","Yesterday"],["cl-07-sunrise","Sunrise"],["cl-08-memory-lane","Memory Lane"],
+    ["cl-09-five-years","Five Years"],["cl-10-empty-roads","Empty Roads"],["cl-11-lonesome","Lonesome"],["cl-12-unwind","Unwind"]]}
+};
+LOFI.station="night"; LOFI.el=null; LOFI.tmaster=null; LOFI.tfade=null; LOFI.bag=[]; LOFI.track=null; LOFI.fails=0;
+const lofiReal=()=>!LOFI_STATIONS[LOFI.station]?.gen;
+function lofiTrackSetup(){   // one <audio> (not on the page, so it doesn't count as "a video is playing") -> fade -> volume -> speakers
+  if(LOFI.el||!LOFI.ctx) return;
+  const a=new Audio(); a.crossOrigin="anonymous"; a.preload="auto"; a.playsInline=true;
+  const src=LOFI.ctx.createMediaElementSource(a);
+  LOFI.tfade=LOFI.ctx.createGain(); LOFI.tmaster=LOFI.ctx.createGain(); LOFI.tmaster.gain.value=0;
+  src.connect(LOFI.tfade).connect(LOFI.tmaster).connect(LOFI.ctx.destination);
+  a.addEventListener("ended",()=>lofiNext());
+  a.addEventListener("playing",()=>{ LOFI.fails=0; });
+  a.addEventListener("error",()=>{   // missing or broken file: skip it; if a whole station won't load, go back to Night Lofi
+    if(!lofiReal()||!LOFI.on) return;
+    if(++LOFI.fails>=LOFI_STATIONS[LOFI.station].tracks.length){ LOFI.fails=0; toast("🎧 Lofi",`Couldn't load ${LOFI_STATIONS[LOFI.station].name} right now, so it's back on Night Lofi.`); lofiStation("night"); return; }
+    setTimeout(lofiNext,300);
+  });
+  a.addEventListener("timeupdate",()=>{   // these songs loop with no fade at the end, so fade out the last 3 seconds
+    const left=a.duration-a.currentTime; if(isFinite(left)&&left<3.2&&!LOFI.fadingOut){ LOFI.fadingOut=true; try{ LOFI.tfade.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.8); }catch(e){} }
+    paintLofiNow();
+  });
+  LOFI.el=a;
+}
+function lofiNext(){   // shuffle: every song plays once before any repeats
+  if(!lofiReal()||!LOFI.el) return;
+  const list=LOFI_STATIONS[LOFI.station].tracks;
+  if(!LOFI.bag.length||LOFI.bag.station!==LOFI.station){ const b=list.map((_,i)=>i).sort(()=>Math.random()-.5); if(LOFI.track&&b[0]===LOFI.track.i&&b.length>1) b.push(b.shift()); LOFI.bag=b; LOFI.bag.station=LOFI.station; }
+  const i=LOFI.bag.shift(), [file,title]=list[i];
+  LOFI.track={i,title,station:LOFI.station}; LOFI.fadingOut=false;
+  const t=LOFI.ctx.currentTime; try{ LOFI.tfade.gain.cancelScheduledValues(t); LOFI.tfade.gain.setValueAtTime(0,t); LOFI.tfade.gain.linearRampToValueAtTime(1,t+1.5); }catch(e){}
+  LOFI.el.src=MUSIC_BASE+file+".m4a";
+  if(LOFI.on&&!document.hidden) LOFI.el.play().catch(()=>{});
+  paintLofiNow();
+}
+function lofiStation(id){
+  if(!LOFI_STATIONS[id]||LOFI_STATIONS[id].hidden) id="night";
+  const was=LOFI.station; LOFI.station=id; lofiSave();
+  if(was!==id){ LOFI.bag=[]; LOFI.track=null; LOFI.fails=0; if(LOFI.el){ LOFI.el.pause(); LOFI.el.removeAttribute("src"); } }
+  if(LOFI.on&&LOFI.ctx){ lofiTrackSetup(); if(lofiReal()&&(was!==id||LOFI.el.paused)) lofiNext(); }
+  paintLofi();
+}
+function paintLofiNow(){
+  const row=$("lofiNowRow"); if(!row) return;
+  const st=LOFI_STATIONS[LOFI.station], tr=LOFI.track;
+  show(row,LOFI.on&&lofiReal());
+  if(lofiReal()){ const n=$("lofiNow"); if(tr) n.replaceChildren("♪ ",el("b","",tr.title)," · "+st.by); else n.textContent="Loading…"; }
+}
 
 function lofiBuild(){
   const ctx=LOFI.ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -14665,30 +14737,42 @@ function lofiBeat(t){   // everything that happens on one beat
 const lofiBusy=()=>!!(typeof callRoom!=="undefined"&&callRoom) || LOFI.capture || [...document.querySelectorAll("audio,video")].some(m=>!m.paused&&!m.muted&&m.currentTime>0);
 function lofiTick(){
   const ctx=LOFI.ctx; if(!ctx) return;
-  while(LOFI.next<ctx.currentTime+.25){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; }
-  LOFI.master.gain.setTargetAtTime(LOFI.on&&!lofiBusy()?LOFI.vol*.55:0,ctx.currentTime,.35);   // duck for calls, recording, videos
+  const gen=!lofiReal(), busy=lofiBusy();
+  if(gen){ while(LOFI.next<ctx.currentTime+.25){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; } } else LOFI.next=ctx.currentTime+.1;
+  LOFI.master.gain.setTargetAtTime(LOFI.on&&gen&&!busy?LOFI.vol*.55:0,ctx.currentTime,.35);   // duck for calls, recording, videos
+  if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(LOFI.on&&!gen&&!busy?LOFI.vol*.5:0,ctx.currentTime,.35);
 }
 async function lofiStart(){
   if(!LOFI.ctx) lofiBuild();
   try{ await LOFI.ctx.resume(); }catch(e){}
   if(!LOFI.timer){ LOFI.next=LOFI.ctx.currentTime+.1; LOFI.timer=setInterval(lofiTick,60); }
+  lofiTrackSetup();
+  if(lofiReal()){ if(!LOFI.track) lofiNext(); else LOFI.el.play().catch(()=>{}); }
 }
 function lofiStop(){ if(LOFI.master) LOFI.master.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.25);
-  setTimeout(()=>{ if(LOFI.on) return; clearInterval(LOFI.timer); LOFI.timer=null; LOFI.ctx?.suspend().catch(()=>{}); },900); }
+  if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.25);
+  setTimeout(()=>{ if(LOFI.on) return; clearInterval(LOFI.timer); LOFI.timer=null; LOFI.el?.pause(); LOFI.ctx?.suspend().catch(()=>{}); },900); }
 function lofiSet(on){ LOFI.on=on; lofiSave(); if(on) lofiStart(); else lofiStop(); paintLofi(); }
 function paintLofi(){
   const q=$("lofiQuick"); if(q){ q.classList.toggle("on",LOFI.on); q.setAttribute("aria-pressed",String(LOFI.on)); q.title=LOFI.on?"Lofi music: on":"Lofi music: off"; }
   const b=$("lofiBtn"); if(b) b.textContent="🎧 Lofi music: "+(LOFI.on?"On":"Off");
   const r=$("lofiVolRow"); if(r) show(r,LOFI.on);
   const v=$("lofiVol"); if(v) v.value=Math.round(LOFI.vol*100);
+  const sb_=$("lofiStations"); if(sb_){ show(sb_,LOFI.on);
+    if(!sb_.children.length) Object.entries(LOFI_STATIONS).filter(([,st])=>!st.hidden).forEach(([id,st])=>{ const b=el("button"); b.type="button"; b.setAttribute("role","radio"); b.dataset.st=id; b.append(el("i","",st.icon),st.name); b.onclick=()=>lofiStation(id); sb_.append(b); });
+    [...sb_.children].forEach(b=>b.setAttribute("aria-checked",String(b.dataset.st===LOFI.station))); }
+  paintLofiNow();
 }
 (()=>{   // remember the choice; phones only allow sound after a tap, so a saved "on" waits for the first one
-  const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol));
+  const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol)); if(LOFI_STATIONS[p.station]&&!LOFI_STATIONS[p.station].hidden) LOFI.station=p.station;
+  $("lofiSkip").onclick=()=>lofiNext();
   if(LOFI.on){ const go=()=>{ document.removeEventListener("pointerdown",go,true); if(LOFI.on) lofiStart(); }; document.addEventListener("pointerdown",go,true); }
   $("lofiQuick").onclick=()=>lofiSet(!LOFI.on);
   $("lofiBtn").onclick=()=>lofiSet(!LOFI.on);
   $("lofiVol").oninput=e=>{ LOFI.vol=Math.max(.05,(+e.target.value||0)/100); lofiSave(); };
-  document.addEventListener("visibilitychange",()=>{ if(!LOFI.ctx||!LOFI.on) return; if(document.hidden) LOFI.ctx.suspend().catch(()=>{}); else LOFI.ctx.resume().catch(()=>{}); });
+  document.addEventListener("visibilitychange",()=>{ if(!LOFI.ctx||!LOFI.on) return;
+    if(document.hidden){ LOFI.el?.pause(); LOFI.ctx.suspend().catch(()=>{}); }
+    else { LOFI.ctx.resume().catch(()=>{}); if(lofiReal()&&LOFI.el?.src) LOFI.el.play().catch(()=>{}); } });
   paintLofi();
 })();
 const _afcLofi=audioForCapture; audioForCapture=function(on){ LOFI.capture=!!on; return _afcLofi.apply(this,arguments); };   // quiet while recording
