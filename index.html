@@ -5058,12 +5058,13 @@ function kcAnimateMoveRaw(g,prev,force){
   frames[frames.length-1]={transform:"translate(0,0) scale(1)",offset:1};
   const per=force?(jump?720:540):(jump?460:340);   // replays are slow so you can follow every hop
   piece.style.zIndex="3"; piece.animate(frames,{duration:per*hops,easing:"ease-in-out",fill:"backwards"}).onfinish=()=>piece.style.zIndex="";
+  for(let h=1;h<=hops;h++) setTimeout(()=>GSFX.tap(jump?1:.7),per*h-30);   // tap as it lands each time
   // captured pieces: whatever of the opponent's disappeared (except the moving piece's start square)
   const mover=prev.state.turn, opp=mover==="x"?"o":"x", pb=prev.state.board||[], nb=g.state.board||[];
   let k=0;
   // (the jumper arcs high over it, then the captured piece flashes white and shrinks away, so it never looks like it changed color)
   const hopAt=sq=>{ for(let h=0;h<hops;h++){ const A=path[h], C=path[h+1]; if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2&&((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0)===sq) return h; } return k++; };
-  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"), gd=per*(hopAt(i)+.75); cells[i].append(ghost); ghost.style.zIndex="4"; setTimeout(()=>ghost.remove(),gd+700);
+  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"), gd=per*(hopAt(i)+.75); setTimeout(()=>GSFX.pop(),gd); cells[i].append(ghost); ghost.style.zIndex="4"; setTimeout(()=>ghost.remove(),gd+700);
     ghost.animate([{transform:"scale(1)",opacity:1,filter:"none"},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0,filter:"brightness(3) saturate(0)"}],{duration:460,delay:gd,easing:"ease-out",fill:"both"}).onfinish=()=>ghost.remove();
     setTimeout(()=>ghost.remove(),gd+700); } });   // belt and braces: some phones skip onfinish, so it never gets left behind
   // stepping into the Court from outside sparkles
@@ -5136,6 +5137,63 @@ function mcAnimate(g,prev){
       const pop=el("span","mcpop","Capture!"); to.append(pop); pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1100}).onfinish=()=>pop.remove(); },end); }
   if(l.extra){ const st=cellOf(l.by==="x"?6:13); if(st) setTimeout(()=>{ const pop=el("span","mcpop","Extra turn!"); st.append(pop);
     pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1200}).onfinish=()=>pop.remove(); },end); }
+}
+/* ===== 🔊 GAME SOUNDS (2026.10.19d): all made in code, no sound files. They follow the Sounds setting. =====
+   card flick / slide / riffle shuffle, dice rattle + bounce, Go stones, mahjong tiles, piece taps, capture pops. */
+const GSFX=(()=>{
+  let nb=null; const on=()=>typeof uiSoundOn!=="function"||uiSoundOn();
+  const ctx=()=>{ const c=sfxCtx(); if(c.state==="suspended") c.resume(); return c; };
+  const noise=c=>{ if(nb) return nb; nb=c.createBuffer(1,c.sampleRate,c.sampleRate); const d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; return nb; };
+  const burst=(t,{f=2000,q=1,dur=.05,vol=.5,type="bandpass",att=.003,rate=1}={})=>{ const c=ctx(), s=c.createBufferSource(), fl=c.createBiquadFilter(), g=c.createGain();
+    s.buffer=noise(c); s.playbackRate.value=rate; fl.type=type; fl.frequency.value=f; fl.Q.value=q;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+att); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    s.connect(fl).connect(g).connect(c.destination); s.start(t,Math.random()*.5); s.stop(t+dur+.02); };
+  const tone=(t,{f0=600,f1=f0,dur=.08,vol=.3,type="sine"}={})=>{ const c=ctx(), o=c.createOscillator(), g=c.createGain(); o.type=type;
+    o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.02); };
+  const R=(a,b)=>a+Math.random()*(b-a), now=()=>ctx().currentTime+.01;
+  const play=fn=>{ if(!on()) return; try{ fn(now()); }catch(e){} };
+  const flick=t=>{ burst(t,{f:R(2600,3400),q:1.4,dur:.045,vol:.55}); burst(t,{f:6500,q:2,dur:.015,vol:.25,type:"highpass"}); };
+  return {
+    flick:(n=1)=>play(t=>{ for(let k=0;k<n;k++) flick(t+k*R(.07,.1)); }),                        // play a card
+    slide:()=>play(t=>{ const c=ctx(), s=c.createBufferSource(), fl=c.createBiquadFilter(), g=c.createGain(); s.buffer=noise(c); fl.type="bandpass"; fl.Q.value=.9;
+      fl.frequency.setValueAtTime(900,t); fl.frequency.linearRampToValueAtTime(2200,t+.18); g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(.35,t+.06); g.gain.exponentialRampToValueAtTime(.0001,t+.22);
+      s.connect(fl).connect(g).connect(c.destination); s.start(t); s.stop(t+.25); }),               // draw a card
+    shuffle:()=>play(t=>{ let x=t; for(let k=0;k<28;k++){ burst(x,{f:R(2200,3800),q:1.6,dur:.03,vol:R(.25,.45)}); x+=R(.016,.03); }   // riffle...
+      burst(x+.08,{f:1400,q:.7,dur:.25,vol:.3,att:.05}); burst(x+.36,{f:900,q:1,dur:.06,vol:.4}); }),  // ...bridge, then tap the deck square
+    dice:(n=5)=>play(t=>{ tone(t,{f0:140,f1:90,dur:.08,vol:.25}); let x=t; for(let k=0;k<14;k++){ burst(x,{f:R(3000,4800),q:8,dur:.02,vol:R(.2,.4)}); x+=R(.025,.06); }   // rattle in the cup
+      let y=x+.12, gap=.11; for(let k=0;k<Math.min(6,n+1);k++){ burst(y,{f:R(2500,3800),q:6,dur:.025,vol:.5*Math.pow(.75,k)}); tone(y,{f0:R(700,900),f1:500,dur:.03,vol:.12*Math.pow(.75,k)}); y+=gap; gap*=.7; } }),   // ...and they bounce
+    tap:(v=1)=>play(t=>{ tone(t,{f0:R(380,440),f1:260,dur:.06,vol:.3*v}); burst(t,{f:R(1800,2300),q:3,dur:.025,vol:.45*v}); }),   // a piece set down
+    stone:(caps=0)=>play(t=>{ burst(t,{f:R(2600,3200),q:4,dur:.03,vol:.8}); tone(t,{f0:R(950,1100),f1:650,dur:.05,vol:.2});    // slate on wood: "pak"
+      for(let k=0;k<Math.min(caps,4);k++) burst(t+.12+k*.07,{f:R(3200,4200),q:6,dur:.025,vol:.4}); }),
+    tile:(n=1)=>play(t=>{ for(let k=0;k<n;k++){ const x=t+k*.06; burst(x,{f:R(1800,2200),q:5,dur:.03,vol:.6}); burst(x+.012,{f:R(3200,3800),q:6,dur:.02,vol:.35}); tone(x,{f0:420,f1:300,dur:.04,vol:.15}); } }),
+    pop:()=>play(t=>{ tone(t,{f0:320,f1:980,dur:.09,vol:.22,type:"triangle"}); burst(t,{f:3600,q:4,dur:.03,vol:.35}); }),
+    thud:()=>play(t=>{ tone(t,{f0:130,f1:55,dur:.18,vol:.45}); burst(t,{f:500,q:.8,dur:.12,vol:.4,type:"lowpass"}); })   // slap the table (BS!, bust, Liar!)
+  };
+})();
+/* what changed in a game -> which sound. Each game state is played once (the server echo of your own move stays quiet). */
+const gsSeen=new Map();
+function gameSound(g,prev){
+  const a=prev.state||{}, b=g.state||{}, t=g.type;
+  const key=(x,st,stt)=>JSON.stringify([t==="tictactoe"?x.board:t==="lucky7"?[x.rows,x.last]:x.last,x.round,stt,t==="go"?x.caps:0]);
+  const sig=key(b,g.state,g.status);
+  if(gsSeen.get(g.message_id)===sig) return; const first=!gsSeen.has(g.message_id); gsSeen.set(g.message_id,sig);
+  if(first&&key(a,a,prev.status)===sig) return;
+  const L=b.last||{}, started=prev.status==="waiting"&&g.status==="active", newRound=b.round!=null&&a.round!==b.round;
+  if(t==="mancala") return;                                   // has its own clicks
+  if(t==="kingscourt"){ if(!e8Motion()&&JSON.stringify(a.last)!==JSON.stringify(b.last)) GSFX.tap(); return; }   // (the animation taps each hop)
+  if(t==="tictactoe"){ if(JSON.stringify(a.board)!==JSON.stringify(b.board)) GSFX.tap(); return; }
+  if(t==="go"){ const caps=((b.caps?.x||0)+(b.caps?.o||0))-((a.caps?.x||0)+(a.caps?.o||0)); if(JSON.stringify(a.last)!==JSON.stringify(b.last)&&b.last!=null&&b.last>=0) GSFX.stone(caps); return; }
+  if(t==="liarsdice"){ if(started||newRound) GSFX.dice(5); else if(L.called) GSFX.thud(); else if(L.qty) GSFX.tap(.6); return; }
+  if(t==="mahjong"){ if(started) GSFX.shuffle(); else if(L.act==="discard") GSFX.tile(); else if(L.act==="claim") GSFX.tile(2); else if(L.act==="draw"||L.act==="wall") GSFX.slide(); else if(L.act==="win") GSFX.tile(3); return; }
+  // card games: Crazy Eights, BS, Lucky 7
+  if(started||newRound){ GSFX.shuffle(); return; }
+  if(t==="lucky7"){ const n=r=>(r||[]).reduce((s,x)=>s+((x?.n?.length)||0)+((x?.m?.length)||0),0); if(n(b.rows)>n(a.rows)) GSFX.flick(); if((b.rows||[]).some((r,i)=>r?.st==="bust"&&a.rows?.[i]?.st!=="bust")) GSFX.thud(); return; }
+  if(L.called||L.caught) GSFX.thud();
+  else if(L.drew||L.took) GSFX.slide();
+  else if(L.played) GSFX.flick(Math.min(4,L.played));
+  else if(L.card||L.lastcard||L.skipped) GSFX.flick();
 }
 /* 🪵 a stone dropping into a wooden pit: a hollow knock, plus a little clack when it hits other stones. Made in code, no sound files. */
 function mcClick(stonesNow){
@@ -9884,6 +9942,7 @@ function playerTile(node,uid,mark,active){
 }
 function paintGame(prev){
   const g=gamesById.get(openGameId); if(!g){ closeGame(); return; }
+  if(prev) try{ gameSound(g,prev); }catch(e){}
   paintGameRules(g);
   const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7", mj=g.type==="mahjong";
   show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); show($("mjArea"),mj); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7||mj); show($("board"),!e8&&!ld&&!bs&&!l7&&!mj);
@@ -9935,7 +9994,8 @@ function paintGame(prev){
   } else if(isKC){
     board.className="kcboard-wrap"; board.append(kcBoardEl(g));
     if(prev&&!kcPreview) kcAnimateMove(g,prev);
-    else if(!prev&&!kcPreview&&g.status==="active"&&s.turn===me&&kcSeenKey(g)!==kcLastKey(g)) setTimeout(()=>kcReplay(g),350);   // opening the board on your turn: show what they just did
+    else if(!prev&&!kcPreview&&kcSel==null&&g.status==="active"&&s.turn===me&&(s.last?.length||0)>=2&&kcSeenKey(g)!==kcLastKey(g)){   // opening the board on your turn: show what they just did
+      const want=kcLastKey(g); setTimeout(()=>{ const cur=gamesById.get(g.message_id); if(cur&&openGameId===g.message_id&&kcLastKey(cur)===want&&kcSel==null&&!kcPreview) kcReplay(cur); },350); }
     if(s.last?.length>=2) kcSeen.set(g.message_id,kcLastKey(g));
     show($("kcChainBar"),kcChaining);
     show($("kcReplay"),!kcChaining&&(s.last?.length||0)>=2);
@@ -14152,9 +14212,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19c";
+const APP_VERSION="2026.10.19d";
 const CHANGELOG=[
   
+    {v:"2026.10.19d", title:"Game sounds 🔊", items:["🔊 Every game has sound now: card flicks and riffle shuffles (Crazy Eights, BS, Lucky 7), rattling dice (Liar's Dice), clacking tiles (Mahjong), slate stones (Go), and piece taps and capture pops (King's Court, Tic-tac-toe). Turn them off with Sounds in your Profile."]},
     {v:"2026.10.19c", title:"Slow it down 🐢", items:["👑 King's Court moves and replays play slower, so you can follow every hop.","🟤 Mancala shows your score (stones in your store) under your name instead of X and O.","🟤 Mancala: watch each stone hop pit to pit. The counts tick up as it lands, with a wooden click (and a clack when it hits other stones)."]},
     {v:"2026.10.19b", title:"King's Court rule 👑", items:["👑 King's Court: no jumping on your first TWO moves now (the first one still has to step into the Court). Thanks JKWrangler09!"]},
     {v:"2026.10.19a", title:"Music in the background 🎧", items:["🎧 The lofi radio now keeps playing when you switch to another tab or app (turn it off in Profile → Look if you'd rather it pause). The song also shows up in your computer's or phone's media controls, with play, pause and skip."]},
