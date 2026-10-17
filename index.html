@@ -3523,6 +3523,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .quizcard span{font-size:14px;color:var(--muted);line-height:1.25}
 .quizcard i{font-style:normal;font-family:"Silkscreen",var(--tech);font-size:11px;letter-spacing:1px;color:var(--cyan)}
 .quizcard.growlock::after{font-size:11px;color:var(--volt)}
+.lofiq{font-size:16px;line-height:1}
+.lofiq.on{color:var(--night);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.lofivol{display:flex;align-items:center;gap:10px;width:100%;font-size:14px;color:var(--muted);margin:-2px 0 6px}
+.lofivol input{flex:1;accent-color:var(--cyan)}
 .growlock{opacity:.5;position:relative}
 .growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
 .growroad #growRoad{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;padding:0 18px 0 6px}   /* clear of the slanted sheet edge */
@@ -3620,6 +3624,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="homebar">
       <button type="button" class="face" id="meFace" aria-label="Your profile"></button>
       <div class="who-text"><b id="meName"></b><span class="lvlpill" id="homeLevel"></span></div>
+      <button type="button" class="ghost iconbtn lofiq" id="lofiQuick" aria-label="Lofi music" aria-pressed="false">🎧</button>
       <button type="button" class="ghost iconbtn" id="searchAll" aria-label="Search all chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
       <button type="button" class="send iconbtn" id="joinToggle" aria-expanded="false" aria-controls="joinPanel" aria-label="Join or make a room">＋</button>
     </div>
@@ -3850,6 +3855,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="fxBtn">Screen effects: On</button>
     <details class="fx-list"><summary>Words and emoji that trigger effects</summary><ul id="fxList"></ul></details>
     <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
+    <button class="ghost" type="button" id="lofiBtn">🎧 Lofi music: Off</button>
+    <div class="lofivol hidden" id="lofiVolRow"><label for="lofiVol">Music volume</label><input type="range" id="lofiVol" min="5" max="100" step="5" value="60"></div>
     </div>
 
     <div class="profpane" data-pane="alerts" role="tabpanel">
@@ -7202,7 +7209,7 @@ function drawSetRow(btn){
   if(bool){ btn.setAttribute("role","switch"); btn.setAttribute("aria-checked",String(val==="On")); btn.setAttribute("aria-label",lab); }
   else { btn.removeAttribute("role"); btn.removeAttribute("aria-checked"); btn.setAttribute("aria-label",lab+": "+val); }
 }
-["fxBtn","uiSoundBtn","buzzBtn","dupBtn","owlBtn","cbBtn","animPrefBtn"].forEach(id=>{
+["fxBtn","uiSoundBtn","buzzBtn","dupBtn","owlBtn","cbBtn","animPrefBtn","lofiBtn"].forEach(id=>{
   const b=$(id); if(!b) return; drawSetRow(b);
   new MutationObserver(()=>drawSetRow(b)).observe(b,{childList:true,characterData:true,subtree:true});
 });
@@ -13970,9 +13977,12 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18j";
+const APP_VERSION="2026.10.18m";
 const CHANGELOG=[
   
+    {v:"2026.10.18m", title:"Even smoother lofi 🎧", items:["🎧 The lofi music's vinyl static is now just a whisper."]},
+    {v:"2026.10.18l", title:"Smoother lofi 🎧", items:["🎧 Less static in the lofi music, so the music comes through."]},
+    {v:"2026.10.18k", title:"Lofi radio 🎧", items:["🎧 New: chill lofi music while you're in the app. Tap 🎧 at the top of your chats to turn it on or off, and set the volume in Profile → Look.","🌙 It plays forever without repeating, and goes quiet by itself during calls, voice notes and videos."]},
     {v:"2026.10.18j", title:"It's you 🪞", items:["🪞 The Me tab in your Profile now shows a tiny version of your own picture."]},
     {v:"2026.10.18i", title:"Quizzes tab 🧩", items:["🧩 Your Profile has a new Quizzes tab with 🃏 Who are you? and 📡 Night Signal in one place, plus your results."]},
     {v:"2026.10.18h", title:"Easier to read 👓", items:["📡 Night Signal questions use a bolder pixel font that's much easier to read."]},
@@ -14521,6 +14531,111 @@ QX.rankup=function(name,arcana,rank){
   if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
   setTimeout(()=>w.remove(),3000);
 };
+
+/* ================= 🎧 LOFI RADIO =================
+   Endless chill background music, made live in the browser (no audio files, nothing to license).
+   Soft electric-piano chords, a round bass, lazy swung drums, little melody notes and vinyl crackle.
+   Off by default. It goes quiet by itself during calls, voice notes, videos, and when the app is in the background. */
+const LOFI={ ctx:null, master:null, on:false, vol:.6, timer:null, next:0, beat:0, bar:0, prog:null, progLeft:0, capture:false, noise:null, crackle:null, lfo:null, keysBus:null, drumBus:null, echo:null };
+const LOFI_BPM=72, LOFI_BEAT=60/LOFI_BPM;
+// chords: [bass note, [piano notes]] in MIDI numbers; one chord per bar
+const LOFI_PROGS=[
+  [[38,[53,57,60,64]],[43,[53,57,59,64]],[36,[52,55,59,62]],[45,[55,58,61,64]]],   // Dm9 · G13 · Cmaj9 · A7b9
+  [[41,[57,60,64,67]],[40,[55,59,62,64]],[45,[55,60,64,67]],[45,[57,60,64,67]]],   // Fmaj7 · Em7 · Am7 · Am7
+  [[43,[53,57,59,64]],[36,[52,55,59,62]],[45,[55,57,60,64]],[38,[53,57,60,64]]],   // G13 · Cmaj9 · Am9 · Dm9
+  [[46,[53,57,60,62]],[45,[55,57,60,64]],[38,[53,57,60,64]],[43,[53,55,59,62]]]    // Bbmaj7 · Am9 · Dm9 · G9
+];
+const lofiHz=m=>440*Math.pow(2,(m-69)/12);
+const lofiPrefs=()=>{ try{ return JSON.parse(LS.get("nl-lofi"))||{}; }catch(e){ return {}; } };
+function lofiSave(){ try{ LS.set("nl-lofi",JSON.stringify({on:LOFI.on,vol:LOFI.vol})); }catch(e){} }
+
+function lofiBuild(){
+  const ctx=LOFI.ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=3;
+  const warm=ctx.createBiquadFilter(); warm.type="lowpass"; warm.frequency.value=4200;   // takes the "digital" edge off
+  LOFI.master=ctx.createGain(); LOFI.master.gain.value=0;
+  warm.connect(LOFI.master).connect(comp).connect(ctx.destination);
+  LOFI.keysBus=ctx.createBiquadFilter(); LOFI.keysBus.type="lowpass"; LOFI.keysBus.frequency.value=2000; LOFI.keysBus.connect(warm);
+  LOFI.drumBus=ctx.createGain(); LOFI.drumBus.gain.value=.8; LOFI.drumBus.connect(warm);
+  // a little echo for the melody notes
+  const d=ctx.createDelay(1.5), fb=ctx.createGain(), wet=ctx.createGain();
+  d.delayTime.value=LOFI_BEAT*.75; fb.gain.value=.32; wet.gain.value=.35;
+  d.connect(fb).connect(d); d.connect(wet).connect(LOFI.keysBus); LOFI.echo=d;
+  // tape "wow": a slow wobble on every note's pitch
+  LOFI.lfo=ctx.createOscillator(); LOFI.lfo.frequency.value=.35; const lg=ctx.createGain(); lg.gain.value=7; LOFI.lfo.connect(lg); LOFI.lfoOut=lg; LOFI.lfo.start();
+  // white noise, reused for drums
+  const nb=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate), nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1; LOFI.noise=nb;
+  // vinyl: soft hiss + random pops, looped
+  const vb=ctx.createBuffer(1,ctx.sampleRate*4,ctx.sampleRate), vd=vb.getChannelData(0);
+  for(let i=0;i<vd.length;i++){ vd[i]=(Math.random()*2-1)*.0012; if(Math.random()<.00015) vd[i]+=(Math.random()<.5?-1:1)*(.15+Math.random()*.3); }
+  const vs=ctx.createBufferSource(); vs.buffer=vb; vs.loop=true;
+  const vh=ctx.createBiquadFilter(); vh.type="highpass"; vh.frequency.value=1400; const vg=ctx.createGain(); vg.gain.value=.18;   // vinyl kept faint: a little texture, not a hum
+  vs.connect(vh).connect(vg).connect(warm); vs.start(); LOFI.crackle=vs;
+}
+function lofiNote(freq,t,dur,vel,out,soft){   // a mellow electric-piano-ish note
+  const ctx=LOFI.ctx, g=ctx.createGain();
+  const a=ctx.createOscillator(); a.type="sine"; a.frequency.value=freq;
+  const b=ctx.createOscillator(); b.type="triangle"; b.frequency.value=freq*2; b.detune.value=(Math.random()-.5)*8;
+  const bg=ctx.createGain(); bg.gain.value=soft?.08:.15;
+  LOFI.lfoOut.connect(a.detune); LOFI.lfoOut.connect(b.detune);
+  a.connect(g); b.connect(bg).connect(g); g.connect(out);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vel,t+.025);
+  g.gain.exponentialRampToValueAtTime(vel*.35,t+Math.min(1.2,dur)); g.gain.exponentialRampToValueAtTime(.0001,t+dur+.4);
+  a.start(t); b.start(t); a.stop(t+dur+.5); b.stop(t+dur+.5);
+}
+function lofiKick(t,v){ const ctx=LOFI.ctx, o=ctx.createOscillator(), g=ctx.createGain();
+  o.frequency.setValueAtTime(115,t); o.frequency.exponentialRampToValueAtTime(42,t+.13);
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0001,t+.38); o.connect(g).connect(LOFI.drumBus); o.start(t); o.stop(t+.4); }
+function lofiNoise(t,v,type,freq,len,q){ const ctx=LOFI.ctx, s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain();
+  s.buffer=LOFI.noise; s.playbackRate.value=.9+Math.random()*.2; f.type=type; f.frequency.value=freq; if(q) f.Q.value=q;
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0001,t+len); s.connect(f).connect(g).connect(LOFI.drumBus);
+  s.start(t,Math.random()*.5); s.stop(t+len+.02); }
+function lofiSnare(t){ lofiNoise(t,.16,"bandpass",1700,.2,.7);
+  const ctx=LOFI.ctx, o=ctx.createOscillator(), g=ctx.createGain(); o.frequency.value=185; g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.0001,t+.09); o.connect(g).connect(LOFI.drumBus); o.start(t); o.stop(t+.1); }
+function lofiBeat(t){   // everything that happens on one beat
+  const beat=LOFI.beat, swing=LOFI_BEAT*.5+LOFI_BEAT*.08;   // the "and" lands a little late: that's the lazy feel
+  if(beat===0){ if(!LOFI.progLeft){ LOFI.prog=LOFI_PROGS[Math.floor(Math.random()*LOFI_PROGS.length)]; LOFI.progLeft=8; } LOFI.progLeft--; }
+  const [root,notes]=LOFI.prog[LOFI.bar%4];
+  if(beat===0) notes.forEach((m,i)=>lofiNote(lofiHz(m),t+i*.018+Math.random()*.01,LOFI_BEAT*3.6,.045,LOFI.keysBus));   // strummed chord
+  if(beat===2&&Math.random()<.45) notes.slice(1).forEach((m,i)=>lofiNote(lofiHz(m),t+swing+i*.015,LOFI_BEAT*1.2,.022,LOFI.keysBus));
+  if(beat===0||(beat===2&&Math.random()<.7)) lofiNote(lofiHz(root),t+(beat===2?swing:0),LOFI_BEAT*1.6,.11,LOFI.keysBus,true);   // bass
+  if(beat===0||beat===2) lofiKick(t,.55); if(beat===2&&Math.random()<.35) lofiKick(t+swing,.3);
+  if(beat===1||beat===3) lofiSnare(t+.012);
+  if(Math.random()>.12) lofiNoise(t,.035,"highpass",7200,.05); if(Math.random()>.2) lofiNoise(t+swing,.022,"highpass",7600,.04);   // hats
+  if(Math.random()<.3){ const m=notes[Math.floor(Math.random()*notes.length)]+12; lofiNote(lofiHz(m),t+(Math.random()<.5?0:swing),LOFI_BEAT*.9,.03,LOFI.echo); }   // little melody
+  LOFI.beat=(beat+1)%4; if(LOFI.beat===0) LOFI.bar++;
+}
+const lofiBusy=()=>!!(typeof callRoom!=="undefined"&&callRoom) || LOFI.capture || [...document.querySelectorAll("audio,video")].some(m=>!m.paused&&!m.muted&&m.currentTime>0);
+function lofiTick(){
+  const ctx=LOFI.ctx; if(!ctx) return;
+  while(LOFI.next<ctx.currentTime+.25){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; }
+  LOFI.master.gain.setTargetAtTime(LOFI.on&&!lofiBusy()?LOFI.vol*.55:0,ctx.currentTime,.35);   // duck for calls, recording, videos
+}
+async function lofiStart(){
+  if(!LOFI.ctx) lofiBuild();
+  try{ await LOFI.ctx.resume(); }catch(e){}
+  if(!LOFI.timer){ LOFI.next=LOFI.ctx.currentTime+.1; LOFI.timer=setInterval(lofiTick,60); }
+}
+function lofiStop(){ if(LOFI.master) LOFI.master.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.25);
+  setTimeout(()=>{ if(LOFI.on) return; clearInterval(LOFI.timer); LOFI.timer=null; LOFI.ctx?.suspend().catch(()=>{}); },900); }
+function lofiSet(on){ LOFI.on=on; lofiSave(); if(on) lofiStart(); else lofiStop(); paintLofi(); }
+function paintLofi(){
+  const q=$("lofiQuick"); if(q){ q.classList.toggle("on",LOFI.on); q.setAttribute("aria-pressed",String(LOFI.on)); q.title=LOFI.on?"Lofi music: on":"Lofi music: off"; }
+  const b=$("lofiBtn"); if(b) b.textContent="🎧 Lofi music: "+(LOFI.on?"On":"Off");
+  const r=$("lofiVolRow"); if(r) show(r,LOFI.on);
+  const v=$("lofiVol"); if(v) v.value=Math.round(LOFI.vol*100);
+}
+(()=>{   // remember the choice; phones only allow sound after a tap, so a saved "on" waits for the first one
+  const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol));
+  if(LOFI.on){ const go=()=>{ document.removeEventListener("pointerdown",go,true); if(LOFI.on) lofiStart(); }; document.addEventListener("pointerdown",go,true); }
+  $("lofiQuick").onclick=()=>lofiSet(!LOFI.on);
+  $("lofiBtn").onclick=()=>lofiSet(!LOFI.on);
+  $("lofiVol").oninput=e=>{ LOFI.vol=Math.max(.05,(+e.target.value||0)/100); lofiSave(); };
+  document.addEventListener("visibilitychange",()=>{ if(!LOFI.ctx||!LOFI.on) return; if(document.hidden) LOFI.ctx.suspend().catch(()=>{}); else LOFI.ctx.resume().catch(()=>{}); });
+  paintLofi();
+})();
+const _afcLofi=audioForCapture; audioForCapture=function(on){ LOFI.capture=!!on; return _afcLofi.apply(this,arguments); };   // quiet while recording
 
 /* ================= THE APP GROWS WITH YOU 🌱 =================
    New accounts start simple (chat, DMs, stickers, GIFs, photos) and features unlock as they level up.
