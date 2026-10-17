@@ -3534,6 +3534,13 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .growstep.got{opacity:1}
 .growstep b{font-family:var(--tech);font-size:10px;color:var(--cyan)}
 .growstep i{font-style:normal;text-align:right}
+.nssq.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px var(--cyan),3px 3px 0 var(--mag)}
+#nsPicked{min-height:24px;margin:8px 0 0;font-family:"Jersey 15","Pixelify Sans",var(--body);font-size:22px;color:var(--volt);text-align:center}
+.nsnav{display:flex;gap:12px;width:100%;margin-top:12px}
+.nsnav button{flex:1;font-family:"Pixelify Sans",var(--body);font-weight:700;font-size:18px;padding:12px 0;cursor:pointer}
+.nsback{color:#f4f1ff;background:transparent;border:3px solid #f4f1ff}
+.nsnext{color:#07041a;background:var(--volt);border:3px solid #07041a;box-shadow:4px 4px 0 var(--mag)}
+.nsnav button:disabled{opacity:.35;cursor:default;box-shadow:none}
 .nsres #nsScale{padding:0 18px 0 22px;box-sizing:border-box}   /* keep the bar labels clear of the slanted sheet edge */
 .nsres .nsbar{grid-template-columns:76px 1fr}
 #nsGlyph{display:flex;justify-content:center;margin:8px 0 4px}
@@ -4723,6 +4730,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <p id="nsText"></p>
     <div id="nsScale" role="radiogroup" aria-label="How likely"></div>
     <div id="nsEnds"><span>NOT LIKELY</span><span>VERY LIKELY</span></div>
+    <p id="nsPicked" aria-live="polite"></p>
+    <div class="nsnav" id="nsNav"><button type="button" class="nsback" id="nsBack">◀ BACK</button><button type="button" class="nsnext" id="nsNext">NEXT ▶</button></div>
     <div id="nsExtra"></div>
     <button class="ghost" type="button" id="nsClose">Close</button>
   </div></div>
@@ -13977,9 +13986,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18m";
+const APP_VERSION="2026.10.18n";
 const CHANGELOG=[
   
+    {v:"2026.10.18n", title:"Night Signal: change your mind 📡", items:["📡 Tapping an answer now just lights it up. Change it as much as you like, then tap NEXT. You can go BACK too."]},
     {v:"2026.10.18m", title:"Even smoother lofi 🎧", items:["🎧 The lofi music's vinyl static is now just a whisper."]},
     {v:"2026.10.18l", title:"Smoother lofi 🎧", items:["🎧 Less static in the lofi music, so the music comes through."]},
     {v:"2026.10.18k", title:"Lofi radio 🎧", items:["🎧 New: chill lofi music while you're in the app. Tap 🎧 at the top of your chats to turn it on or off, and set the volume in Profile → Look.","🌙 It plays forever without repeating, and goes quiet by itself during calls, voice notes and videos."]},
@@ -14757,13 +14767,23 @@ function nsPaint(){
   const box=$("nsScale"); box.innerHTML="";
   box.style.flexDirection="";
   NS_SCALE.forEach((label,score)=>{
-    const b=el("button","nssq"); b.type="button"; b.setAttribute("role","radio");
-    b.setAttribute("aria-label",label);
+    const picked=nsAnswers[nsIndex]===score;
+    const b=el("button","nssq"+(picked?" on":"")); b.type="button"; b.setAttribute("role","radio");
+    b.setAttribute("aria-label",label); b.setAttribute("aria-checked",String(picked));
     b.style.width=b.style.height= `${20 + score * 10}px`;
-    b.onclick=()=>nsPick(score);
+    b.onclick=()=>{ nsAnswers[nsIndex]=score; nsPaint(); };   // just picks it: change your mind as much as you like
     box.append(b);
   });
+  // your pick in words + the Back / Next buttons
+  const a=nsAnswers[nsIndex];
+  $("nsPicked").textContent=a===undefined?"":NS_SCALE[a];
+  show($("nsNav")); show($("nsPicked"));
+  $("nsBack").disabled=nsIndex===0;
+  $("nsNext").disabled=a===undefined;
+  $("nsNext").textContent=nsIndex===NS_QUESTIONS.length-1?"SEE MY SIGNAL ▶":"NEXT ▶";
 }
+$("nsNext").onclick=()=>{ if(nsAnswers[nsIndex]!==undefined) nsPick(nsAnswers[nsIndex]); };
+$("nsBack").onclick=()=>{ if(nsIndex>0){ nsIndex--; nsPaint(); } };
 function nsPick(score){
   nsAnswers[nsIndex]=score;   // remember this answer
   nsIndex++;                  // move to the next question
@@ -14790,7 +14810,7 @@ function nsFinish(){
   nsSave(scores, top);
 }
 function nsShowResult(scores, top){
-  show($("nsProg"),false); show($("nsEnds"),false);
+  show($("nsProg"),false); show($("nsEnds"),false); show($("nsNav"),false); show($("nsPicked"),false);
   $("nsSheet").classList.add("nsres");
   const info=NS_INFO[top];
   $("nsCount").textContent="Your Night Signal";
