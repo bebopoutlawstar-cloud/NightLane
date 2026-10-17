@@ -550,6 +550,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20c", title:"Lanes tab click 🔊", items:["🔊 The Lanes tab now makes the same click as Rooms, DMs and Friends when you switch to it."]},
     {v:"2026.10.20b", title:"New game: Blackout 🌑", items:["🌑 New game: Blackout! A bluffing game for 2–6 players (best with 3+). Everyone has 3 Neon tiles and 1 Blackout. Stack them face down, then call how many Neon you can flip without hitting a Blackout. Others raise or drop out, and the caller has to flip their own stack first.","⚡ Score 2 points to win, or be the last one with tiles. Find it in the ➕ Games tray."]},
     {v:"2026.10.20a", title:"Lighter and quicker to update ⚡", items:["⚡ Behind the scenes, NightLane's code is now split into smaller files. When an update comes out, your phone only downloads the parts that changed instead of the whole app again.","🖼️ Built-in pictures and sounds are saved on your phone once and reused, so updates are much smaller."]},
     {v:"2026.10.19m", title:"Longer level road 🛣️", items:["🛣️ New accounts unlock more as they level up, so there's less to take in on day one: 🎧 Radio at level 2, 📞 Calls at level 3, and making your own Lanes at level 5.","📞 You can always answer a call, join a group call or voice lounge, and hang out in a friend's Lane, whatever your level.","🙌 Accounts made before the level road keep everything."]},

@@ -210,9 +210,9 @@ function audioForCapture(on){ try{ if(navigator.audioSession) navigator.audioSes
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>{ try{ loadSfx(); const ac=sfxCtx(); if(ac.state==="suspended") ac.resume(); }catch(e){} },{once:true,passive:true,capture:true}));
 // switches and home tabs get a small tactile click
 document.addEventListener("click",e=>{
-  const t=e.target.closest&&e.target.closest('[role="switch"],#fxBtn,#uiSoundBtn,#owlBtn,#buzzBtn,.segmented button,#tabChats,#tabDms,#tabContacts');
+  const t=e.target.closest&&e.target.closest('[role="switch"],#fxBtn,#uiSoundBtn,#owlBtn,#buzzBtn,.segmented button,#tabChats,#tabLanes,#tabDms,#tabContacts');
   if(!t) return;
-  sfx(t.matches('#tabChats,#tabDms,#tabContacts')?"tab":"toggle");
+  sfx(t.matches('#tabChats,#tabLanes,#tabDms,#tabContacts')?"tab":"toggle");
 },true);
 
 /* ================= PROFILE ================= */
