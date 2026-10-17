@@ -5212,7 +5212,7 @@ function gameSound(g,prev){
   if(t==="mancala") return;                                   // has its own clicks
   if(t==="kingscourt"){ if(!e8Motion()&&JSON.stringify(a.last)!==JSON.stringify(b.last)) GSFX.tap(); return; }   // (the animation taps each hop)
   if(t==="tictactoe"){ if(JSON.stringify(a.board)!==JSON.stringify(b.board)) GSFX.tap(); return; }
-  if(t==="go"){ const caps=((b.caps?.x||0)+(b.caps?.o||0))-((a.caps?.x||0)+(a.caps?.o||0)); if(JSON.stringify(a.last)!==JSON.stringify(b.last)&&b.last!=null&&b.last>=0) GSFX.stone(caps); return; }
+  if(t==="go"){ const caps=((b.caps?.x||0)+(b.caps?.o||0))-((a.caps?.x||0)+(a.caps?.o||0)); const at=typeof b.last==="object"?b.last?.at:b.last; if(JSON.stringify(a.last)!==JSON.stringify(b.last)&&at!=null&&at>=0) GSFX.stone(caps); return; }   // (pass / resign: no stone)
   if(t==="liarsdice"){ if(started||newRound) GSFX.dice(5); else if(L.called) GSFX.thud(); else if(L.qty) GSFX.tap(.6); return; }
   if(t==="mahjong"){ if(started) GSFX.shuffle(); else if(L.act==="discard") GSFX.tile(); else if(L.act==="claim") GSFX.tile(2); else if(L.act==="draw"||L.act==="wall") GSFX.slide(); else if(L.act==="win") GSFX.tile(3); return; }
   // card games: Crazy Eights, BS, Lucky 7
@@ -9974,6 +9974,8 @@ function playerTile(node,uid,mark,active){
 function paintGame(prev){
   const g=gamesById.get(openGameId); if(!g){ closeGame(); return; }
   if(prev) try{ gameSound(g,prev); }catch(e){}
+  // the same game state again (usually the server confirming a move we already drew): don't redraw, so animations play out
+  if(prev&&prev!==g&&prev.status===g.status&&prev.player_x===g.player_x&&prev.player_o===g.player_o&&JSON.stringify(prev.state)===JSON.stringify(g.state)) return;
   paintGameRules(g);
   const e8=g.type==="eights", ld=g.type==="liarsdice", bs=g.type==="bs", l7=g.type==="lucky7", mj=g.type==="mahjong";
   show($("e8Area"),e8); show($("ldArea"),ld); show($("bsArea"),bs); show($("l7Area"),l7); show($("mjArea"),mj); document.querySelector("#gameSheet .versus").classList.toggle("hidden",e8||ld||bs||l7||mj); show($("board"),!e8&&!ld&&!bs&&!l7&&!mj);
@@ -14247,9 +14249,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19f";
+const APP_VERSION="2026.10.19g";
 const CHANGELOG=[
   
+    {v:"2026.10.19g", title:"Smoother games 🎮", items:["🎮 All games: when the server confirms a move you already see, the board no longer redraws, so card flips, dice rolls, tile and stone animations play all the way through instead of skipping to the end."]},
     {v:"2026.10.19f", title:"Mancala, smoother 🟤", items:["🟤 Mancala: the pits no longer jump to the final numbers mid-sow, and captures are easy to see: the stones leave both pits and fly into your store one by one, clicking as they land."]},
     {v:"2026.10.19e", title:"See every hop 👑", items:["👑 King's Court: each hop of a multi-jump now animates as you tap it, and your move no longer skips straight to the end when the server confirms it."]},
     {v:"2026.10.19d", title:"Game sounds 🔊", items:["🔊 Every game has sound now: card flicks and riffle shuffles (Crazy Eights, BS, Lucky 7), rattling dice (Liar's Dice), clacking tiles (Mahjong), slate stones (Go), and piece taps and capture pops (King's Court, Tic-tac-toe). Turn them off with Sounds in your Profile."]},
