@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#07041A">
+<meta name="color-scheme" content="dark">   <!-- tells browsers with "force dark pages" (Opera GX, Chrome/Edge auto dark) to leave NightLane's colors alone -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>NightLane</title>
 <meta name="description" content="Tap to join the chat on NightLane 🌙">
@@ -27,6 +28,11 @@
   --num:"Anton",Impact,sans-serif; --tech:"Orbitron","Arial Black",sans-serif; --body:"Rajdhani","Arial Narrow",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){}}
+/* dark scrollbars and form controls everywhere (Windows otherwise draws chunky white ones); light themes set their own */
+:root{color-scheme:dark}
+*{scrollbar-width:thin;scrollbar-color:#3b2d80 transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#3b2d80;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--cyan,#00f0ff)}
 :root[data-theme="dark"]{}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--night)}
@@ -1646,6 +1652,20 @@ body.sv-leap .screen{animation:svleap 1.5s steps(14) both}
 @keyframes svleap{0%{transform:none}30%{transform:translateY(105vh) rotate(4deg)}55%{transform:translateY(-6vh) rotate(-3deg)}75%{transform:translateY(2vh)}100%{transform:none}}
 .face.frame-verse{--fr:conic-gradient(from 20deg,#ff2d55,#ffe600,#00e5ff,#ff2d55);filter:drop-shadow(-2px 0 0 #00e5ff) drop-shadow(2px 0 0 #ff2d55)}
 .face.frame-verse>.frx::after{content:"🕸️";position:absolute;right:-.3em;top:-.45em;font-size:max(12px,.5em);transform:rotate(-12deg)}
+/* 🕷️ Spider-Verse on computers: same comic look, but calmer and easier to read */
+@media (any-pointer:fine){
+  body.verse .sky{background:radial-gradient(circle,rgba(255,45,85,.14) 1.2px,transparent 1.7px) 0 0/12px 12px,radial-gradient(circle at 85% 8%,rgba(255,230,0,.16),transparent 40%),linear-gradient(170deg,#1a0b3a,#2a0b42 60%,#140a2e)}
+  body.verse .sky::after{opacity:.55}
+  body.verse .bubble{font-size:15.5px;line-height:1.45;font-weight:700;letter-spacing:.1px}
+  body.verse .bubble::before{border-width:2.5px!important;box-shadow:3px 3px 0 #000!important}
+  body.verse .msg.me .bubble::before{background:#ffe600!important;box-shadow:3px 3px 0 #000!important}   /* plain yellow: no dots behind the words */
+  body.verse .tag{transform:rotate(-2deg);text-shadow:none;font-size:13px;box-shadow:2px 2px 0 #000}
+  body.verse .top,body.verse .compose,body.verse .pinbar,body.verse .dailybar,body.verse .herebar{border-width:2px!important;box-shadow:0 2px 0 var(--mag)}
+  body.verse .field,body.verse textarea{border-width:2px!important;box-shadow:2px 2px 0 var(--cyan)}
+  body.verse .roomrow,body.verse .popt,body.verse .toast{border-width:2px!important;box-shadow:2px 2px 0 var(--mag)!important}
+  body.verse .screen h1,body.verse .screen h2,body.verse .weekday,body.verse .daybreak{text-shadow:-1px 0 var(--mag),1px 0 var(--cyan)!important}
+  body.verse .msg{animation-duration:.24s}
+}
 @media (prefers-reduced-motion:reduce){body.verse .msg,body.verse .msg.sv-split .bubble,.sv-think .sv-sense,.sv-think .sv-dots i{animation:none}}
 /* ===================== /COMIC VERSE ===================== */
 /* ===================== 🦁 VOL + TRON: Kenneth / Keith ===================== */
@@ -2232,7 +2252,7 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .dmpresence{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .dmpresence.here{color:#2ee66b}
 .dmpresence .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor}
-.herebar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(46,230,107,.08);border-bottom:1.5px solid rgba(46,230,107,.35);font-size:13px;color:#e8ffe8;overflow-x:auto}
+.herebar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(46,230,107,.08);border-bottom:1.5px solid rgba(46,230,107,.35);font-size:13px;color:#e8ffe8;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.herebar::-webkit-scrollbar{display:none}
 .herebar .hb-faces{display:flex;flex:none}
 .herebar .hb-faces .face{width:24px;height:24px;font-size:11px;margin-left:-8px;border:2px solid var(--night);box-shadow:none}
 .herebar .hb-faces .face:first-child{margin-left:0}
@@ -14667,9 +14687,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19i";
+const APP_VERSION="2026.10.19j";
 const CHANGELOG=[
   
+    {v:"2026.10.19j", title:"Laptop fixes 💻", items:["💻 On computers: slim dark scrollbars everywhere instead of chunky white ones, and the \"is here\" bar no longer shows scroll arrows.","💻 Touch-screen laptops with a trackpad now get the full computer layout.","🕷️ Spider-Verse theme on computers: calmer background, plain yellow caption boxes, slimmer outlines and bigger text, so chats read cleaner.","🌙 Browsers with \"force dark pages\" (like Opera GX) no longer repaint NightLane's colors."]},
     {v:"2026.10.19i", title:"Lane looks 🎨", items:["🎨 Lanes get NightLane-style neon icons, plus emoji or your own uploaded picture.","🌆 Pick a Lane banner: Neon City, Night Drive, Moonrise, Rain, Static, Vapor, or upload your own.","📷 Side chats can have their own picture too, or a neon icon.","🔊 New side chat type: Voice lounge. It's a call that's always open, so you can hop in and out without pinging anybody, and see who's in from the Lanes tab.","✨ Screen effects now play for messages that arrive a little late (some iPhones missed them)."]},
     {v:"2026.10.19h", title:"Lanes 🛣️", items:["🛣️ New: Lanes! Make a hangout for your crew with side chats inside, like 🎮 Games, 🎬 Movies or 🎵 Music. Everyone in the Lane is in every side chat. Find it in the new Lanes tab.","⭐ The owner can make friends helpers, who can add, rename and remove side chats too. Anyone in the Lane can add their friends.","📦 Own a room? Move it into a Lane from Room settings and it becomes a side chat, messages and all."]},
     {v:"2026.10.19g", title:"Smoother games 🎮", items:["🎮 All games: when the server confirms a move you already see, the board no longer redraws, so card flips, dice rolls, tile and stone animations play all the way through instead of skipping to the end."]},
@@ -16224,7 +16245,7 @@ function playEvolution(before,after){
   sc.classList.remove("done"); show(sc,true);
   const motion=fxEnabled()&&!reducedMotion();
   if(motion) setTimeout(()=>pxfx("warp",{at:stage,scale:4}),1700);
-  setTimeout(()=>{ sc.classList.add("done"); if(motion){ pxfx("sparkle",{at:stage,scale:6}); if(after.shiny) pxfx("shine",{at:stage,scale:4,loops:3}); }
+  setTimeout(()=>{ if(!$("evoTitle")||!$("evoText")) return; sc.classList.add("done"); if(motion){ pxfx("sparkle",{at:stage,scale:6}); if(after.shiny) pxfx("shine",{at:stage,scale:4,loops:3}); }
     $("evoTitle").textContent=hatch?`It hatched into ${PARTNER_NAMES[to]}!`:`${PARTNER_NAMES[from]} evolved into ${PARTNER_NAMES[to]}!`;
     const path=PARTNER_PATHS[after.path];
     $("evoText").textContent=(after.shiny&&hatch?"✦ It's a SHINY! ✦ ":"")+(path&&(+after.stage||0)===2?`${path.icon} It took the ${path.label} path.`:`${PARTNER_STAGES[+after.stage||0]} stage reached.`);
@@ -16659,7 +16680,8 @@ feed.addEventListener("click",e=>{
 })();
 
 /* ================= DESKTOP TERMINAL MODE ================= */
-const isDesktop=()=>matchMedia("(min-width: 900px) and (pointer: fine)").matches;
+// computer layout: a window 900px+ wide with a mouse or trackpad
+const isDesktop=()=>matchMedia("(min-width: 900px) and (any-pointer: fine)").matches;   // (any-pointer: a touch-screen laptop with a trackpad still counts)
 function applyDesktop(){
   const d=isDesktop(); document.body.classList.toggle("desktop",d);
   if(d&&!document.querySelector(".deskframe")){ const f=document.createElement("div"); f.className="deskframe"; document.body.insertBefore(f,$("front")); f.append($("front"),$("chat"));
