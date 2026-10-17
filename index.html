@@ -3552,6 +3552,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .lofiq.on{color:var(--night);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 .lofivol{display:flex;align-items:center;gap:10px;width:100%;font-size:14px;color:var(--muted);margin:-2px 0 6px}
 .lofivol input{flex:1;accent-color:var(--cyan)}
+#gameSheet .kcreplay{width:auto;align-self:center;justify-self:center;padding:8px 16px;font-size:13px;margin:0}
 .lofistations{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;width:100%;margin:0 0 6px}
 .lofistations button{padding:9px 4px;font-size:12.5px;line-height:1.2;background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);cursor:pointer;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
 .lofistations button[aria-checked="true"]{border-color:var(--cyan);background:rgba(0,240,255,.12);color:var(--cyan)}
@@ -4212,6 +4213,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     </div>
     <p class="gstatus" id="gameStatus" role="status"></p>
     <div class="board" id="board" role="grid" aria-label="Tic-tac-toe board"></div>
+    <button class="ghost kcreplay hidden" type="button" id="kcReplay">↺ Replay last move</button>
     <div class="kc-chainbar hidden" id="kcChainBar"><b>Chain continues…</b><button class="ghost" type="button" id="kcDone">Done</button></div>
     <div class="eights hidden" id="e8Area">
       <div class="e8-players" id="e8Players"></div>
@@ -4989,9 +4991,9 @@ function kcBoardEl(g){
 }
 /* King's Court animation: the piece slides (or hops, for jumps) along its path, captured pieces pop,
    and stepping into the Court sparkles. Works for your moves and your opponent's. */
-function kcAnimateMove(g,prev){
+function kcAnimateMove(g,prev,force){
   const path=g.state.last||[], was=prev?.state?.last||[];
-  if(path.length<2||JSON.stringify(path)===JSON.stringify(was)||!e8Motion()) return;
+  if(path.length<2||JSON.stringify(path)===JSON.stringify(was)||(!e8Motion()&&!force)) return;
   const board=$("board").querySelector(".kcboard"); if(!board) return;
   const cells=board.children, dest=path[path.length-1], piece=cells[dest]?.querySelector(".kcpc"); if(!piece) return;
   const c=i=>{ const r=cells[i].getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; }, d=c(dest);
@@ -4999,7 +5001,7 @@ function kcAnimateMove(g,prev){
   const frames=[], hops=path.length-1;
   path.forEach((sq,k)=>{
     const p=c(sq); frames.push({transform:`translate(${p.x-d.x}px,${p.y-d.y}px) scale(1)`,offset:k/hops});
-    if(jump&&k<hops){ const q=c(path[k+1]); frames.push({transform:`translate(${(p.x+q.x)/2-d.x}px,${(p.y+q.y)/2-d.y-18}px) scale(1.45)`,offset:(k+.5)/hops}); }
+    if(jump&&k<hops){ const q=c(path[k+1]); frames.push({transform:`translate(${(p.x+q.x)/2-d.x}px,${(p.y+q.y)/2-d.y-30}px) scale(1.3)`,offset:(k+.5)/hops}); }
   });
   frames[frames.length-1]={transform:"translate(0,0) scale(1)",offset:1};
   const per=jump?300:220;
@@ -5007,8 +5009,10 @@ function kcAnimateMove(g,prev){
   // captured pieces: whatever of the opponent's disappeared (except the moving piece's start square)
   const mover=prev.state.turn, opp=mover==="x"?"o":"x", pb=prev.state.board||[], nb=g.state.board||[];
   let k=0;
-  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"); cells[i].append(ghost);
-    ghost.animate([{transform:"scale(1)",opacity:1},{transform:"scale(1.7) rotate(25deg)",opacity:.9,offset:.35},{transform:"scale(0) rotate(90deg)",opacity:0}],{duration:520,delay:per*(++k)-120,easing:"ease-out",fill:"backwards"}).onfinish=()=>ghost.remove(); } });
+  // (the jumper arcs high over it, then the captured piece flashes white and shrinks away, so it never looks like it changed color)
+  const hopAt=sq=>{ for(let h=0;h<hops;h++){ const A=path[h], C=path[h+1]; if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2&&((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0)===sq) return h; } return k++; };
+  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"); cells[i].append(ghost); ghost.style.zIndex="4";
+    ghost.animate([{transform:"scale(1)",opacity:1,filter:"none"},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0,filter:"brightness(3) saturate(0)"}],{duration:460,delay:per*(hopAt(i)+.75),easing:"ease-out",fill:"backwards"}).onfinish=()=>ghost.remove(); } });
   // stepping into the Court from outside sparkles
   if(kcInCourt(dest)&&!kcInCourt(path[0])){ setTimeout(()=>{ cells[dest].classList.add("kcspark"); setTimeout(()=>cells[dest]?.classList.remove("kcspark"),800); },per*hops); }
 }
@@ -9838,8 +9842,12 @@ function paintGame(prev){
   } else if(isKC){
     board.className="kcboard-wrap"; board.append(kcBoardEl(g));
     if(prev&&!kcPreview) kcAnimateMove(g,prev);
+    else if(!prev&&!kcPreview&&g.status==="active"&&s.turn===me&&kcSeenKey(g)!==kcLastKey(g)) setTimeout(()=>kcReplay(g),350);   // opening the board on your turn: show what they just did
+    if(s.last?.length>=2) kcSeen.set(g.message_id,kcLastKey(g));
     show($("kcChainBar"),kcChaining);
+    show($("kcReplay"),!kcChaining&&(s.last?.length||0)>=2);
   } else {
+    show($("kcReplay"),false);
     board.className="board"; board.removeAttribute("aria-label"); board.setAttribute("role","grid"); board.setAttribute("aria-label","Tic-tac-toe board");
     const canPlay=g.status==="active"&&me&&s.turn===me;
     s.board.forEach((v,i)=>{
@@ -9859,6 +9867,18 @@ function paintGame(prev){
     if(navigator.vibrate) navigator.vibrate(st.won?[40,60,40]:60);
   } else if(prev?.state&&prev.state.turn!==s.turn&&s.turn===me&&navigator.vibrate) navigator.vibrate(25);
 }
+/* ↺ replay the last King's Court move: rebuild the board from just before it, then play the same animation */
+const kcSeen=new Map(), kcLastKey=g=>JSON.stringify(g.state.last||[]), kcSeenKey=g=>kcSeen.get(g.message_id);
+function kcReplay(g){
+  const s=g.state, path=s.last||[]; if(path.length<2||!$("board").querySelector(".kcboard")) return;
+  const b=s.board, dest=path[path.length-1], mover=b[dest]; if(!mover) return;
+  const opp=mover==="x"?"o":"x", pb=b.slice();
+  pb[dest]=""; pb[path[0]]=mover;
+  for(let k=0;k<path.length-1;k++){ const A=path[k], C=path[k+1];
+    if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2){ const mid=((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0); if(!b[mid]) pb[mid]=opp; } }   // an empty jumped square = a captured piece
+  kcAnimateMove(g,{state:{last:[],board:pb,turn:mover}},true);
+}
+$("kcReplay").onclick=()=>{ const g=gamesById.get(openGameId); if(g) kcReplay(g); };
 $("kcDone").onclick=()=>{ const g=gamesById.get(openGameId); if(g&&kcChaining&&kcPath) kcFinish(g); };
 async function makeMove(i){
   const g=gamesById.get(openGameId), me=g&&myMark(g);
@@ -14039,9 +14059,11 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18s";
+const APP_VERSION="2026.10.18u";
 const CHANGELOG=[
   
+    {v:"2026.10.18u", title:"Clearer captures 👑", items:["👑 King's Court: when a piece gets jumped, the jumper now arcs higher over it and the captured piece flashes white and vanishes, so it doesn't look like it changed color."]},
+    {v:"2026.10.18t", title:"Replay ↺", items:["👑 King's Court: when you open the board on your turn, it replays your opponent's last move so you can see what happened. Tap ↺ Replay last move to watch it again. Thanks JKWrangler09!"]},
     {v:"2026.10.18s", title:"Radio stations 📻", items:["📻 New: the 🎧 Lofi radio has stations! Pick 🌙 Night Lofi (made live in the app) or ☀️ Dust & Sunlight, real piano lofi by Gent Byci. Find it in Profile → Look. Songs shuffle, and Skip ⏭ jumps to the next one."]},
     {v:"2026.10.18r", title:"Group calls + screen share 📞🖥️", items:["👥 New: group calls in rooms! Tap 📞 in any room for a group voice or video call, up to 4 people. Everyone in the room gets a banner to join, and the call note in the chat has a Join button while it's going.","🖥️ New: share your screen during a video call (DMs and group calls). Sharing works from a computer, and phones can watch."]},
     {v:"2026.10.18q", title:"Name in the middle ✨", items:["✨ Names on profile cards now sit centered under the picture."]},
