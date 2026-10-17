@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Get NightLane</title>
+  <meta name="description" content="Get NightLane on your phone or computer.">
+  <meta name="theme-color" content="#07041A">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+   :root {
+  --night: #07041A;
+  --cyan: #00F0FF;
+  --magenta: #C65AAE;
+  --volt: #F3FF3A;
+  --text-color: #F4F7FF;
+  --muted-text-color: #C9C2F0;
+  --dim-text-color: #9C93D6;
+  --line-color: #3B2D80;
+  --panel: #120A33;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--night);
+  background-image: radial-gradient(ellipse at 85% -10%, rgba(198,90,174,.30), transparent 50%),
+                    radial-gradient(ellipse at 0% 40%, rgba(0,240,255,.10), transparent 45%);
+  background-repeat: no-repeat;
+  color: var(--text-color);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  line-height: 1.45;
+  overflow-x: hidden;
+}
+a { color: var(--cyan); }
+a:hover { color: var(--volt); }
+.site-header {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line-color);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-color);
+  }
+  .logo img { border-radius: 10px; }
+  .logo span {
+    font-family: 'Anton', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+  .nav-btn {
+    background-color: var(--cyan);
+    color: var(--night);
+    padding: 8px 16px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 3px 3px 0 var(--magenta);
+  }
+  nav{
+    display:flex;
+    align-items:center;
+    gap: 22px;
+  }
+  nav a { color: var(--cyan); }
+  nav a.nav-btn { color: var(--night); }
+
+  /* ===== hero ===== */
+  .hero-row {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 24px 56px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 48px;
+  }
+  .hero {
+    flex: 999 1 520px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    align-items: flex-start;
+  }
+
+  .tag {
+    font-family: 'Anton', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--cyan);
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(56px, 8vw, 104px);
+    line-height: .95;
+    text-shadow: 3px 3px 0 var(--cyan),
+                 5px 5px 0 var(--magenta),
+                 7px 7px 0 var(--volt);
+  }
+
+  .lead {
+    margin: 0;
+    font-size: 21px;
+    color: var(--muted-text-color);
+    max-width: 560px;
+   }
+  .note {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--dim-text-color);
+    max-width: 560px;
+  }
+  .big-btn {
+    display: inline-block; text-decoration:none; border: 0; cursor: pointer;
+    background-color: var(--volt); color: var(--night);
+    font-family: 'Anton', sans-serif; font-size: 26px; letter-spacing: 1px;
+    padding: 14px 22px;
+    box-shadow: 6px 6px 0 var(--cyan);
+    transform: skew(-6deg);
+    transition: transform .15s ease, box-shadow .15s ease;
+   }
+  .big-btn:hover { color: var(--night); transform: skew(-6deg) translate(-2px,-2px); box-shadow: 8px 8px 0 var(--cyan); }
+  .big-btn.cyan {
+    background-color: var(--cyan);
+    box-shadow: 6px 6px 0 var(--magenta);
+   }
+  .big-btn.cyan:hover { box-shadow: 8px 8px 0 var(--magenta); }
+   .devices {
+    display: flex;
+    flex-wrap: wrap;
+    border: 2px solid var(--line-color);
+   }
+   .device {
+    background: transparent; border: 0; cursor: pointer;
+    color: var(--muted-text-color);
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 14px;
+    letter-spacing: 1px;
+    min-height: 48px; padding: 0 20px;
+   }
+   .device:hover { color: var(--volt); }
+   .device.on {
+    color: var(--night);
+    background-color: var(--cyan);
+   }
+   .guess {
+    margin: -8px 0 0;
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px;
+    color: var(--cyan);
+   }
+   .pick { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+   .pick[hidden], [hidden] { display: none !important; }
+   .done-msg {
+    margin: 0; padding: 10px 14px; border: 2px solid var(--cyan); background: rgba(0,240,255,.08);
+    font-weight: 700;
+   }
+
+  /* the tilted app stamp */
+  .stamp-wrap { flex: 1 1 300px; min-width: 0; display: flex; justify-content: center; padding: 40px 0; }
+  .stamp { position: relative; width: min(300px, 62vw); transform: rotate(4deg); }
+  .stamp::before { content: ""; position: absolute; inset: 18px -18px -18px 18px; background: var(--magenta); }
+  .stamp-card {
+    position: relative; width: 100%; padding: 9%; background: var(--panel); border: 3px solid var(--cyan);
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .stamp-card img { width: 82%; height: auto; aspect-ratio: 1; border-radius: 18%; }
+  .stamp-card b { font-family: 'Orbitron', sans-serif; font-size: 12px; letter-spacing: 3px; color: var(--cyan); }
+  .bubble {
+    position: absolute; top: -22px; left: -18px; transform: rotate(-8deg);
+    background: var(--text-color); color: var(--night); padding: 8px 12px; font-weight: 700; font-size: 15px;
+    white-space: nowrap; border: 2px solid var(--night); box-shadow: 4px 4px 0 var(--cyan);
+  }
+  .new-chip {
+    position: absolute; bottom: -14px; right: -14px; transform: rotate(-3deg);
+    background: var(--volt); color: var(--night); padding: 8px 12px;
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    white-space: nowrap; box-shadow: 4px 4px 0 var(--magenta);
+  }
+
+  /* ===== sections ===== */
+  .section { max-width: 1180px; margin: 0 auto; padding: 24px 24px 56px; }
+  .section h2 {
+    margin: 0 0 22px; font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(32px, 5vw, 44px); letter-spacing: 1px; text-transform: uppercase;
+  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; }
+  .card {
+    display: flex; flex-direction: column; gap: 18px; padding: 26px; background: var(--panel);
+    border: 3px solid var(--line-color); box-shadow: 8px 8px 0 #1B1145; scroll-margin-top: 20px;
+  }
+  .card.on { border-color: var(--volt); box-shadow: 8px 8px 0 var(--magenta); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .card h3 { margin: 0; font-family: 'Anton', sans-serif; font-weight: 400; font-size: 30px; letter-spacing: 1px; }
+  .chip {
+    font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    color: var(--night); background: var(--cyan); padding: 4px 8px;
+  }
+  .chip.soon { color: var(--text-color); background: transparent; border: 2px solid var(--magenta); padding: 2px 8px; }
+  .card ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; color: var(--muted-text-color); }
+  .card ol b { color: var(--text-color); }
+  .card .small-btn {
+    margin-top: auto; align-self: flex-start; text-decoration: none; border: 0; cursor: pointer;
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px;
+    color: var(--night); background: var(--volt); padding: 12px 18px; box-shadow: 4px 4px 0 var(--magenta);
+  }
+  .share-ico { width: 18px; height: 18px; vertical-align: -3px; }
+
+  .why { background: #0E0828; border-top: 2px solid var(--line-color); border-bottom: 2px solid var(--line-color); }
+  .why .section { padding-top: 44px; padding-bottom: 44px; }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; }
+  .why-item { display: flex; gap: 14px; align-items: flex-start; }
+  .why-item svg { flex: none; width: 34px; height: 34px; }
+  .why-item b { font-size: 19px; }
+  .why-item div div { color: var(--dim-text-color); font-size: 17px; font-weight: 500; }
+
+  .scan { display: flex; flex-wrap: wrap; gap: 36px; align-items: center; padding-top: 56px; }
+  .qr { flex: none; width: 168px; height: 168px; border: 3px solid var(--cyan); box-shadow: 6px 6px 0 var(--magenta); }
+  .scan-text { flex: 999 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .scan-text h2 { margin: 0; }
+
+  .faq { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+  .faq div { border: 2px solid var(--line-color); padding: 18px 20px; background: rgba(0,0,0,.25); }
+  .faq b { font-size: 19px; }
+  .faq p { margin: 6px 0 0; color: var(--dim-text-color); font-size: 17px; font-weight: 500; }
+
+  footer { border-top: 2px solid var(--line-color); background: #04020F; }
+  .foot {
+    max-width: 1180px; margin: 0 auto; padding: 24px; display: flex; gap: 14px 28px; flex-wrap: wrap;
+    align-items: center; font-size: 15px; color: var(--dim-text-color);
+  }
+  .foot .brand { font-family: 'Anton', sans-serif; font-size: 20px; color: var(--text-color); letter-spacing: 1px; }
+  .foot .by { margin-left: auto; }
+
+  .linkish { background: none; border: 0; padding: 0; color: var(--cyan); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) { .big-btn { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="https://nightlane.chat" class="logo">
+      <img src="icon-192.png" alt="" width="48" height="48">
+      <span>NIGHTLANE</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#help">Help</a>
+      <a href="https://nightlane.chat" class="nav-btn">Open in browser</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero-row">
+      <section class="hero">
+        <span class="tag">GET THE APP</span>
+        <h1>Take NightLane with you.</h1>
+        <p class="lead">Put it on your phone or computer. Same chats, same crew, and notifications that actually show up.</p>
+
+        <div class="devices" role="group" aria-label="Your device">
+          <button type="button" class="device on" data-device="android" aria-pressed="true">Android</button>
+          <button type="button" class="device" data-device="iphone" aria-pressed="false">iPhone</button>
+          <button type="button" class="device" data-device="computer" aria-pressed="false">Computer</button>
+        </div>
+        <p class="guess" id="guess" hidden></p>
+
+        <div class="pick" data-device="android">
+          <a class="big-btn" href="https://groups.google.com/g/nightlane-testers">1 · JOIN THE TESTERS</a>
+          <a class="big-btn cyan" href="https://play.google.com/apps/testing/chat.nightlane.app">2 · GET IT ON GOOGLE PLAY</a>
+          <p class="note">We're in testing on Google Play: join the tester group with the Google account on your phone, then tap <b>Become a tester</b> and install.</p>
+          <p class="note install-alt" hidden>No Play Store? <button type="button" class="linkish install-btn">Install it straight from Chrome</button>.</p>
+        </div>
+
+        <div class="pick" data-device="iphone" hidden>
+          <a class="big-btn" href="#iphone">ADD TO HOME SCREEN</a>
+          <p class="note">Takes 10 seconds in Safari. The App Store version is on the way.</p>
+        </div>
+
+        <div class="pick" data-device="computer" hidden>
+          <button type="button" class="big-btn install-btn">INSTALL ON THIS COMPUTER</button>
+          <p class="note">Works in Chrome or Edge on Windows, Mac and Chromebook. It gets its own window and taskbar icon.</p>
+        </div>
+
+        <p class="done-msg" id="doneMsg" hidden>Installed! Open NightLane from your home screen or apps.</p>
+        <a href="https://nightlane.chat">Already have it? Open NightLane</a>
+      </section>
+
+      <div class="stamp-wrap" aria-hidden="true">
+        <div class="stamp">
+          <div class="stamp-card">
+            <img src="icon-512.png" alt="">
+            <b>NIGHTLANE.CHAT</b>
+          </div>
+          <div class="bubble">Vee: you on tonight?</div>
+          <div class="new-chip">3 NEW</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="ways">
+      <h2 id="ways">Pick your device</h2>
+      <div class="cards">
+        <article class="card on" data-device="android">
+          <div class="card-head"><h3>ANDROID</h3><span class="chip">GOOGLE PLAY · TESTING</span></div>
+          <ol>
+            <li><a href="https://groups.google.com/g/nightlane-testers"><b>Join the tester group</b></a> with the Google account on your phone.</li>
+            <li><a href="https://play.google.com/apps/testing/chat.nightlane.app"><b>Open the test page</b></a> and tap <b>Become a tester</b>.</li>
+            <li>Tap <b>Download it on Google Play</b>, install, and sign in. Your chats are already there.</li>
+          </ol>
+          <a class="small-btn" href="https://groups.google.com/g/nightlane-testers">JOIN THE TESTERS</a>
+        </article>
+
+        <article class="card" id="iphone" data-device="iphone">
+          <div class="card-head"><h3>IPHONE &amp; IPAD</h3><span class="chip soon">APP STORE · SOON</span></div>
+          <ol>
+            <li>Open <b>nightlane.chat</b> in Safari.</li>
+            <li>Tap <b>Share</b>
+              <svg class="share-ico" viewBox="0 0 24 24" role="img" aria-label="the Share icon" fill="none" stroke="#00F0FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>
+              then <b>Add to Home Screen</b>.</li>
+            <li>Open NightLane from your Home Screen and tap <b>Allow</b> for notifications.</li>
+          </ol>
+          <a class="small-btn" href="https://nightlane.chat">OPEN NIGHTLANE.CHAT</a>
+        </article>
+
+        <article class="card" data-device="computer">
+          <div class="card-head"><h3>COMPUTER</h3><span class="chip">WINDOWS · MAC · CHROMEBOOK</span></div>
+          <ol>
+            <li>Open <b>nightlane.chat</b> in Chrome or Edge.</li>
+            <li>Click the <b>Install</b> icon at the right end of the address bar.</li>
+            <li>NightLane opens in its own window. Pin it to your taskbar or Dock.</li>
+          </ol>
+          <button type="button" class="small-btn install-btn">INSTALL NOW</button>
+        </article>
+      </div>
+    </section>
+
+    <div class="why">
+      <section class="section" aria-labelledby="why">
+        <h2 id="why">Why install it?</h2>
+        <div class="why-grid">
+          <div class="why-item">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
+            <div><b>Notifications that show up</b><div>Know the second your crew pings you, even with the app closed.</div></div>
+          </div>
+          <div class="why-item">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#F3FF3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="12" height="12" rx="2"/><circle cx="17" cy="6" r="3.5"/></svg>
+            <div><b>Unread count on the icon</b><div>See what's waiting without opening anything.</div></div>
+          </div>
+          <div class="why-item">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#C65AAE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
+            <div><b>Full screen</b><div>No browser bars. Just NightLane.</div></div>
+          </div>
+          <div class="why-item">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+            <div><b>Updates itself</b><div>New games and features land on their own.</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section scan" id="scanSection" aria-labelledby="scan">
+      <svg class="qr" viewBox="0 0 31 31" role="img" aria-label="QR code for nightlane.chat/download" shape-rendering="crispEdges"><rect width="31" height="31" fill="#F4F7FF"/><path fill="#07041A" d="M1,1h1v1h-1zM2,1h1v1h-1zM3,1h1v1h-1zM4,1h1v1h-1zM5,1h1v1h-1zM6,1h1v1h-1zM7,1h1v1h-1zM9,1h1v1h-1zM10,1h1v1h-1zM11,1h1v1h-1zM14,1h1v1h-1zM15,1h1v1h-1zM17,1h1v1h-1zM18,1h1v1h-1zM19,1h1v1h-1zM21,1h1v1h-1zM23,1h1v1h-1zM24,1h1v1h-1zM25,1h1v1h-1zM26,1h1v1h-1zM27,1h1v1h-1zM28,1h1v1h-1zM29,1h1v1h-1zM1,2h1v1h-1zM7,2h1v1h-1zM14,2h1v1h-1zM15,2h1v1h-1zM16,2h1v1h-1zM18,2h1v1h-1zM20,2h1v1h-1zM21,2h1v1h-1zM23,2h1v1h-1zM29,2h1v1h-1zM1,3h1v1h-1zM3,3h1v1h-1zM4,3h1v1h-1zM5,3h1v1h-1zM7,3h1v1h-1zM11,3h1v1h-1zM15,3h1v1h-1zM18,3h1v1h-1zM19,3h1v1h-1zM21,3h1v1h-1zM23,3h1v1h-1zM25,3h1v1h-1zM26,3h1v1h-1zM27,3h1v1h-1zM29,3h1v1h-1zM1,4h1v1h-1zM3,4h1v1h-1zM4,4h1v1h-1zM5,4h1v1h-1zM7,4h1v1h-1zM9,4h1v1h-1zM13,4h1v1h-1zM19,4h1v1h-1zM21,4h1v1h-1zM23,4h1v1h-1zM25,4h1v1h-1zM26,4h1v1h-1zM27,4h1v1h-1zM29,4h1v1h-1zM1,5h1v1h-1zM3,5h1v1h-1zM4,5h1v1h-1zM5,5h1v1h-1zM7,5h1v1h-1zM9,5h1v1h-1zM10,5h1v1h-1zM13,5h1v1h-1zM19,5h1v1h-1zM23,5h1v1h-1zM25,5h1v1h-1zM26,5h1v1h-1zM27,5h1v1h-1zM29,5h1v1h-1zM1,6h1v1h-1zM7,6h1v1h-1zM9,6h1v1h-1zM10,6h1v1h-1zM11,6h1v1h-1zM12,6h1v1h-1zM17,6h1v1h-1zM20,6h1v1h-1zM23,6h1v1h-1zM29,6h1v1h-1zM1,7h1v1h-1zM2,7h1v1h-1zM3,7h1v1h-1zM4,7h1v1h-1zM5,7h1v1h-1zM6,7h1v1h-1zM7,7h1v1h-1zM9,7h1v1h-1zM11,7h1v1h-1zM13,7h1v1h-1zM15,7h1v1h-1zM17,7h1v1h-1zM19,7h1v1h-1zM21,7h1v1h-1zM23,7h1v1h-1zM24,7h1v1h-1zM25,7h1v1h-1zM26,7h1v1h-1zM27,7h1v1h-1zM28,7h1v1h-1zM29,7h1v1h-1zM9,8h1v1h-1zM10,8h1v1h-1zM11,8h1v1h-1zM13,8h1v1h-1zM14,8h1v1h-1zM16,8h1v1h-1zM17,8h1v1h-1zM18,8h1v1h-1zM1,9h1v1h-1zM5,9h1v1h-1zM7,9h1v1h-1zM8,9h1v1h-1zM9,9h1v1h-1zM10,9h1v1h-1zM11,9h1v1h-1zM14,9h1v1h-1zM18,9h1v1h-1zM20,9h1v1h-1zM21,9h1v1h-1zM22,9h1v1h-1zM23,9h1v1h-1zM24,9h1v1h-1zM25,9h1v1h-1zM26,9h1v1h-1zM29,9h1v1h-1zM1,10h1v1h-1zM3,10h1v1h-1zM5,10h1v1h-1zM6,10h1v1h-1zM9,10h1v1h-1zM11,10h1v1h-1zM13,10h1v1h-1zM14,10h1v1h-1zM15,10h1v1h-1zM17,10h1v1h-1zM18,10h1v1h-1zM19,10h1v1h-1zM22,10h1v1h-1zM23,10h1v1h-1zM24,10h1v1h-1zM25,10h1v1h-1zM26,10h1v1h-1zM27,10h1v1h-1zM28,10h1v1h-1zM29,10h1v1h-1zM2,11h1v1h-1zM3,11h1v1h-1zM7,11h1v1h-1zM8,11h1v1h-1zM9,11h1v1h-1zM10,11h1v1h-1zM17,11h1v1h-1zM19,11h1v1h-1zM23,11h1v1h-1zM24,11h1v1h-1zM29,11h1v1h-1zM1,12h1v1h-1zM2,12h1v1h-1zM4,12h1v1h-1zM5,12h1v1h-1zM6,12h1v1h-1zM9,12h1v1h-1zM10,12h1v1h-1zM12,12h1v1h-1zM13,12h1v1h-1zM15,12h1v1h-1zM18,12h1v1h-1zM19,12h1v1h-1zM22,12h1v1h-1zM23,12h1v1h-1zM24,12h1v1h-1zM25,12h1v1h-1zM26,12h1v1h-1zM28,12h1v1h-1zM29,12h1v1h-1zM3,13h1v1h-1zM4,13h1v1h-1zM7,13h1v1h-1zM8,13h1v1h-1zM9,13h1v1h-1zM11,13h1v1h-1zM12,13h1v1h-1zM13,13h1v1h-1zM14,13h1v1h-1zM15,13h1v1h-1zM16,13h1v1h-1zM17,13h1v1h-1zM18,13h1v1h-1zM21,13h1v1h-1zM22,13h1v1h-1zM28,13h1v1h-1zM2,14h1v1h-1zM3,14h1v1h-1zM6,14h1v1h-1zM9,14h1v1h-1zM23,14h1v1h-1zM24,14h1v1h-1zM25,14h1v1h-1zM26,14h1v1h-1zM27,14h1v1h-1zM28,14h1v1h-1zM29,14h1v1h-1zM1,15h1v1h-1zM2,15h1v1h-1zM4,15h1v1h-1zM6,15h1v1h-1zM7,15h1v1h-1zM9,15h1v1h-1zM10,15h1v1h-1zM11,15h1v1h-1zM12,15h1v1h-1zM13,15h1v1h-1zM14,15h1v1h-1zM15,15h1v1h-1zM16,15h1v1h-1zM19,15h1v1h-1zM21,15h1v1h-1zM25,15h1v1h-1zM26,15h1v1h-1zM27,15h1v1h-1zM29,15h1v1h-1zM3,16h1v1h-1zM5,16h1v1h-1zM6,16h1v1h-1zM9,16h1v1h-1zM14,16h1v1h-1zM16,16h1v1h-1zM17,16h1v1h-1zM18,16h1v1h-1zM19,16h1v1h-1zM20,16h1v1h-1zM22,16h1v1h-1zM23,16h1v1h-1zM28,16h1v1h-1zM29,16h1v1h-1zM2,17h1v1h-1zM3,17h1v1h-1zM5,17h1v1h-1zM7,17h1v1h-1zM9,17h1v1h-1zM11,17h1v1h-1zM12,17h1v1h-1zM14,17h1v1h-1zM18,17h1v1h-1zM20,17h1v1h-1zM21,17h1v1h-1zM22,17h1v1h-1zM28,17h1v1h-1zM1,18h1v1h-1zM2,18h1v1h-1zM6,18h1v1h-1zM10,18h1v1h-1zM11,18h1v1h-1zM12,18h1v1h-1zM14,18h1v1h-1zM15,18h1v1h-1zM17,18h1v1h-1zM18,18h1v1h-1zM19,18h1v1h-1zM23,18h1v1h-1zM24,18h1v1h-1zM25,18h1v1h-1zM26,18h1v1h-1zM28,18h1v1h-1zM29,18h1v1h-1zM3,19h1v1h-1zM4,19h1v1h-1zM7,19h1v1h-1zM9,19h1v1h-1zM11,19h1v1h-1zM13,19h1v1h-1zM17,19h1v1h-1zM19,19h1v1h-1zM22,19h1v1h-1zM23,19h1v1h-1zM27,19h1v1h-1zM29,19h1v1h-1zM5,20h1v1h-1zM9,20h1v1h-1zM10,20h1v1h-1zM12,20h1v1h-1zM13,20h1v1h-1zM15,20h1v1h-1zM18,20h1v1h-1zM20,20h1v1h-1zM21,20h1v1h-1zM23,20h1v1h-1zM24,20h1v1h-1zM25,20h1v1h-1zM28,20h1v1h-1zM29,20h1v1h-1zM1,21h1v1h-1zM2,21h1v1h-1zM3,21h1v1h-1zM6,21h1v1h-1zM7,21h1v1h-1zM8,21h1v1h-1zM9,21h1v1h-1zM11,21h1v1h-1zM13,21h1v1h-1zM14,21h1v1h-1zM15,21h1v1h-1zM16,21h1v1h-1zM18,21h1v1h-1zM21,21h1v1h-1zM22,21h1v1h-1zM23,21h1v1h-1zM24,21h1v1h-1zM25,21h1v1h-1zM26,21h1v1h-1zM29,21h1v1h-1zM9,22h1v1h-1zM10,22h1v1h-1zM11,22h1v1h-1zM18,22h1v1h-1zM19,22h1v1h-1zM20,22h1v1h-1zM21,22h1v1h-1zM25,22h1v1h-1zM29,22h1v1h-1zM1,23h1v1h-1zM2,23h1v1h-1zM3,23h1v1h-1zM4,23h1v1h-1zM5,23h1v1h-1zM6,23h1v1h-1zM7,23h1v1h-1zM9,23h1v1h-1zM10,23h1v1h-1zM11,23h1v1h-1zM12,23h1v1h-1zM13,23h1v1h-1zM14,23h1v1h-1zM15,23h1v1h-1zM16,23h1v1h-1zM17,23h1v1h-1zM18,23h1v1h-1zM19,23h1v1h-1zM20,23h1v1h-1zM21,23h1v1h-1zM23,23h1v1h-1zM25,23h1v1h-1zM26,23h1v1h-1zM27,23h1v1h-1zM29,23h1v1h-1zM1,24h1v1h-1zM7,24h1v1h-1zM10,24h1v1h-1zM14,24h1v1h-1zM16,24h1v1h-1zM18,24h1v1h-1zM21,24h1v1h-1zM25,24h1v1h-1zM1,25h1v1h-1zM3,25h1v1h-1zM4,25h1v1h-1zM5,25h1v1h-1zM7,25h1v1h-1zM9,25h1v1h-1zM11,25h1v1h-1zM12,25h1v1h-1zM13,25h1v1h-1zM14,25h1v1h-1zM18,25h1v1h-1zM20,25h1v1h-1zM21,25h1v1h-1zM22,25h1v1h-1zM23,25h1v1h-1zM24,25h1v1h-1zM25,25h1v1h-1zM26,25h1v1h-1zM28,25h1v1h-1zM29,25h1v1h-1zM1,26h1v1h-1zM3,26h1v1h-1zM4,26h1v1h-1zM5,26h1v1h-1zM7,26h1v1h-1zM12,26h1v1h-1zM13,26h1v1h-1zM14,26h1v1h-1zM15,26h1v1h-1zM16,26h1v1h-1zM17,26h1v1h-1zM18,26h1v1h-1zM19,26h1v1h-1zM21,26h1v1h-1zM22,26h1v1h-1zM28,26h1v1h-1zM1,27h1v1h-1zM3,27h1v1h-1zM4,27h1v1h-1zM5,27h1v1h-1zM7,27h1v1h-1zM11,27h1v1h-1zM12,27h1v1h-1zM13,27h1v1h-1zM16,27h1v1h-1zM19,27h1v1h-1zM20,27h1v1h-1zM22,27h1v1h-1zM26,27h1v1h-1zM27,27h1v1h-1zM28,27h1v1h-1zM29,27h1v1h-1zM1,28h1v1h-1zM7,28h1v1h-1zM11,28h1v1h-1zM16,28h1v1h-1zM17,28h1v1h-1zM18,28h1v1h-1zM19,28h1v1h-1zM21,28h1v1h-1zM24,28h1v1h-1zM25,28h1v1h-1zM26,28h1v1h-1zM28,28h1v1h-1zM29,28h1v1h-1zM1,29h1v1h-1zM2,29h1v1h-1zM3,29h1v1h-1zM4,29h1v1h-1zM5,29h1v1h-1zM6,29h1v1h-1zM7,29h1v1h-1zM9,29h1v1h-1zM10,29h1v1h-1zM11,29h1v1h-1zM13,29h1v1h-1zM15,29h1v1h-1zM18,29h1v1h-1zM21,29h1v1h-1zM23,29h1v1h-1zM24,29h1v1h-1zM26,29h1v1h-1zM28,29h1v1h-1z"/></svg>
+      <div class="scan-text">
+        <h2 id="scan">On your computer right now?</h2>
+        <p class="lead">Point your phone's camera at the code to open this page there, or type <b style="color: var(--volt);">nightlane.chat/download</b>.</p>
+      </div>
+    </section>
+
+    <section class="section" id="help" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">Quick answers</h2>
+      <div class="faq">
+        <div><b>Is it free?</b><p>Yes. NightLane is free to use.</p></div>
+        <div><b>Is the app different from the website?</b><p>No, it's the same NightLane. Your chats, friends and Lanes come with you.</p></div>
+        <div><b>No notifications on iPhone?</b><p>iPhones only send them once NightLane is on your Home Screen. Add it, open it from there, and tap Allow.</p></div>
+        <div><b>Who can use NightLane?</b><p>Anyone 13 or older.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot">
+      <span class="brand">NIGHTLANE</span>
+      <a href="terms.html">Terms</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="mailto:support@nightlane.chat">support@nightlane.chat</a>
+      <span class="by">Made by Cole Eggly</span>
+    </div>
+  </footer>
+
+<script>
+  /* ---- switch between Android / iPhone / Computer ---- */
+  function showDevice(name) {
+    // 1. light up the right device button
+    document.querySelectorAll(".device").forEach(btn => {
+      btn.classList.toggle("on", btn.dataset.device === name);
+      btn.setAttribute("aria-pressed", String(btn.dataset.device === name));
+    });
+    // 2. show only that device's buttons
+    document.querySelectorAll(".pick").forEach(group => {
+      group.hidden = group.dataset.device !== name;
+    });
+    // 3. highlight that device's card further down
+    document.querySelectorAll(".card").forEach(card => {
+      card.classList.toggle("on", card.dataset.device === name);
+    });
+  }
+  document.querySelectorAll(".device").forEach(btn => {
+    btn.addEventListener("click", () => showDevice(btn.dataset.device));
+  });
+
+  /* ---- guess the device when the page opens ---- */
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const guess = isIOS ? "iphone" : isAndroid ? "android" : "computer";
+  showDevice(guess);
+  const guessText = { android: "LOOKS LIKE YOU'RE ON ANDROID", iphone: "LOOKS LIKE YOU'RE ON AN IPHONE OR IPAD", computer: "LOOKS LIKE YOU'RE ON A COMPUTER" };
+  const guessEl = document.getElementById("guess");
+  guessEl.textContent = guessText[guess];
+  guessEl.hidden = false;
+  // the "scan with your phone" part only makes sense on a computer
+  if (guess !== "computer") document.getElementById("scanSection").hidden = true;
+
+  /* ---- the real Install button (Chrome / Edge / Android) ----
+     The browser fires "beforeinstallprompt" when NightLane can be installed. We save it,
+     and the Install buttons open the browser's own install window. */
+  let installEvent = null;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installEvent = e;
+    document.querySelectorAll(".install-alt").forEach(el => el.hidden = false);
+  });
+  document.querySelectorAll(".install-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (installEvent) {
+        installEvent.prompt();
+        await installEvent.userChoice;
+        installEvent = null;
+      } else {
+        // no install window from this browser (already installed, Safari, Firefox...): open the app instead
+        window.location.href = "https://nightlane.chat";
+      }
+    });
+  });
+  window.addEventListener("appinstalled", () => {
+    document.getElementById("doneMsg").hidden = false;
+    document.querySelectorAll(".install-alt").forEach(el => el.hidden = true);
+  });
+
+  /* same service worker as the app, so this page counts as installable */
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
