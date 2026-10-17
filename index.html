@@ -939,6 +939,14 @@ details.fgroup[open] > summary.fsec::after{content:" ▾"}
 .lanechat .lc-tag{overflow:hidden}.lanechat .lc-tag .nlg{width:100%;height:100%;font-size:17px}
 .lanebar .nlg{width:18px;height:18px;font-size:14px}.lanebar .nlg svg{width:100%;height:100%}
 .lanebar .lb-home .nlg{width:22px;height:22px}
+/* 💻 a touch bigger on computers */
+body.desktop .lanebar{gap:8px;padding:8px 14px;flex:none}   /* flex:none: the chat pane was squashing this bar flat on computers */
+body.desktop .lanebar button{padding:6px 13px;font-size:14.5px;gap:7px;border-width:2px}
+body.desktop .lanebar .nlg{width:22px;height:22px;font-size:17px}
+body.desktop .lanebar .lb-home .nlg{width:26px;height:26px}
+body.desktop .lanebar img{width:22px;height:22px}
+body.desktop .lanebar .lb-home img{width:26px;height:26px}
+body.desktop .lanebar button.dot::after{width:11px;height:11px}
 .rl-glyph{width:20px;height:20px;margin-right:6px;vertical-align:-4px;font-size:16px}.rl-glyph svg{width:100%;height:100%}
 .lanehead{position:relative;min-height:76px;background-size:cover;background-position:center}
 .lanehead.hasbn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,4,26,.88) 0,rgba(7,4,26,.55) 55%,rgba(7,4,26,.15));pointer-events:none}
@@ -2046,6 +2054,7 @@ body.desktop #chat[data-bg="stars"]::before{background:radial-gradient(ellipse a
 body.desktop #chat[data-bg="stars"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 1.6px),radial-gradient(circle,rgba(0,240,255,.9) 0 1px,transparent 1.6px),radial-gradient(circle,rgba(255,255,255,.7) 0 1.4px,transparent 2.2px),radial-gradient(circle,rgba(255,61,139,.8) 0 1px,transparent 1.6px);background-size:97px 89px,151px 137px,233px 211px,311px 173px;background-position:0 0,40px 60px,120px 30px,70px 140px;animation:twinkle 3.2s ease-in-out infinite alternate}
 body.desktop #chat[data-bg="stars"]>.bgfx::before{background-image:radial-gradient(circle,rgba(255,255,255,.45) 0 .8px,transparent 1.3px);background-size:41px 47px;opacity:.6}
 body.desktop #chat .compose{flex:none}
+body.desktop #chat>*:not(.feed){flex-shrink:0}   /* only the messages scroll; the bars above them keep their full height */
 body.desktop #front.logged .stamp{display:none}
 .deskdate{display:none}
 body.desktop #front.logged .deskdate{display:flex;align-items:baseline;gap:10px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--term);font-size:13px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(124,255,107,.35);padding:4px 0 10px;margin-bottom:6px;text-shadow:0 0 8px rgba(124,255,107,.5)}
@@ -14721,9 +14730,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19k";
+const APP_VERSION="2026.10.19l";
 const CHANGELOG=[
   
+    {v:"2026.10.19l", title:"Bigger Lane tabs 🛣️", items:["🛣️ On computers, the Lane side chat tabs at the top of a chat are a bit bigger, and they (and the \"is here\" bar) no longer get squashed flat."]},
     {v:"2026.10.19k", title:"Room themes on computers 🌌", items:["🌌 Room backgrounds on computers now match your phone: the Synthwave grid stays on the floor, the Sunset sun sits low, and the Burning city skyline is back at the bottom instead of hanging from the top.","✨ Stars on a computer now has its own twinkling starfield (it used to be a plain dark screen with the odd shooting star).","🔁 Spider-Verse and the ink map now follow your account, so your phone and computer stay in the same look.","💻 On computers, the top bar, the Transmit bar and the chat's scrollbar now reach all the way across the chat pane, with no open gaps at the sides."]},
     {v:"2026.10.19j", title:"Laptop fixes 💻", items:["💻 On computers: slim dark scrollbars everywhere instead of chunky white ones, and the \"is here\" bar no longer shows scroll arrows.","💻 Touch-screen laptops with a trackpad now get the full computer layout.","🕷️ Spider-Verse theme on computers: calmer background, plain yellow caption boxes, slimmer outlines and bigger text, so chats read cleaner.","🌙 Browsers with \"force dark pages\" (like Opera GX) no longer repaint NightLane's colors."]},
     {v:"2026.10.19i", title:"Lane looks 🎨", items:["🎨 Lanes get NightLane-style neon icons, plus emoji or your own uploaded picture.","🌆 Pick a Lane banner: Neon City, Night Drive, Moonrise, Rain, Static, Vapor, or upload your own.","📷 Side chats can have their own picture too, or a neon icon.","🔊 New side chat type: Voice lounge. It's a call that's always open, so you can hop in and out without pinging anybody, and see who's in from the Lanes tab.","✨ Screen effects now play for messages that arrive a little late (some iPhones missed them)."]},
