@@ -5344,7 +5344,15 @@ const THEMES={
 const BUBBLES=["#2A1B4A","#0E3B4A","#4A1330","#123D22","#3D2A08","#1B2A6B","#5A1E5A","#262630","#6A1A1A","#0B4F4F","#3B1F6B","#5C3A0E","#1F4D1A","#6B1F4A","#12305E","#4A4A12"];
 const colorFor = s => COLORS[[...(s||"?")].reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length];
 const say = (id,text,bad) => { $(id).textContent=text; $(id).classList.toggle("bad",!!bad); };
-const timeOf = t => new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+/* 🕐 always 12-hour time (3:05 PM), in this device's own time zone, even when the computer's language is set to
+   English (UK) or another 24-hour language. Covers every time shown in the app, since they all go through these two. */
+(()=>{ const P=Date.prototype, lt=P.toLocaleTimeString, ls=P.toLocaleString;
+  const h12=(o,full)=>{ if(o&&(o.hour12!==undefined||o.hourCycle)) return o; if(!o) return full?{year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit",hour12:true}:{hour:"numeric",minute:"2-digit",hour12:true}; return o.hour||o.timeStyle?{...o,hour12:true}:o; };
+  const loc=l=>(l===undefined||(Array.isArray(l)&&!l.length))&&/^en/i.test(navigator.language||"")?"en-US":l;   // English computers: "3:05 PM", not "3:05 pm"
+  P.toLocaleTimeString=function(l,o){ return lt.call(this,loc(l),h12(o,false)); };
+  P.toLocaleString=function(l,o){ return ls.call(this,loc(l),h12(o,true)); };
+})();
+const timeOf = t => new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
 
 /* ---------- date stamp ---------- */
 const sun='<svg viewBox="0 0 100 100"><g fill="#07041A"><circle cx="50" cy="50" r="22"/>'+[...Array(8)].map((_,i)=>`<polygon points="50,2 58,20 42,20" transform="rotate(${i*45} 50 50)"/>`).join("")+'</g></svg>';
@@ -14106,9 +14114,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18y";
+const APP_VERSION="2026.10.18z";
 const CHANGELOG=[
   
+    {v:"2026.10.18z", title:"12-hour time 🕐", items:["🕐 Times now always show as 12-hour (3:05 PM), in your own time zone, even on computers set to a 24-hour language."]},
     {v:"2026.10.18y", title:"King's Court fix 👑", items:["👑 Fixed: chain jumps in King's Court left a copy of your piece on every square you landed on. Now the piece really moves. Start a rematch to get a clean board.","🏆 Instead of X and O under your names, King's Court now shows how many pieces each of you has captured, plus how many you have left. Thanks JKWrangler09!"]},
     {v:"2026.10.18x", title:"Cozy Lofi 🔥", items:["🔥 New radio station: Cozy Lofi, 12 warm lofi songs by Cristiano Leone. Find it next to Dust & Sunlight in Profile → Look → Lofi music."]},
     {v:"2026.10.18w", title:"My Music 📁", items:["👑 King's Court: the yellow outline of the last move now only shows while the move replays, then clears, and Replay works on older iPhones too.","📁 New: a My Music station on the 🎧 radio! Add songs from your own phone and NightLane shuffles them like the lofi stations. Your songs stay on your phone and are never uploaded. Find it in Profile → Look → Lofi music."]},
