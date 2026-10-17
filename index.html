@@ -3914,6 +3914,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <button class="ghost" type="button" id="uiSoundBtn">Sounds: On</button>
     <button class="ghost" type="button" id="lofiBtn">🎧 Lofi music: Off</button>
     <div class="lofivol hidden" id="lofiVolRow"><label for="lofiVol">Music volume</label><input type="range" id="lofiVol" min="5" max="100" step="5" value="60"></div>
+    <button class="ghost hidden" type="button" id="lofiBgBtn">🎧 Keep playing in the background: On</button>
     <div class="lofistations hidden" id="lofiStations" role="radiogroup" aria-label="Radio station"></div>
     <div class="lofinow hidden" id="lofiNowRow"><span id="lofiNow"></span><button type="button" class="ghost" id="lofiSkip" aria-label="Next song">Skip ⏭</button></div>
     <div class="mymusic hidden" id="myMusicBox">
@@ -14114,9 +14115,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18z";
+const APP_VERSION="2026.10.19a";
 const CHANGELOG=[
   
+    {v:"2026.10.19a", title:"Music in the background 🎧", items:["🎧 The lofi radio now keeps playing when you switch to another tab or app (turn it off in Profile → Look if you'd rather it pause). The song also shows up in your computer's or phone's media controls, with play, pause and skip."]},
     {v:"2026.10.18z", title:"12-hour time 🕐", items:["🕐 Times now always show as 12-hour (3:05 PM), in your own time zone, even on computers set to a 24-hour language."]},
     {v:"2026.10.18y", title:"King's Court fix 👑", items:["👑 Fixed: chain jumps in King's Court left a copy of your piece on every square you landed on. Now the piece really moves. Start a rematch to get a clean board.","🏆 Instead of X and O under your names, King's Court now shows how many pieces each of you has captured, plus how many you have left. Thanks JKWrangler09!"]},
     {v:"2026.10.18x", title:"Cozy Lofi 🔥", items:["🔥 New radio station: Cozy Lofi, 12 warm lofi songs by Cristiano Leone. Find it next to Dust & Sunlight in Profile → Look → Lofi music."]},
@@ -14697,7 +14699,7 @@ const LOFI_PROGS=[
 ];
 const lofiHz=m=>440*Math.pow(2,(m-69)/12);
 const lofiPrefs=()=>{ try{ return JSON.parse(LS.get("nl-lofi"))||{}; }catch(e){ return {}; } };
-function lofiSave(){ try{ LS.set("nl-lofi",JSON.stringify({on:LOFI.on,vol:LOFI.vol,station:LOFI.station})); }catch(e){} }
+function lofiSave(){ try{ LS.set("nl-lofi",JSON.stringify({on:LOFI.on,vol:LOFI.vol,station:LOFI.station,bg:LOFI.bg})); }catch(e){} }
 
 /* 📻 STATIONS (2026.10.18s): the generated radio, plus two packs of real lofi Cole bought.
    The song files live in Supabase Storage (bucket "music"), NOT in the GitHub repo: the licenses let us play them
@@ -14748,7 +14750,7 @@ function lofiNext(){   // shuffle: every song plays once before any repeats
     LOFI.el.src=src; if(LOFI.on&&!document.hidden) LOFI.el.play().catch(()=>{}); };
   if(LOFI_STATIONS[st].local) mmBlob(file).then(b=>{ if(!b) throw 0; const u=URL.createObjectURL(b); LOFI.blobUrl=u; go(u); }).catch(()=>{ if(LOFI.track===track) LOFI.el.dispatchEvent(new Event("error")); });
   else go(MUSIC_BASE+file+"."+(LOFI_STATIONS[st].ext||"m4a"));
-  paintLofiNow();
+  paintLofiNow(); lofiMedia();
 }
 function lofiStation(id){
   if(!LOFI_STATIONS[id]||LOFI_STATIONS[id].hidden) id="night";
@@ -14872,7 +14874,7 @@ const lofiBusy=()=>!!(typeof callRoom!=="undefined"&&callRoom) || LOFI.capture |
 function lofiTick(){
   const ctx=LOFI.ctx; if(!ctx) return;
   const gen=!lofiReal(), busy=lofiBusy();
-  if(gen){ while(LOFI.next<ctx.currentTime+.25){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; } } else LOFI.next=ctx.currentTime+.1;
+  if(gen){ while(LOFI.next<ctx.currentTime+(document.hidden?1.6:.25)){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; } } else LOFI.next=ctx.currentTime+.1;
   LOFI.master.gain.setTargetAtTime(LOFI.on&&gen&&!busy?LOFI.vol*.55:0,ctx.currentTime,.35);   // duck for calls, recording, videos
   if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(LOFI.on&&!gen&&!busy?LOFI.vol*(LOFI_STATIONS[LOFI.station]?.level||.5):0,ctx.currentTime,.35);
 }
@@ -14886,11 +14888,24 @@ async function lofiStart(){
 function lofiStop(){ if(LOFI.master) LOFI.master.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.25);
   if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(0,LOFI.ctx.currentTime,.25);
   setTimeout(()=>{ if(LOFI.on) return; clearInterval(LOFI.timer); LOFI.timer=null; LOFI.el?.pause(); LOFI.ctx?.suspend().catch(()=>{}); },900); }
-function lofiSet(on){ LOFI.on=on; lofiSave(); if(on) lofiStart(); else lofiStop(); paintLofi(); }
+function lofiSet(on){ LOFI.on=on; lofiSave(); if(on) lofiStart(); else lofiStop(); paintLofi(); lofiMedia(); }
+/* 🎛️ the song shows in your computer's / phone's media controls (Windows volume pop-up, Android notification), with play, pause and next */
+function lofiMedia(){
+  const ms=navigator.mediaSession; if(!ms) return;
+  try{
+    const st=LOFI_STATIONS[LOFI.station], tr=LOFI.track;
+    ms.metadata=LOFI.on?new MediaMetadata({title:lofiReal()?(tr?.title||st.name):"Night Lofi",artist:lofiReal()?(st.by||""):"made live in NightLane",album:"NightLane radio · "+st.name,artwork:[{src:"icon-192.png",sizes:"192x192",type:"image/png"}]}):null;
+    ms.playbackState=LOFI.on?"playing":"paused";
+    if(!LOFI.msOn){ LOFI.msOn=true;
+      ms.setActionHandler("play",()=>lofiSet(true)); ms.setActionHandler("pause",()=>lofiSet(false));
+      try{ ms.setActionHandler("nexttrack",()=>{ if(LOFI.on&&lofiReal()) lofiNext(); }); }catch(e){} }
+  }catch(e){}
+}
 function paintLofi(){
   const q=$("lofiQuick"); if(q){ q.classList.toggle("on",LOFI.on); q.setAttribute("aria-pressed",String(LOFI.on)); q.title=LOFI.on?"Lofi music: on":"Lofi music: off"; }
   const b=$("lofiBtn"); if(b) b.textContent="🎧 Lofi music: "+(LOFI.on?"On":"Off");
   const r=$("lofiVolRow"); if(r) show(r,LOFI.on);
+  const bgb=$("lofiBgBtn"); if(bgb){ show(bgb,LOFI.on); bgb.textContent="🎧 Keep playing in the background: "+(LOFI.bg?"On":"Off"); }
   const v=$("lofiVol"); if(v) v.value=Math.round(LOFI.vol*100);
   const sb_=$("lofiStations"); if(sb_){ show(sb_,LOFI.on);
     if(!sb_.children.length) Object.entries(LOFI_STATIONS).filter(([,st])=>!st.hidden).forEach(([id,st])=>{ const b=el("button"); b.type="button"; b.setAttribute("role","radio"); b.dataset.st=id; b.append(el("i","",st.icon),st.name); b.onclick=()=>lofiStation(id); sb_.append(b); });
@@ -14898,8 +14913,9 @@ function paintLofi(){
   paintLofiNow(); paintMyMusic();
 }
 (()=>{   // remember the choice; phones only allow sound after a tap, so a saved "on" waits for the first one
-  const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol)); if(LOFI_STATIONS[p.station]&&!LOFI_STATIONS[p.station].hidden) LOFI.station=p.station;
+  const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol)); if(LOFI_STATIONS[p.station]&&!LOFI_STATIONS[p.station].hidden) LOFI.station=p.station; LOFI.bg=p.bg!==false;   // background play is on unless you turned it off
   $("lofiSkip").onclick=()=>lofiNext();
+  $("lofiBgBtn").onclick=()=>{ LOFI.bg=!LOFI.bg; lofiSave(); paintLofi(); if(LOFI.bg&&(BROWSER.ios||isIOS)) toast("🎧 Lofi","Heads up: iPhone pauses web music when you leave the app, so this works best on computers and Android."); };
   $("mmPick").onchange=e=>{ const f=e.target.files; if(f?.length) mmAdd(f).finally(()=>{ e.target.value=""; }); };
   if(BROWSER.ios||isIOS) $("mmIosTip").textContent="On iPhone, songs come from the Files app. Apple Music and Spotify songs are locked and can't be added.";
   mmLoad();
@@ -14908,7 +14924,7 @@ function paintLofi(){
   $("lofiBtn").onclick=()=>lofiSet(!LOFI.on);
   $("lofiVol").oninput=e=>{ LOFI.vol=Math.max(.05,(+e.target.value||0)/100); lofiSave(); };
   document.addEventListener("visibilitychange",()=>{ if(!LOFI.ctx||!LOFI.on) return;
-    if(document.hidden){ LOFI.el?.pause(); LOFI.ctx.suspend().catch(()=>{}); }
+    if(document.hidden){ if(LOFI.bg) return; LOFI.el?.pause(); LOFI.ctx.suspend().catch(()=>{}); }
     else { LOFI.ctx.resume().catch(()=>{}); if(lofiReal()&&LOFI.el?.src) LOFI.el.play().catch(()=>{}); } });
   paintLofi();
 })();
