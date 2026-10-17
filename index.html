@@ -5140,7 +5140,9 @@ function mcAnimate(g,prev){
   const pb=prev.state.board.slice(), setPit=(i,n)=>{ const c=cellOf(i); if(!c) return; const ct=c.querySelector(".mccount"), st=c.querySelector(".mcstones"); if(ct) ct.textContent=String(n); if(st) st.replaceWith(mcStones(n,i+1)); };
   pb.forEach((n,i)=>{ if(n!==g.state.board[i]) setPit(i,n); }); setPit(l.from,0); const run=pb.slice(); run[l.from]=0;
   r.path.forEach((i,k)=>setTimeout(()=>{ run[i]++; setPit(i,run[i]); mcClick(run[i]); },hop*(k+1)));
-  setTimeout(()=>g.state.board.forEach((n,i)=>{ if(run[i]!==n) setPit(i,n); }),hop*r.path.length+(l.captured!=null?600:80));   // land on the real final counts
+  const capT=l.captured!=null?1900:0;
+  mcAnimUntil=Date.now()+hop*r.path.length+capT+800;
+  setTimeout(()=>g.state.board.forEach((n,i)=>{ if(run[i]!==n) setPit(i,n); }),hop*r.path.length+capT+80);   // land on the real final counts
   const gh=el("i","mcstone c1 mcflying"); document.body.append(gh);
   const pts=seq.map(i=>cellOf(i)).filter(Boolean).map(center);
   if(pts.length<2){ gh.remove(); return; }
@@ -5151,10 +5153,16 @@ function mcAnimate(g,prev){
   r.path.forEach((i,k)=>{ const c=cellOf(i); c?.animate([{transform:"scale(1)"},{transform:"scale(1.14)",filter:"brightness(1.5)"},{transform:"scale(1)"}],{duration:260,delay:hop*(k+1)-60}); });
   cellOf(l.from)?.animate([{filter:"brightness(1.8)"},{filter:"none"}],{duration:400});
   const end=hop*r.path.length;
-  if(l.captured!=null){ const from=cellOf(l.captured), to=cellOf(l.by==="x"?6:13);
-    if(from&&to) setTimeout(()=>{ const a=center(from), b=center(to); for(let k=0;k<4;k++){ const s2=el("i","mcstone c"+k+" mcflying"); s2.style.left=(a.x-6+k*3)+"px"; s2.style.top=(a.y-6)+"px"; document.body.append(s2);
-      s2.animate([{transform:"none"},{transform:`translate(${b.x-a.x}px,${b.y-a.y-30}px) scale(1.4)`,offset:.5},{transform:`translate(${b.x-a.x}px,${b.y-a.y}px) scale(1)`}],{duration:520,delay:k*60,easing:"ease-in-out"}).onfinish=()=>s2.remove(); }
-      const pop=el("span","mcpop","Capture!"); to.append(pop); pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1100}).onfinish=()=>pop.remove(); },end); }
+  if(l.captured!=null){ const storeI=l.by==="x"?6:13, lastI=r.path[r.path.length-1];
+    setTimeout(()=>{ const from=cellOf(l.captured), mine=cellOf(lastI), to=cellOf(storeI); if(!from||!to) return;
+      const got=Math.max(1,run[l.captured]+run[lastI]), b=center(to), flyers=[];   // every captured stone flies (up to 10), plus your last stone
+      [[from,run[l.captured]],[mine,run[lastI]]].forEach(([cell,n])=>{ if(!cell) return; const a=center(cell); for(let k=0;k<Math.min(n,8);k++) flyers.push(a); });
+      setPit(l.captured,0); setPit(lastI,0); let landed=run[storeI];
+      flyers.slice(0,10).forEach((a,k)=>{ const s2=el("i","mcstone c"+(k%4)+" mcflying"); s2.style.left=(a.x-6+(k%3)*4)+"px"; s2.style.top=(a.y-6+((k/3)|0)*3)+"px"; document.body.append(s2);
+        s2.animate([{transform:"none"},{transform:`translate(${b.x-a.x}px,${b.y-a.y-40}px) scale(1.5)`,offset:.5},{transform:`translate(${b.x-a.x}px,${b.y-a.y}px) scale(1)`}],{duration:700,delay:k*90,easing:"ease-in-out",fill:"backwards"}).onfinish=()=>s2.remove();
+        setTimeout(()=>{ s2.remove(); },k*90+900);
+        setTimeout(()=>{ landed=Math.min(g.state.board[storeI],landed+Math.ceil(got/Math.max(1,Math.min(flyers.length,10)))); setPit(storeI,landed); mcClick(5); },k*90+690); });
+      const pop=el("span","mcpop","Capture!"); to.append(pop); pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1100}).onfinish=()=>pop.remove(); },end+400); }
   if(l.extra){ const st=cellOf(l.by==="x"?6:13); if(st) setTimeout(()=>{ const pop=el("span","mcpop","Extra turn!"); st.append(pop);
     pop.animate([{opacity:0,transform:"translate(-50%,0) scale(.6)"},{opacity:1,transform:"translate(-50%,-14px) scale(1.1)",offset:.3},{opacity:0,transform:"translate(-50%,-30px)"}],{duration:1200}).onfinish=()=>pop.remove(); },end); }
 }
@@ -5215,6 +5223,7 @@ function gameSound(g,prev){
   else if(L.played) GSFX.flick(Math.min(4,L.played));
   else if(L.card||L.lastcard||L.skipped) GSFX.flick();
 }
+let mcAnimUntil=0;
 /* 🪵 a stone dropping into a wooden pit: a hollow knock, plus a little clack when it hits other stones. Made in code, no sound files. */
 function mcClick(stonesNow){
   if(typeof uiSoundOn==="function"&&!uiSoundOn()) return;
@@ -10005,15 +10014,16 @@ function paintGame(prev){
   }
   $("gameStatus").textContent=statusText; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
   const board=$("board");
+  const mcKeep=isMC&&prev&&Date.now()<mcAnimUntil&&JSON.stringify(prev.state?.last)===JSON.stringify(g.state.last)&&JSON.stringify(prev.state.board)===JSON.stringify(g.state.board)&&!!board.querySelector(".mcboard");
   const kcKeep=isKC&&prev&&!kcPreview&&Date.now()<kcAnimUntil&&kcLastKey(prev)===kcLastKey(g)&&JSON.stringify(prev.state.board)===JSON.stringify(g.state.board)&&!!board.querySelector(".kcboard");
-  if(!kcKeep) board.innerHTML="";
+  if(!kcKeep&&!mcKeep) board.innerHTML="";
   if(isGO){
     board.className="goboard-host"; board.removeAttribute("role"); board.removeAttribute("aria-label"); board.append(goBoardEl(g,prev));
     show($("kcChainBar"),false); $("gameStatus").textContent=goStatus(g);
   } else if(isMC){
-    board.className="mcboard-wrap"; board.removeAttribute("role"); board.setAttribute("aria-label","Mancala board"); board.append(mcBoardEl(g));
+    if(!mcKeep){ board.className="mcboard-wrap"; board.removeAttribute("role"); board.setAttribute("aria-label","Mancala board"); board.append(mcBoardEl(g)); }
     show($("kcChainBar"),false);
-    if(prev&&JSON.stringify(prev.state?.last)!==JSON.stringify(g.state.last)&&g.state.last) mcAnimate(g,prev);
+    if(!mcKeep&&prev&&JSON.stringify(prev.state?.last)!==JSON.stringify(g.state.last)&&g.state.last) mcAnimate(g,prev);
     if(g.status==="active"&&g.state.turn===me&&g.state.last?.extra&&g.state.last.by===me) $("gameStatus").textContent="Extra turn! Go again 🎉";
   } else if(isKC){
     if(!kcKeep){ board.className="kcboard-wrap"; board.append(kcBoardEl(g)); }
@@ -14237,9 +14247,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19e";
+const APP_VERSION="2026.10.19f";
 const CHANGELOG=[
   
+    {v:"2026.10.19f", title:"Mancala, smoother 🟤", items:["🟤 Mancala: the pits no longer jump to the final numbers mid-sow, and captures are easy to see: the stones leave both pits and fly into your store one by one, clicking as they land."]},
     {v:"2026.10.19e", title:"See every hop 👑", items:["👑 King's Court: each hop of a multi-jump now animates as you tap it, and your move no longer skips straight to the end when the server confirms it."]},
     {v:"2026.10.19d", title:"Game sounds 🔊", items:["🔊 Every game has sound now: card flicks and riffle shuffles (Crazy Eights, BS, Lucky 7), rattling dice (Liar's Dice), clacking tiles (Mahjong), slate stones (Go), and piece taps and capture pops (King's Court, Tic-tac-toe). Turn them off with Sounds in your Profile."]},
     {v:"2026.10.19c", title:"Slow it down 🐢", items:["👑 King's Court moves and replays play slower, so you can follow every hop.","🟤 Mancala shows your score (stones in your store) under your name instead of X and O.","🟤 Mancala: watch each stone hop pit to pit. The counts tick up as it lands, with a wooden click (and a clack when it hits other stones)."]},
