@@ -3552,6 +3552,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .lofiq.on{color:var(--night);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 .lofivol{display:flex;align-items:center;gap:10px;width:100%;font-size:14px;color:var(--muted);margin:-2px 0 6px}
 .lofivol input{flex:1;accent-color:var(--cyan)}
+.kccell.kcstep{box-shadow:inset 0 0 0 3px var(--volt)!important}
+.kccell.kccap::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:var(--volt);font-weight:900;font-size:22px;text-shadow:0 0 6px #000}
 #gameSheet .kcreplay{width:auto;align-self:center;justify-self:center;padding:8px 16px;font-size:13px;margin:0}
 .lofistations{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;width:100%;margin:0 0 6px}
 .lofistations button{padding:9px 4px;font-size:12.5px;line-height:1.2;background:none;border:2px solid #3b2d80;color:var(--white);font-family:var(--tech);cursor:pointer;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
@@ -3559,6 +3561,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .lofistations button i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
 .lofinow{display:flex;align-items:center;gap:8px;width:100%;font-size:13px;color:var(--muted);margin:-2px 0 6px;text-align:left}
 .lofinow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lofinow b{color:var(--cyan);font-weight:600}
+.mymusic{width:100%;display:grid;gap:8px;margin:0 0 8px;padding:10px;border:2px solid #3b2d80;background:rgba(13,8,38,.6);text-align:left;box-sizing:border-box}
+.mmhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.mmhead b{color:var(--cyan);font-family:var(--tech);font-size:13px}.mmhead span{font-size:12px;color:var(--muted)}
+#myMusicBox .mmadd{display:block;text-align:center;padding:10px;font-size:14px;cursor:pointer;margin:0}
+.mmlist{list-style:none;margin:0;padding:0;max-height:220px;overflow-y:auto;display:grid;gap:4px}
+.mmlist li{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 6px 6px 8px;background:rgba(255,255,255,.04)}
+.mmlist li.now{background:rgba(0,240,255,.12);color:var(--cyan)}
+.mmlist li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+#myMusicBox .mmlist button{flex:none;width:auto!important;margin:0;padding:2px 8px;background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer}
+.mmnote{font-size:11.5px;color:var(--muted);margin:0;line-height:1.35}
 #lofiNowRow #lofiSkip{flex:none;width:auto!important;min-width:0;padding:6px 12px;margin:0;font-size:13px}
 .growlock{opacity:.5;position:relative}
 .growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
@@ -3903,6 +3914,12 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="lofivol hidden" id="lofiVolRow"><label for="lofiVol">Music volume</label><input type="range" id="lofiVol" min="5" max="100" step="5" value="60"></div>
     <div class="lofistations hidden" id="lofiStations" role="radiogroup" aria-label="Radio station"></div>
     <div class="lofinow hidden" id="lofiNowRow"><span id="lofiNow"></span><button type="button" class="ghost" id="lofiSkip" aria-label="Next song">Skip ⏭</button></div>
+    <div class="mymusic hidden" id="myMusicBox">
+      <div class="mmhead"><b>📁 My Music</b><span id="mmCount"></span></div>
+      <label class="ghost mmadd" for="mmPick">＋ Add songs</label><input type="file" id="mmPick" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" multiple hidden>
+      <ul class="mmlist" id="mmList"></ul>
+      <p class="mmnote">Pick music files from this device. They stay on this phone and are never uploaded. <span id="mmIosTip"></span></p>
+    </div>
     </div>
 
     <div class="profpane" data-pane="alerts" role="tabpanel">
@@ -4979,7 +4996,7 @@ function kcBoardEl(g){
   }
   const lastSet=new Set(s.last||[]);
   for(let i=0;i<64;i++){
-    const cell=el("button","kccell"+(kcInCourt(i)?" court":"")+(i===kcSel?" sel":"")+(targets.has(i)?" tgt-"+targets.get(i):"")+(lastSet.has(i)&&!kcPreview?" last":"")); cell.type="button";
+    const cell=el("button","kccell"+(kcInCourt(i)?" court":"")+(i===kcSel?" sel":"")+(targets.has(i)?" tgt-"+targets.get(i):"")); cell.type="button";   // (the last move's path only lights up while it's being shown, then clears)
     cell.setAttribute("aria-label",`${kcInCourt(i)?"Court, ":""}row ${((i/8)|0)+1}, column ${i%8+1}: ${showBoard[i]?showBoard[i].toUpperCase():"empty"}`);
     const v=showBoard[i];
     if(v){ const p=el("span","kcpc "+v); cell.append(p); }
@@ -4991,7 +5008,27 @@ function kcBoardEl(g){
 }
 /* King's Court animation: the piece slides (or hops, for jumps) along its path, captured pieces pop,
    and stepping into the Court sparkles. Works for your moves and your opponent's. */
+/* older iPhones: their Safari can lack (or half-support) the animation tools, so never let a hiccup leave pieces behind */
 function kcAnimateMove(g,prev,force){
+  const board=$("board").querySelector(".kcboard"); if(!board) return;
+  const wipe=()=>board.querySelectorAll(".kcgone").forEach(n=>n.remove());
+  const path=g.state.last||[];
+  if(path.length>=2&&(force||JSON.stringify(path)!==JSON.stringify(prev?.state?.last||[]))){   // outline the path while it plays, then clear it
+    path.forEach(i=>board.children[i]?.classList.add("last"));
+    setTimeout(()=>path.forEach(i=>board.children[i]?.classList.remove("last")),path.length*350+1400);
+  }
+  if(typeof Element.prototype.animate!=="function"){ if(force) kcStepReplay(g); return; }
+  try{ kcAnimateMoveRaw(g,prev,force); }catch(e){ wipe(); if(force) kcStepReplay(g); return; }
+  setTimeout(wipe,3500);   // last safety net
+}
+/* no-animation replay: light up each square the piece visited, and mark captures with an ✕ */
+function kcStepReplay(g){
+  const path=g.state.last||[], cells=$("board").querySelector(".kcboard")?.children; if(!cells||path.length<2) return;
+  const caps=[]; for(let k=0;k<path.length-1;k++){ const A=path[k], C=path[k+1]; if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2){ const mid=((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0); if(!g.state.board[mid]) caps.push([k,mid]); } }
+  path.forEach((sq,k)=>setTimeout(()=>{ cells[sq]?.classList.add("kcstep"); caps.filter(c=>c[0]===k-1).forEach(c=>cells[c[1]]?.classList.add("kccap")); },k*350));
+  setTimeout(()=>{ [...cells].forEach(c=>c.classList.remove("kcstep","kccap")); },path.length*350+1200);
+}
+function kcAnimateMoveRaw(g,prev,force){
   const path=g.state.last||[], was=prev?.state?.last||[];
   if(path.length<2||JSON.stringify(path)===JSON.stringify(was)||(!e8Motion()&&!force)) return;
   const board=$("board").querySelector(".kcboard"); if(!board) return;
@@ -5011,7 +5048,7 @@ function kcAnimateMove(g,prev,force){
   let k=0;
   // (the jumper arcs high over it, then the captured piece flashes white and shrinks away, so it never looks like it changed color)
   const hopAt=sq=>{ for(let h=0;h<hops;h++){ const A=path[h], C=path[h+1]; if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2&&((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0)===sq) return h; } return k++; };
-  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"), gd=per*(hopAt(i)+.75); cells[i].append(ghost); ghost.style.zIndex="4";
+  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"), gd=per*(hopAt(i)+.75); cells[i].append(ghost); ghost.style.zIndex="4"; setTimeout(()=>ghost.remove(),gd+700);
     ghost.animate([{transform:"scale(1)",opacity:1,filter:"none"},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0,filter:"brightness(3) saturate(0)"}],{duration:460,delay:gd,easing:"ease-out",fill:"both"}).onfinish=()=>ghost.remove();
     setTimeout(()=>ghost.remove(),gd+700); } });   // belt and braces: some phones skip onfinish, so it never gets left behind
   // stepping into the Court from outside sparkles
@@ -14060,9 +14097,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18v";
+const APP_VERSION="2026.10.18w";
 const CHANGELOG=[
   
+    {v:"2026.10.18w", title:"My Music 📁", items:["👑 King's Court: the yellow outline of the last move now only shows while the move replays, then clears, and Replay works on older iPhones too.","📁 New: a My Music station on the 🎧 radio! Add songs from your own phone and NightLane shuffles them like the lofi stations. Your songs stay on your phone and are never uploaded. Find it in Profile → Look → Lofi music."]},
     {v:"2026.10.18v", title:"Replay fix ↺", items:["👑 King's Court: Replay no longer leaves extra pieces sitting on the board."]},
     {v:"2026.10.18u", title:"Clearer captures 👑", items:["👑 King's Court: when a piece gets jumped, the jumper now arcs higher over it and the captured piece flashes white and vanishes, so it doesn't look like it changed color."]},
     {v:"2026.10.18t", title:"Replay ↺", items:["👑 King's Court: when you open the board on your turn, it replays your opponent's last move so you can see what happened. Tap ↺ Replay last move to watch it again. Thanks JKWrangler09!"]},
@@ -14655,6 +14693,7 @@ const LOFI_STATIONS={
     ["cl-05-daydreaming","Daydreaming"],["cl-06-yesterday","Yesterday"],["cl-07-sunrise","Sunrise"],["cl-08-memory-lane","Memory Lane"],
     ["cl-09-five-years","Five Years"],["cl-10-empty-roads","Empty Roads"],["cl-11-lonesome","Lonesome"],["cl-12-unwind","Unwind"]]}
 };
+LOFI_STATIONS.mine={icon:"📁", name:"My Music", by:"your music", local:true, level:.3, tracks:[]};   // songs from your own phone (loud, so a lower level)
 LOFI.station="night"; LOFI.el=null; LOFI.tmaster=null; LOFI.tfade=null; LOFI.bag=[]; LOFI.track=null; LOFI.fails=0;
 const lofiReal=()=>!LOFI_STATIONS[LOFI.station]?.gen;
 function lofiTrackSetup(){   // one <audio> (not on the page, so it doesn't count as "a video is playing") -> fade -> volume -> speakers
@@ -14667,7 +14706,8 @@ function lofiTrackSetup(){   // one <audio> (not on the page, so it doesn't coun
   a.addEventListener("playing",()=>{ LOFI.fails=0; });
   a.addEventListener("error",()=>{   // missing or broken file: skip it; if a whole station won't load, go back to Night Lofi
     if(!lofiReal()||!LOFI.on) return;
-    if(++LOFI.fails>=LOFI_STATIONS[LOFI.station].tracks.length){ LOFI.fails=0; toast("🎧 Lofi",`Couldn't load ${LOFI_STATIONS[LOFI.station].name} right now, so it's back on Night Lofi.`); lofiStation("night"); return; }
+    const st=LOFI_STATIONS[LOFI.station];
+    if(++LOFI.fails>=st.tracks.length){ LOFI.fails=0; toast("🎧 Lofi",st.local?"Your phone couldn't play those songs, so it's back on Night Lofi. MP3 and M4A files work best.":`Couldn't load ${st.name} right now, so it's back on Night Lofi.`); lofiStation("night"); return; }
     setTimeout(lofiNext,300);
   });
   a.addEventListener("timeupdate",()=>{   // these songs loop with no fade at the end, so fade out the last 3 seconds
@@ -14680,11 +14720,14 @@ function lofiNext(){   // shuffle: every song plays once before any repeats
   if(!lofiReal()||!LOFI.el) return;
   const list=LOFI_STATIONS[LOFI.station].tracks;
   if(!LOFI.bag.length||LOFI.bag.station!==LOFI.station){ const b=list.map((_,i)=>i).sort(()=>Math.random()-.5); if(LOFI.track&&b[0]===LOFI.track.i&&b.length>1) b.push(b.shift()); LOFI.bag=b; LOFI.bag.station=LOFI.station; }
-  const i=LOFI.bag.shift(), [file,title]=list[i];
-  LOFI.track={i,title,station:LOFI.station}; LOFI.fadingOut=false;
+  if(!list.length){ LOFI.track=null; LOFI.el.pause(); paintLofiNow(); return; }   // My Music with no songs yet
+  const i=LOFI.bag.shift(), [file,title]=list[i], st=LOFI.station;
+  const track=LOFI.track={i,title,station:st,id:file}; LOFI.fadingOut=false;
   const t=LOFI.ctx.currentTime; try{ LOFI.tfade.gain.cancelScheduledValues(t); LOFI.tfade.gain.setValueAtTime(0,t); LOFI.tfade.gain.linearRampToValueAtTime(1,t+1.5); }catch(e){}
-  LOFI.el.src=MUSIC_BASE+file+".m4a";
-  if(LOFI.on&&!document.hidden) LOFI.el.play().catch(()=>{});
+  const go=src=>{ if(LOFI.track!==track) return; if(LOFI.blobUrl&&LOFI.blobUrl!==src){ URL.revokeObjectURL(LOFI.blobUrl); LOFI.blobUrl=null; }
+    LOFI.el.src=src; if(LOFI.on&&!document.hidden) LOFI.el.play().catch(()=>{}); };
+  if(LOFI_STATIONS[st].local) mmBlob(file).then(b=>{ if(!b) throw 0; const u=URL.createObjectURL(b); LOFI.blobUrl=u; go(u); }).catch(()=>{ if(LOFI.track===track) LOFI.el.dispatchEvent(new Event("error")); });
+  else go(MUSIC_BASE+file+".m4a");
   paintLofiNow();
 }
 function lofiStation(id){
@@ -14694,11 +14737,58 @@ function lofiStation(id){
   if(LOFI.on&&LOFI.ctx){ lofiTrackSetup(); if(lofiReal()&&(was!==id||LOFI.el.paused)) lofiNext(); }
   paintLofi();
 }
+/* ===== 📁 MY MUSIC (2026.10.18w): songs people pick from their own phone =====
+   Kept in this device's IndexedDB (browser storage) and never uploaded, so there's nothing to host or license.
+   On iPhone you pick from the Files app (Apple Music and Spotify songs are locked, so they can't be added). */
+let mmDbP=null;
+function mmDb(){ return mmDbP||(mmDbP=new Promise((res,rej)=>{ const r=indexedDB.open("nl-music",1); r.onupgradeneeded=()=>r.result.createObjectStore("songs",{keyPath:"id",autoIncrement:true}); r.onsuccess=()=>res(r.result); r.onerror=()=>{ mmDbP=null; rej(r.error); }; })); }
+function mmTx(mode,fn){ return mmDb().then(db=>new Promise((res,rej)=>{ const tx=db.transaction("songs",mode), st=tx.objectStore("songs"); let out; const q=fn(st); if(q) q.onsuccess=()=>{ out=q.result; }; tx.oncomplete=()=>res(out); tx.onerror=tx.onabort=()=>rej(tx.error); })); }
+const mmBlob=id=>mmTx("readonly",st=>st.get(id)).then(r=>r?.blob||null);
+let mmSongs=[];   // [{id,name,size}]
+async function mmLoad(){
+  try{ const all=await mmTx("readonly",st=>st.getAll()); mmSongs=(all||[]).map(r=>({id:r.id,name:r.name,size:r.size||0})); }catch(e){ mmSongs=[]; }
+  LOFI_STATIONS.mine.tracks=mmSongs.map(r=>[r.id,r.name]); LOFI.bag=[]; paintMyMusic();
+}
+const mmTitle=f=>f.name.replace(/\.[a-z0-9]{2,5}$/i,"").replace(/[_]+/g," ").trim()||"Untitled";
+async function mmAdd(files){
+  const ok=[...files].filter(f=>/^audio\//.test(f.type)||/\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(f.name));
+  if(!ok.length){ toast("📁 My Music","Those weren't music files. Try MP3 or M4A songs."); return; }
+  try{ navigator.storage?.persist?.().catch(()=>{}); }catch(e){}   // ask the browser not to clear them when space runs low
+  let added=0;
+  for(const f of ok){ try{ await mmTx("readwrite",st=>st.add({name:mmTitle(f),type:f.type,size:f.size,blob:f,added:Date.now()})); added++; }
+    catch(e){ toast("📁 My Music",/quota/i.test(e?.name||e?.message||"")?"Your phone is out of space for more songs.":"Couldn't save "+mmTitle(f)+"."); break; } }
+  const wasEmpty=!LOFI_STATIONS.mine.tracks.length;
+  await mmLoad();
+  if(added) toast("📁 My Music",`Added ${added} song${added===1?"":"s"}.`);
+  if(wasEmpty&&added&&LOFI.on&&LOFI.station==="mine"&&LOFI.ctx){ lofiTrackSetup(); lofiNext(); }
+}
+async function mmRemove(id){
+  try{ await mmTx("readwrite",st=>st.delete(id)); }catch(e){}
+  const playing=LOFI.station==="mine"&&LOFI.track?.id===id;
+  await mmLoad();
+  if(playing&&LOFI.on){ LOFI.el.pause(); lofiNext(); }
+}
+function mmPlay(id){   // tap a song to play it now
+  if(LOFI.station!=="mine"||!LOFI.on) return;
+  const list=LOFI_STATIONS.mine.tracks, i=list.findIndex(t=>t[0]===id); if(i<0) return;
+  LOFI.bag=[i,...list.map((_,k)=>k).filter(k=>k!==i).sort(()=>Math.random()-.5)]; LOFI.bag.station="mine"; lofiNext();
+}
+function paintMyMusic(){
+  const box=$("myMusicBox"); if(!box) return;
+  show(box,LOFI.on&&LOFI.station==="mine");
+  const mb=mmSongs.reduce((n,r)=>n+r.size,0)/1048576;
+  $("mmCount").textContent=mmSongs.length?`${mmSongs.length} song${mmSongs.length===1?"":"s"} · ${mb<10?mb.toFixed(1):Math.round(mb)} MB`:"No songs yet";
+  const ul=$("mmList"); ul.replaceChildren();
+  mmSongs.forEach(r=>{ const li=el("li",LOFI.track?.station==="mine"&&LOFI.track.id===r.id?"now":""), t=el("span","",r.name), x=el("button","","✕");
+    t.title="Play "+r.name; t.onclick=()=>mmPlay(r.id); x.type="button"; x.setAttribute("aria-label","Remove "+r.name); x.onclick=()=>mmRemove(r.id);
+    li.append(t,x); ul.append(li); });
+}
 function paintLofiNow(){
   const row=$("lofiNowRow"); if(!row) return;
   const st=LOFI_STATIONS[LOFI.station], tr=LOFI.track;
   show(row,LOFI.on&&lofiReal());
-  if(lofiReal()){ const n=$("lofiNow"); if(tr) n.replaceChildren("♪ ",el("b","",tr.title)," · "+st.by); else n.textContent="Loading…"; }
+  if(lofiReal()){ const n=$("lofiNow"); if(tr) n.replaceChildren("♪ ",el("b","",tr.title)," · "+st.by); else n.textContent=st.local&&!st.tracks.length?"Add some songs below 👇":"Loading…"; }
+  if(st?.local&&LOFI.mmNow!==(tr?.id??null)){ LOFI.mmNow=tr?.id??null; paintMyMusic(); }   // highlight the song that's playing
 }
 
 function lofiBuild(){
@@ -14764,7 +14854,7 @@ function lofiTick(){
   const gen=!lofiReal(), busy=lofiBusy();
   if(gen){ while(LOFI.next<ctx.currentTime+.25){ lofiBeat(LOFI.next); LOFI.next+=LOFI_BEAT; } } else LOFI.next=ctx.currentTime+.1;
   LOFI.master.gain.setTargetAtTime(LOFI.on&&gen&&!busy?LOFI.vol*.55:0,ctx.currentTime,.35);   // duck for calls, recording, videos
-  if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(LOFI.on&&!gen&&!busy?LOFI.vol*.5:0,ctx.currentTime,.35);
+  if(LOFI.tmaster) LOFI.tmaster.gain.setTargetAtTime(LOFI.on&&!gen&&!busy?LOFI.vol*(LOFI_STATIONS[LOFI.station]?.level||.5):0,ctx.currentTime,.35);
 }
 async function lofiStart(){
   if(!LOFI.ctx) lofiBuild();
@@ -14785,11 +14875,14 @@ function paintLofi(){
   const sb_=$("lofiStations"); if(sb_){ show(sb_,LOFI.on);
     if(!sb_.children.length) Object.entries(LOFI_STATIONS).filter(([,st])=>!st.hidden).forEach(([id,st])=>{ const b=el("button"); b.type="button"; b.setAttribute("role","radio"); b.dataset.st=id; b.append(el("i","",st.icon),st.name); b.onclick=()=>lofiStation(id); sb_.append(b); });
     [...sb_.children].forEach(b=>b.setAttribute("aria-checked",String(b.dataset.st===LOFI.station))); }
-  paintLofiNow();
+  paintLofiNow(); paintMyMusic();
 }
 (()=>{   // remember the choice; phones only allow sound after a tap, so a saved "on" waits for the first one
   const p=lofiPrefs(); LOFI.on=!!p.on; if(typeof p.vol==="number") LOFI.vol=Math.min(1,Math.max(.05,p.vol)); if(LOFI_STATIONS[p.station]&&!LOFI_STATIONS[p.station].hidden) LOFI.station=p.station;
   $("lofiSkip").onclick=()=>lofiNext();
+  $("mmPick").onchange=e=>{ const f=e.target.files; if(f?.length) mmAdd(f).finally(()=>{ e.target.value=""; }); };
+  if(BROWSER.ios||isIOS) $("mmIosTip").textContent="On iPhone, songs come from the Files app. Apple Music and Spotify songs are locked and can't be added.";
+  mmLoad();
   if(LOFI.on){ const go=()=>{ document.removeEventListener("pointerdown",go,true); if(LOFI.on) lofiStart(); }; document.addEventListener("pointerdown",go,true); }
   $("lofiQuick").onclick=()=>lofiSet(!LOFI.on);
   $("lofiBtn").onclick=()=>lofiSet(!LOFI.on);
