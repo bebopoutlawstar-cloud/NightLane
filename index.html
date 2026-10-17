@@ -3509,7 +3509,7 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .pids:not(:has(> :not(.hidden))){display:none}
 .pids>*{flex:1 1 0;min-width:0;margin:0!important;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 8px;border:2px solid #3b2d80;background:#0b0820;text-align:center}
 .pids .theirarcana .ta-flavor{display:none}
-.pids .theirarcana .ma-name{font-size:24px}
+.pids .theirarcana .ma-name,.pids .myarcana .ma-name{font-size:24px}
 .pids .ma-more{font-size:11px;color:var(--cyan)}
 .signaltile{cursor:pointer;font:inherit;color:inherit;border-color:var(--c)!important;box-shadow:inset 0 0 14px color-mix(in srgb,var(--c) 18%,transparent)}
 .signaltile .ma-eyebrow{font-family:var(--tech);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan)}
@@ -3803,7 +3803,10 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <div class="face lg" id="profFace"></div>
     <div class="uname" id="profName"></div>
     <button type="button" class="mystatus" id="myStatus" aria-label="Set your status"></button>
-    <button type="button" class="myarcana hidden" id="myArcana"></button>
+    <div class="pids" id="myIds">   <!-- your Night Signal + Arcana side by side -->
+      <button type="button" class="signaltile hidden" id="mySignal"></button>
+      <button type="button" class="myarcana hidden" id="myArcana"></button>
+    </div>
     <div class="email" id="profEmail"></div>
     <input type="file" id="avatarPicker" accept="image/*" class="sr">
     <button class="linkbtn" type="button" id="changePhoto">📷 Change photo</button>
@@ -7185,7 +7188,7 @@ paintDup(); tellSwPrefs();
 $("buzzBtn").onclick=()=>{ try{ LS.set("nl-buzz",buzzOn()?"off":"on"); }catch(e){} paintFxSettings(); if(buzzOn()) buzz("message"); };
 $("owlBtn").onclick=()=>{ try{ LS.set("nl-owl",owlOn()?"off":"on"); }catch(e){} if(!owlOn()) owlBack(); paintFxSettings();
   say("profMsg",owlOn()?"🦉 If you close the app with habits left, the Night Owl will DM you (evenings only, once a day).":"Night Owl reminders are off on this device."); };
-const openProfile=()=>{ say("profMsg",""); paintPresenceDiag(); paintNotif(); paintBlocked(); paintFxSettings(); fillBirthdayPicker(); paintSecrets(); paintLangPicker(); paintDND(); paintArcanaBadge(); paintQuizTab(); paintMeTab(); show($("profile")); $("closeProfile").focus({preventScroll:true}); };
+const openProfile=()=>{ say("profMsg",""); paintPresenceDiag(); paintNotif(); paintBlocked(); paintFxSettings(); fillBirthdayPicker(); paintSecrets(); paintLangPicker(); paintDND(); paintArcanaBadge(); paintMySignal(); paintQuizTab(); paintMeTab(); show($("profile")); $("closeProfile").focus({preventScroll:true}); };
 function paintDND(){ const on=dndOn(); $("dndSwitch").classList.toggle("on",on); $("dndSwitch").setAttribute("aria-checked",String(on)); $("dndRow").classList.toggle("on",on); }
 $("dndSwitch").onclick=()=>{ setDND(!dndOn()); paintDND(); if(user) applyStatusDot($("meFace"),user.id,meProfile); };
 $("openProfile1").onclick=openProfile; $("openProfile2").onclick=openProfile; $("meFace").onclick=openProfile;
@@ -13811,8 +13814,8 @@ function paintArcanaBadge(){
   const n=$("myArcana"); if(!n) return;
   const arc=meProfile?.arcana;
   show(n,!!arc); if(!arc) return;
-  n.innerHTML=""; n.append(el("span","ma-eyebrow","🃏 Your Arcana"), el("span","ma-name",arc));
-  n.append(el("span","ma-more","What does it mean? ›"));
+  n.innerHTML=""; n.append(el("span","ma-eyebrow","🃏 Arcana"), el("span","ma-name",arc));
+  n.append(el("span","ma-more","Meaning ›"));
   n.setAttribute("aria-label","Your Arcana: "+arc+". Tap to see what it means.");
   n.onclick=()=>{ show($("profile"),false); openArcanaMeaning(arc,{mine:true}); };
 }
@@ -13986,9 +13989,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18n";
+const APP_VERSION="2026.10.18o";
 const CHANGELOG=[
   
+    {v:"2026.10.18o", title:"Both on your profile 📡🃏", items:["📡🃏 Your own profile now shows your Night Signal next to your Arcana, just like friends see it."]},
     {v:"2026.10.18n", title:"Night Signal: change your mind 📡", items:["📡 Tapping an answer now just lights it up. Change it as much as you like, then tap NEXT. You can go BACK too."]},
     {v:"2026.10.18m", title:"Even smoother lofi 🎧", items:["🎧 The lofi music's vinyl static is now just a whisper."]},
     {v:"2026.10.18l", title:"Smoother lofi 🎧", items:["🎧 Less static in the lofi music, so the music comes through."]},
@@ -14831,17 +14835,25 @@ function nsShowResult(scores, top){
 }
 
 /* a friend's Night Signal on their profile card (the database only answers for friends who added you) */
-async function paintPersonSignal(uid){
-  const tok=personPaintTok, c=$("personSignal"); show(c,false); c.innerHTML=""; c.classList.remove("open");
-  let top=null; try{ top=await api.signalOf(uid); }catch(e){}
-  if(personUid!==uid||tok!==personPaintTok||!top||!NS_INFO[top]) return;
-  const info=NS_INFO[top];
+function nsFillTile(c,top){   // the 📡 Signal tile, used on friends' cards and your own profile
+  const info=NS_INFO[top]; c.innerHTML=""; c.classList.remove("open");
   c.style.setProperty("--c",info.color);
   c.append(el("span","ma-eyebrow","📡 Signal"), nsGlyph(top,3), el("span","ps-name",info.name), el("span","ps-blurb",info.blurb), el("span","ma-more","Meaning ›"));
   c.setAttribute("aria-label",`Night Signal: ${info.name}. Tap to read what it means.`);
   c.setAttribute("aria-expanded","false");
   c.onclick=()=>{ const on=!c.classList.contains("open"); c.classList.toggle("open",on); c.setAttribute("aria-expanded",String(on)); };
   show(c,true);
+}
+async function paintPersonSignal(uid){
+  const tok=personPaintTok, c=$("personSignal"); show(c,false); c.innerHTML="";
+  let top=null; try{ top=await api.signalOf(uid); }catch(e){}
+  if(personUid!==uid||tok!==personPaintTok||!top||!NS_INFO[top]) return;
+  nsFillTile(c,top);
+}
+async function paintMySignal(){
+  const c=$("mySignal"); if(!c) return;
+  let m=null; try{ m=await api.mySignal(); }catch(e){}
+  if(m&&NS_INFO[m.top]) nsFillTile(c,m.top); else { show(c,false); c.innerHTML=""; }
 }
 /* ---- Night Signal: finishing touches (pixel icon, saving, After Hours, retake) ---- */
 const NS_GLYPHS={   // 9×9 pixel art from the concept board: # = lit pixel
@@ -14889,7 +14901,7 @@ function nsSetupHint(e){
   return /night_signal|relation|does not exist|schema cache/i.test(m) ? "Night Signal needs a quick setup: run night-signal.sql in Supabase." : m;
 }
 async function nsSave(scores,top){
-  try{ await api.saveSignal(scores,top); }
+  try{ await api.saveSignal(scores,top); paintMySignal(); paintQuizTab(); }
   catch(e){ $("nsExtra").prepend(el("p","note bad","Your result didn't save: "+nsSetupHint(e))); }
 }
 async function nsStart(){   // from Profile: show your saved result, or start the quiz if you haven't taken it
