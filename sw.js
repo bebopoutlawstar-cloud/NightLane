@@ -1,10 +1,15 @@
-// NightLane service worker (v21): push notifications + fast repeat loads.
+// NightLane service worker (v22): push notifications + fast repeat loads.
+// (v22: the app's code now lives in js/ and css/. The cache keeps its old name on purpose, so nobody loses
+//  their saved sign-in, badge count or settings that live in it.)
 const CACHE="nightlane-v21";
 // Outside files the app needs to start: the server library (a fixed version, so it never changes) and the fonts.
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js";
 const OUTSIDE=u=>u.hostname==="cdn.jsdelivr.net"||u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com";
+// the app's code files: each link carries ?v=<fingerprint>, so a saved copy never goes stale
+const CODE=/\/(js|css)\/[\w.-]+\.(js|css)$/;
+const codeLinks=html=>[...new Set((html.match(/(?:js|css)\/[\w.-]+\.(?:js|css)\?v=\w+/g)||[]))];
 const STATIC=["icon-192.png","icon-512.png","apple-touch-icon.png","favicon.ico","manifest.json","badge-96.png"];
-self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(async c => { await c.addAll(STATIC).catch(()=>{}); try { const lr = await fetch(LIB, { mode: "cors" }); if (lr.ok) await c.put(LIB, lr); } catch (e) {} try { const r = await fetch("./", { cache: "no-store" }); if (r.ok) await c.put("shell", r); } catch (e) {} }).then(()=>self.skipWaiting())); });
+self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(async c => { await c.addAll(STATIC).catch(()=>{}); try { const lr = await fetch(LIB, { mode: "cors" }); if (lr.ok) await c.put(LIB, lr); } catch (e) {} try { const r = await fetch("./", { cache: "no-store" }); if (r.ok) { const html = await r.clone().text(); await c.put("shell", r); await Promise.all(codeLinks(html).map(u => c.match(u).then(hit => hit || fetch(u).then(x => x.ok && c.put(u, x))).catch(() => {}))); } } catch (e) {} }).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 // ---- private chat photos / videos / voice ----
 // Those files only open for people in the chat. When the app asks for one, attach the viewer's login
@@ -50,6 +55,14 @@ self.addEventListener("fetch", e => {
   }
   // only the app itself counts as the "shell"; other pages (privacy.html, terms.html) load normally and never replace it
   const isShell = url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
+  if (CODE.test(url.pathname)) {
+    // js/ and css/: the saved copy if we have this exact version, otherwise download it, save it, and drop older versions
+    e.respondWith(caches.open(CACHE).then(c => c.match(req, { ignoreVary: true }).then(hit => hit || fetch(req).then(r => {
+      if (r.ok && url.search) { const copy = r.clone(); c.put(req, copy).then(() => c.keys()).then(ks => ks.forEach(k => { const u = new URL(k.url); if (u.pathname === url.pathname && u.search !== url.search) c.delete(k); })).catch(() => {}); }
+      return r;
+    }))));
+    return;
+  }
   if (isShell) {
     // network first: always pick up your latest upload; fall back to the cached copy when offline
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("shell", copy)); return r; }).catch(() => caches.match("shell")));
