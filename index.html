@@ -4915,13 +4915,21 @@ function kcJumpTargets(b,i){
 }
 // Mirrors play_kingscourt() in Postgres exactly, so demo mode plays by the real rules
 // and the live client can apply a move optimistically before the server confirms it.
-function kcApplyPath(state,mark,path){
+/* how many moves this player has made. Your first TWO moves are simple steps (no jumping); the first one goes into the Court.
+   Older games don't have the counter yet, so it's worked out from the game's move total (X always moves first). */
+function kcMv(state,mark,gmoves){
+  const v=state?.["mv_"+mark]; if(v!=null) return +v;
+  if(!state?.["first_"+mark]) return 0;
+  return gmoves!=null?(mark==="x"?Math.ceil(gmoves/2):Math.floor(gmoves/2)):2;
+}
+const kcNoJump=(state,mark,gmoves)=>kcMv(state,mark,gmoves)<2;
+function kcApplyPath(state,mark,path,gmoves){
   const b=state.board.slice(), opp=mark==="x"?"o":"x";
   if(!path||path.length<2) throw new Error("That's not a move.");
   if(b[path[0]]!==mark) throw new Error("That's not your piece.");
   const seen=new Set([path[0]]);
   for(let k=1;k<path.length;k++){ if(seen.has(path[k])&&path[k]!==path[0]) throw new Error("A move can't land on a square it already passed through."); seen.add(path[k]); }
-  const wasFirst=!state["first_"+mark];
+  const wasFirst=!state["first_"+mark], noJump=kcNoJump(state,mark,gmoves), opp0=mark==="x"?"o":"x";
   b[path[0]]="";
   const a=path[0], c=path[1], ar=(a/8)|0, ac=a%8, cr=(c/8)|0, cc=c%8, step=Math.abs(cr-ar)+Math.abs(cc-ac);
   if(path.length===2 && step===1 && (ar===cr||ac===cc)){
@@ -4929,6 +4937,7 @@ function kcApplyPath(state,mark,path){
     b[c]=mark;
   } else {
     if(wasFirst) throw new Error("Your first move has to be a simple step into the Court (no jumping yet).");
+    if(noJump) throw new Error("No jumping on your first two moves. Take a simple step.");
     for(let k=0;k<path.length-1;k++){
       const A=path[k], C=path[k+1], Ar=(A/8)|0, Ac=A%8, Cr=(C/8)|0, Cc=C%8;
       const straight=(Ar===Cr&&Math.abs(Ac-Cc)===2)||(Ac===Cc&&Math.abs(Ar-Cr)===2);
@@ -4950,11 +4959,13 @@ function kcApplyPath(state,mark,path){
   const done = oppCourt===0 || oppTotal===0;
   return { board:b, turn: done?state.turn:opp, winner: done?mark:null, line:[],
            first_x: mark==="x"?true:!!state.first_x, first_o: mark==="o"?true:!!state.first_o,
+           ["mv_"+mark]: kcMv(state,mark,gmoves)+1, ["mv_"+opp0]: kcMv(state,opp0,gmoves),
            last: path, done };
 }
-function kcBotPath(state,mark){
+function kcBotPath(state,mark,gmoves){
   const b=state.board, opp=mark==="x"?"o":"x", mine=b.map((v,i)=>v===mark?i:-1).filter(i=>i>=0);
   const wasFirst=!state["first_"+mark];
+  if(!wasFirst&&kcNoJump(state,mark,gmoves)){ for(const i of mine){ const t=kcSimpleTargets(b,i).find(t=>{ const nb=b.slice(); nb[i]=""; nb[t]=mark; return kcCourtCount(nb,mark)>0; }); if(t!==undefined) return [i,t]; } return null; }
   if(wasFirst){
     for(const i of mine){ for(const t of kcSimpleTargets(b,i)) if(kcInCourt(t)) return [i,t]; }
     for(const i of mine){ const t=kcSimpleTargets(b,i)[0]; if(t!==undefined) return [i,t]; }
@@ -4991,12 +5002,12 @@ function kcBoardEl(g){
   const s=g.state, me=myMark(g), board=el("div","kcboard");
   const showBoard = kcPreview || s.board;
   const canPlay=g.status==="active"&&me&&s.turn===me;
-  const wasFirst=canPlay&&!s["first_"+me];
+  const wasFirst=canPlay&&!s["first_"+me], noJump=canPlay&&kcNoJump(s,me,g.moves);
   let targets=new Map();
   if(canPlay&&kcSel!=null){
     if(kcChaining){ kcJumpTargets(showBoard,kcSel).forEach(j=>targets.set(j.land,"jump")); }
     else if(wasFirst){ kcSimpleTargets(showBoard,kcSel).filter(kcInCourt).forEach(t=>targets.set(t,"simple")); }
-    else { kcSimpleTargets(showBoard,kcSel).forEach(t=>targets.set(t,"simple")); kcJumpTargets(showBoard,kcSel).forEach(j=>targets.set(j.land,"jump")); }
+    else { kcSimpleTargets(showBoard,kcSel).forEach(t=>targets.set(t,"simple")); if(!noJump) kcJumpTargets(showBoard,kcSel).forEach(j=>targets.set(j.land,"jump")); }
   }
   const lastSet=new Set(s.last||[]);
   for(let i=0;i<64;i++){
@@ -5202,15 +5213,15 @@ function kcTap(g,i){
   const simple=kcSimpleTargets(board,kcSel), jumps=kcJumpTargets(board,kcSel);
   if(simple.includes(i)&&(!wasFirst||kcInCourt(i))){ kcPath=[kcSel,i]; kcFinish(g); return; }
   const hit=jumps.find(j=>j.land===i);
-  if(hit&&!wasFirst){ const nb=board.slice(); const opp=me==="x"?"o":"x"; if(nb[hit.mid]===opp) nb[hit.mid]=""; nb[i]=me; nb[kcSel]="";
+  if(hit&&!wasFirst&&!kcNoJump(s,me,g.moves)){ const nb=board.slice(); const opp=me==="x"?"o":"x"; if(nb[hit.mid]===opp) nb[hit.mid]=""; nb[i]=me; nb[kcSel]="";
     kcPreview=nb; kcPath=[kcSel,i]; kcSel=i; kcChaining=true;
     if(!kcJumpTargets(nb,i).length) kcFinish(g); else paintGame();
   }
 }
 async function kcFinish(g){
   const path=kcPath, before=JSON.parse(JSON.stringify(g)); kcReset();
-  let applied; try{ applied=kcApplyPath(g.state,myMark(g),path); }catch(err){ say("gameMsg",err.message,true); paintGame(); return; }
-  g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,last:applied.last};
+  let applied; try{ applied=kcApplyPath(g.state,myMark(g),path,g.moves); }catch(err){ say("gameMsg",err.message,true); paintGame(); return; }
+  g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,mv_x:applied.mv_x,mv_o:applied.mv_o,last:applied.last};
   g.status=applied.done?"done":"active"; paintGame(before); refreshMsg(g.message_id);
   try{ await api.playKingsCourt(g.message_id,path); if(!sb) setTimeout(()=>kcBotTurn(g.message_id),900); }
   catch(err){ gamesById.set(g.message_id,before); paintGame(); refreshMsg(g.message_id); say("gameMsg","Move didn't go through: "+err.message,true); }
@@ -5300,9 +5311,9 @@ function mcBotPit(state,mark){   // demo bot: grab an extra turn, else the bigge
 }
 function kcBotTurn(id){
   const g=gamesById.get(id); if(!g||g.status!=="active"||myMark(g)===g.state.turn) return;
-  const bot=g.state.turn; const path=kcBotPath(g.state,bot); if(!path) return;
-  try{ const before=JSON.parse(JSON.stringify(g)); const applied=kcApplyPath(g.state,bot,path);
-    g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,last:applied.last};
+  const bot=g.state.turn; const path=kcBotPath(g.state,bot,g.moves); if(!path) return;
+  try{ const before=JSON.parse(JSON.stringify(g)); const applied=kcApplyPath(g.state,bot,path,g.moves); g.moves=(g.moves||0)+1;
+    g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,mv_x:applied.mv_x,mv_o:applied.mv_o,last:applied.last};
     g.status=applied.done?"done":"active"; paintGame(before); refreshMsg(id);
     if(!applied.done&&g.state.turn===bot) setTimeout(()=>kcBotTurn(id),700);
   }catch(e){}
@@ -6041,7 +6052,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
       }
       const r=rooms[room], m={id:nextId++,room,user_id:"me",kind:"game",text:type==="kingscourt"?"King's Court":type==="mancala"?"Mancala":type==="go"?"Go":"Tic-tac-toe",created_at:iso()}; r.msgs.push(m);
       const other=r.is_dm?Object.keys(r.members).find(u=>u!=="me"):null;
-      const st0 = type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
+      const st0 = type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,mv_x:0,mv_o:0,last:[]} : type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
       games[m.id]={message_id:m.id,room,type,player_x:"me",player_o:other,status:other?"active":"waiting",state:st0,moves:0};
       if(!other) setTimeout(()=>{ const g=games[m.id]; if(g.status!=="waiting") return; g.player_o=Object.keys(r.members).find(u=>u!=="me")||"rook"; g.status="active"; fire("game",JSON.parse(JSON.stringify(g))); if(type==="kingscourt"&&g.player_x!=="me") setTimeout(()=>kcBotTurn(m.id),900); },1500);
       return m;
@@ -6070,8 +6081,8 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async playKingsCourt(id,path){
       const g=games[id], mark=g.player_x==="me"?"x":"o";
       if(g.status!=="active"||g.state.turn!==mark) throw new Error("Not your turn.");
-      const applied=kcApplyPath(g.state,mark,path);
-      g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,last:applied.last};
+      const applied=kcApplyPath(g.state,mark,path,g.moves); g.moves=(g.moves||0)+1;
+      g.state={board:applied.board,turn:applied.turn,winner:applied.winner,line:[],first_x:applied.first_x,first_o:applied.first_o,mv_x:applied.mv_x,mv_o:applied.mv_o,last:applied.last};
       g.status=applied.done?"done":"active";
       setTimeout(()=>fire("game",JSON.parse(JSON.stringify(g))),30);
     },
@@ -6109,7 +6120,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
         if(old.type==="eights") e8DemoDeal(games[m.id]); else if(old.type==="bs") bsDemoDeal(games[m.id]); else if(old.type==="lucky7") l7DemoBegin(games[m.id]); else if(old.type==="mahjong") mjDemoBegin(games[m.id]); else ldDemoBegin(games[m.id]); e8DemoAfter(games[m.id]); return m; }
       const old=games[id], r=rooms[old.room], label=old.type==="kingscourt"?"King's Court":old.type==="mancala"?"Mancala":old.type==="go"?"Go":"Tic-tac-toe";
       const m={id:nextId++,room:old.room,user_id:"me",kind:"game",text:label,created_at:iso()}; r.msgs.push(m);
-      const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : old.type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
+      const st0 = old.type==="kingscourt" ? {board:kcInitialBoard(),turn:"x",winner:null,line:[],first_x:false,first_o:false,mv_x:0,mv_o:0,last:[]} : old.type==="mancala" ? {board:[...MC_START],turn:"x",winner:null,line:[],last:null} : old.type==="go" ? goStart() : {board:Array(9).fill(""),turn:"x",winner:null,line:[]};
       games[m.id]={message_id:m.id,room:old.room,type:old.type,player_x:old.player_o,player_o:old.player_x,status:"active",state:st0,moves:0};
       if(games[m.id].player_x!=="me") setTimeout(()=>old.type==="kingscourt"?kcBotTurn(m.id):old.type==="mancala"?mcDemoBot(games[m.id],"o"):old.type==="go"?goDemoBot(games[m.id]):demoBot(m.id),900);
       return m;
@@ -9883,6 +9894,7 @@ function paintGame(prev){
     const wasFirst=me&&!s["first_"+me];
     if(kcChaining) statusText="Keep jumping, or tap Done";
     else if(st.turn&&wasFirst) statusText="Your first move: step into the glowing Court";
+    else if(st.turn&&kcNoJump(s,me,g.moves)) statusText="Your second move: a simple step (no jumping yet)";
     else if(st.turn) statusText=`Your turn! (${kcCourtCount(s.board,me)} in the Court)`;
   }
   $("gameStatus").textContent=statusText; $("gameStatus").classList.toggle("good",!!(st.turn||st.won));
@@ -9991,7 +10003,7 @@ const GAME_RULES={
   kingscourt:{name:"King's Court",emoji:"👑",players:"2 players",goal:"Leave your opponent with no pieces in the Court.",
     steps:["The glowing 4×4 square in the middle is <b>the Court</b>. Each player starts with 24 pieces around the edge.",
            "Pieces move <b>one square up, down, left, or right</b>, never diagonally.",
-           "Your <b>first move</b> must be a simple step into the Court (no jumping yet).",
+           "Your <b>first two moves</b> are simple steps (no jumping yet), and the first one has to go into the Court.",
            "<b>Jump</b> by hopping over a piece next to you onto the empty square just past it, in a straight line. Jump an opponent's piece to <b>capture</b> it; jumping your own just hops over.",
            "You can <b>chain jumps</b> in one turn and change direction between hops. Tap <b>Done</b> when you're finished.",
            "Once you're in, you must <b>always keep at least one piece in the Court</b>. A move that would empty it isn't allowed.",
@@ -14115,9 +14127,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.19a";
+const APP_VERSION="2026.10.19b";
 const CHANGELOG=[
   
+    {v:"2026.10.19b", title:"King's Court rule 👑", items:["👑 King's Court: no jumping on your first TWO moves now (the first one still has to step into the Court). Thanks JKWrangler09!"]},
     {v:"2026.10.19a", title:"Music in the background 🎧", items:["🎧 The lofi radio now keeps playing when you switch to another tab or app (turn it off in Profile → Look if you'd rather it pause). The song also shows up in your computer's or phone's media controls, with play, pause and skip."]},
     {v:"2026.10.18z", title:"12-hour time 🕐", items:["🕐 Times now always show as 12-hour (3:05 PM), in your own time zone, even on computers set to a 24-hour language."]},
     {v:"2026.10.18y", title:"King's Court fix 👑", items:["👑 Fixed: chain jumps in King's Court left a copy of your piece on every square you landed on. Now the piece really moves. Start a rematch to get a clean board.","🏆 Instead of X and O under your names, King's Court now shows how many pieces each of you has captured, plus how many you have left. Thanks JKWrangler09!"]},
