@@ -3501,8 +3501,18 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .nssq:hover,.nssq:focus-visible{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
 #nsEnds{width:100%;display:flex;justify-content:space-between;font-family:"Silkscreen",var(--tech);font-size:10px;color:var(--muted);margin-top:6px}
 .nsres #nsAsk{font-family:"Pixelify Sans",var(--body)!important;font-size:30px!important;letter-spacing:0!important;margin:6px 0 10px;text-shadow:0 0 12px currentColor}
-.signalchip{display:inline-flex;align-items:center;gap:6px;font-family:"Silkscreen",var(--tech);font-size:11px;letter-spacing:1px;color:var(--c);border:2px solid var(--c);padding:3px 8px;background:#07041a;box-shadow:0 0 8px color-mix(in srgb,var(--c) 45%,transparent);margin-top:4px}
-.signalchip .nsglyph .ng-halo{animation:none;opacity:.5}
+.pids{display:flex;gap:10px;width:100%;margin:6px 0 10px;box-sizing:border-box;padding:0 6px}
+.pids:not(:has(> :not(.hidden))){display:none}
+.pids>*{flex:1 1 0;min-width:0;margin:0!important;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 8px;border:2px solid #3b2d80;background:#0b0820;text-align:center}
+.pids .theirarcana .ta-flavor{display:none}
+.pids .theirarcana .ma-name{font-size:24px}
+.pids .ma-more{font-size:11px;color:var(--cyan)}
+.signaltile{cursor:pointer;font:inherit;color:inherit;border-color:var(--c)!important;box-shadow:inset 0 0 14px color-mix(in srgb,var(--c) 18%,transparent)}
+.signaltile .ma-eyebrow{font-family:var(--tech);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan)}
+.signaltile .ps-name{font-family:"Pixelify Sans",var(--body);font-weight:700;font-size:22px;line-height:1;color:var(--c);text-shadow:0 0 10px var(--c)}
+.signaltile .ps-blurb{display:none;font-size:12px;color:var(--muted);font-style:italic;line-height:1.25}
+.signaltile.open .ps-blurb{display:block}
+.signaltile.open .ma-more{display:none}
 .growlock{opacity:.5;position:relative}
 .growlock::after{content:" 🔒 LV " attr(data-lvl);font-size:10px;font-family:var(--tech);letter-spacing:.5px}
 .growroad #growRoad{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;padding:0 18px 0 6px}   /* clear of the slanted sheet edge */
@@ -4220,13 +4230,15 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
     <h2 id="personName"></h2>
     <span class="pronouns hidden" id="personPronouns"></span>
     <span class="relstatus hidden" id="personRelStatus"></span>
-    <span class="signalchip hidden" id="personSignal"></span>
     <div class="plinks" id="personLinks"></div>
     <p class="statusline hidden" id="personStatus"></p>
     <p class="sub" id="personSub"></p>
     <p class="friendtag hidden" id="personTag"></p>
     <div class="hidden" id="personMutual"></div>
-    <div class="myarcana theirarcana hidden" id="personArcana"></div>
+    <div class="pids" id="personIds">   <!-- Night Signal + Arcana side by side -->
+      <button type="button" class="signaltile hidden" id="personSignal"></button>
+      <div class="myarcana theirarcana hidden" id="personArcana"></div>
+    </div>
     <button type="button" class="personbond hidden" id="personBond"></button>
     <button type="button" class="personbond hidden" id="personPartner"></button>
     <button type="button" class="personbond" id="personBacklog">🎮 See their backlog</button>
@@ -9473,8 +9485,8 @@ api.mutualFriends(uid).then(ids=>{
   show(mb,true);
 });
   const pa=$("personArcana"); pa.innerHTML=""; show(pa,!!p.arcana);
-  if(p.arcana){ pa.append(el("span","ma-eyebrow",`🃏 ${p.username}'s Arcana`), el("span","ma-name",p.arcana)); if(ARCANA_FLAVOR[p.arcana]) pa.append(el("span","ta-flavor",ARCANA_FLAVOR[p.arcana]));
-    if(ARCANA_MEANING[p.arcana]){ pa.append(el("span","ma-more","What does it mean? ›")); pa.setAttribute("role","button"); pa.tabIndex=0; pa.setAttribute("aria-label",`${p.username}'s Arcana: ${p.arcana}. Tap to see what it means.`);
+  if(p.arcana){ pa.append(el("span","ma-eyebrow","🃏 Arcana"), el("span","ma-name",p.arcana)); if(ARCANA_FLAVOR[p.arcana]) pa.append(el("span","ta-flavor",ARCANA_FLAVOR[p.arcana]));
+    if(ARCANA_MEANING[p.arcana]){ pa.append(el("span","ma-more","Meaning ›")); pa.setAttribute("role","button"); pa.tabIndex=0; pa.setAttribute("aria-label",`${p.username}'s Arcana: ${p.arcana}. Tap to see what it means.`);
       pa.onclick=()=>openArcanaMeaning(p.arcana,{whose:p.username}); pa.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pa.onclick(); } }; } }
   else { pa.onclick=null; pa.removeAttribute("role"); }
   $("personBacklog").textContent=`🎮 See ${p.username}'s backlog`;
@@ -14654,13 +14666,15 @@ function nsShowResult(scores, top){
 
 /* a friend's Night Signal on their profile card (the database only answers for friends who added you) */
 async function paintPersonSignal(uid){
-  const tok=personPaintTok, c=$("personSignal"); show(c,false); c.innerHTML="";
+  const tok=personPaintTok, c=$("personSignal"); show(c,false); c.innerHTML=""; c.classList.remove("open");
   let top=null; try{ top=await api.signalOf(uid); }catch(e){}
   if(personUid!==uid||tok!==personPaintTok||!top||!NS_INFO[top]) return;
   const info=NS_INFO[top];
   c.style.setProperty("--c",info.color);
-  c.append(nsGlyph(top,2), el("span","",`${info.name}`));
-  c.title=info.blurb; c.setAttribute("aria-label",`Night Signal: ${info.name}. ${info.blurb}`);
+  c.append(el("span","ma-eyebrow","📡 Signal"), nsGlyph(top,3), el("span","ps-name",info.name), el("span","ps-blurb",info.blurb), el("span","ma-more","Meaning ›"));
+  c.setAttribute("aria-label",`Night Signal: ${info.name}. Tap to read what it means.`);
+  c.setAttribute("aria-expanded","false");
+  c.onclick=()=>{ const on=!c.classList.contains("open"); c.classList.toggle("open",on); c.setAttribute("aria-expanded",String(on)); };
   show(c,true);
 }
 /* ---- Night Signal: finishing touches (pixel icon, saving, After Hours, retake) ---- */
