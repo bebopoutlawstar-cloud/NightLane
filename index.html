@@ -5011,8 +5011,9 @@ function kcAnimateMove(g,prev,force){
   let k=0;
   // (the jumper arcs high over it, then the captured piece flashes white and shrinks away, so it never looks like it changed color)
   const hopAt=sq=>{ for(let h=0;h<hops;h++){ const A=path[h], C=path[h+1]; if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2&&((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0)===sq) return h; } return k++; };
-  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"); cells[i].append(ghost); ghost.style.zIndex="4";
-    ghost.animate([{transform:"scale(1)",opacity:1,filter:"none"},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0,filter:"brightness(3) saturate(0)"}],{duration:460,delay:per*(hopAt(i)+.75),easing:"ease-out",fill:"backwards"}).onfinish=()=>ghost.remove(); } });
+  pb.forEach((v,i)=>{ if(v===opp&&!nb[i]){ const ghost=el("span","kcpc "+opp+" kcgone"), gd=per*(hopAt(i)+.75); cells[i].append(ghost); ghost.style.zIndex="4";
+    ghost.animate([{transform:"scale(1)",opacity:1,filter:"none"},{transform:"scale(1.25)",opacity:1,filter:"brightness(3) saturate(0)",offset:.25},{transform:"scale(0) rotate(90deg)",opacity:0,filter:"brightness(3) saturate(0)"}],{duration:460,delay:gd,easing:"ease-out",fill:"both"}).onfinish=()=>ghost.remove();
+    setTimeout(()=>ghost.remove(),gd+700); } });   // belt and braces: some phones skip onfinish, so it never gets left behind
   // stepping into the Court from outside sparkles
   if(kcInCourt(dest)&&!kcInCourt(path[0])){ setTimeout(()=>{ cells[dest].classList.add("kcspark"); setTimeout(()=>cells[dest]?.classList.remove("kcspark"),800); },per*hops); }
 }
@@ -9878,7 +9879,7 @@ function kcReplay(g){
     if(Math.abs(((A/8)|0)-((C/8)|0))+Math.abs(A%8-C%8)===2){ const mid=((((A/8)|0)+((C/8)|0))/2|0)*8+(((A%8)+(C%8))/2|0); if(!b[mid]) pb[mid]=opp; } }   // an empty jumped square = a captured piece
   kcAnimateMove(g,{state:{last:[],board:pb,turn:mover}},true);
 }
-$("kcReplay").onclick=()=>{ const g=gamesById.get(openGameId); if(g) kcReplay(g); };
+$("kcReplay").onclick=()=>{ const g=gamesById.get(openGameId); if(!g) return; paintGame(); requestAnimationFrame(()=>kcReplay(g)); };
 $("kcDone").onclick=()=>{ const g=gamesById.get(openGameId); if(g&&kcChaining&&kcPath) kcFinish(g); };
 async function makeMove(i){
   const g=gamesById.get(openGameId), me=g&&myMark(g);
@@ -14059,9 +14060,10 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 /* ================= WHAT'S NEW =================
    HOW TO SHIP AN UPDATE: bump APP_VERSION and add a new entry at the TOP of CHANGELOG.
    Everyone who opens the app afterwards sees every entry they haven't seen yet, once. */
-const APP_VERSION="2026.10.18u";
+const APP_VERSION="2026.10.18v";
 const CHANGELOG=[
   
+    {v:"2026.10.18v", title:"Replay fix ↺", items:["👑 King's Court: Replay no longer leaves extra pieces sitting on the board."]},
     {v:"2026.10.18u", title:"Clearer captures 👑", items:["👑 King's Court: when a piece gets jumped, the jumper now arcs higher over it and the captured piece flashes white and vanishes, so it doesn't look like it changed color."]},
     {v:"2026.10.18t", title:"Replay ↺", items:["👑 King's Court: when you open the board on your turn, it replays your opponent's last move so you can see what happened. Tap ↺ Replay last move to watch it again. Thanks JKWrangler09!"]},
     {v:"2026.10.18s", title:"Radio stations 📻", items:["📻 New: the 🎧 Lofi radio has stations! Pick 🌙 Night Lofi (made live in the app) or ☀️ Dust & Sunlight, real piano lofi by Gent Byci. Find it in Profile → Look. Songs shuffle, and Skip ⏭ jumps to the next one."]},
