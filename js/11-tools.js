@@ -36,7 +36,8 @@ function friendlyAiError(err){
 }
 
 /* ---------- translation ---------- */
-function paintLangPicker(){ show($("langPick").closest("label"),aiOn()); const s=$("langPick"); if(!s.options.length) LANGS.forEach(([v,n])=>s.append(new Option(n,v))); s.value=myLang(); }
+function paintLangPicker(){ show($("langBox"),aiOn());   // (the whole section, heading too: translating needs the AI feature switched on)
+  const s=$("langPick"); if(!s.options.length) LANGS.forEach(([v,n])=>s.append(new Option(n,v))); s.value=myLang(); }
 $("langPick").onchange=e=>{ try{ LS.set("nl-lang",e.target.value); }catch(x){} translations.clear(); if(room) renderAll(false); say("profMsg",e.target.value?"New messages in other languages will be translated for you.":"Translation turned off."); };
 async function translateMsg(m,force){
   const lang=myLang(); if(!lang||!m.text||m.kind==="poll"||m.kind==="game") return;
