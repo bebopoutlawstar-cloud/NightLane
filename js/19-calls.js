@@ -607,8 +607,8 @@ function gFilterOn(p,stream){
   const hum2=ctx.createBiquadFilter(); hum2.type="notch"; hum2.frequency.value=120; hum2.Q.value=8; // and its echo
   const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=4000; lp.Q.value=.7;   // hiss, clatter, fans
   const lp2=ctx.createBiquadFilter(); lp2.type="lowpass"; lp2.frequency.value=4000; lp2.Q.value=.6;
-  const lev=ctx.createDynamicsCompressor(); lev.threshold.value=-30; lev.ratio.value=4; lev.knee.value=10; lev.attack.value=.005; lev.release.value=.2;   // evens their voice out after all that cutting
-  const boost=ctx.createGain(); boost.gain.value=1.6;
+  const lev=ctx.createDynamicsCompressor(); lev.threshold.value=-24; lev.ratio.value=3; lev.knee.value=10; lev.attack.value=.005; lev.release.value=.2;   // evens their voice out after all that cutting
+  const boost=ctx.createGain(); boost.gain.value=.9;   // the leveller already lifts quiet bits, so no extra boost: same volume as unfiltered
   const an=ctx.createAnalyser(); an.fftSize=1024; const gate=ctx.createGain(); gate.gain.value=1;
   src.connect(hp).connect(hp2).connect(hum).connect(hum2).connect(lp).connect(lp2); lp2.connect(an); lp2.connect(gate).connect(lev).connect(boost).connect(ctx.destination);
   const buf=new Float32Array(an.fftSize); let floor=.004, hold=0;
