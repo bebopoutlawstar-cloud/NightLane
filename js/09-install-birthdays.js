@@ -34,6 +34,7 @@ function detectBrowser(ua=navigator.userAgent){
   return {ios,android,name,canInstall,iosNew};
 }
 const BROWSER=detectBrowser();
+show($("chimeHow"),!!BROWSER.android);   // 🎵 how to get the Lane Chime as the phone's notification sound (Android only: iPhone can't change it)
 const isStandalone=()=>["standalone","window-controls-overlay","minimal-ui","fullscreen"].some(m=>matchMedia(`(display-mode: ${m})`).matches)||navigator.standalone===true;
 // Opened as the installed app? Remember it, so the browser tab on the same PC/phone stops asking you to install.
 if(isStandalone()){ try{ LS.set("nl-installed","1"); }catch(e){} }

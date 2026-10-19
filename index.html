@@ -31,18 +31,18 @@
 <link rel="preload" href="js/06-effects.js?v=4755ef2b41" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=e3171c777c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/09-install-birthdays.js?v=8683241bb9" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/09-install-birthdays.js?v=1d10d65492" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/10-secrets-1.js?v=6150c577b4" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/11-tools.js?v=089379597d" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/12-secrets-2.js?v=b263c6ebf7" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=7765920cc6" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=118683607f" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=7214d23215" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=bfcc99201e" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=3a092ffed1" as="fetch" crossorigin="anonymous">
-<link rel="stylesheet" href="css/1-core.css?v=d1c4d1ae0f">
+<link rel="stylesheet" href="css/1-core.css?v=d17988470a">
 <link rel="stylesheet" href="css/2-features.css?v=f503a80040">
 <link rel="stylesheet" href="css/3-secrets.css?v=970d9b0662">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=3a54be4de2">
@@ -400,6 +400,17 @@
     <button class="ghost hidden" type="button" id="buzzBtn">📳 Vibrate on messages: On</button>
     <button class="ghost" type="button" id="owlBtn">🦉 Night Owl reminders: On</button>
     <button class="ghost" type="button" id="badgeTest">🔢 Test the number on my app icon</button>
+    <details class="lanehow chimehow hidden" id="chimeHow">
+      <summary>🎵 Hear the Lane Chime when NightLane is closed</summary>
+      <p>When NightLane is closed, your phone plays its own sound. You can switch it to the Lane Chime:</p>
+      <a class="chimesave" href="sounds/lane-chime.mp3" download="lane-chime.mp3">⬇ Save Lane Chime</a>
+      <ol>
+        <li>Open your phone's <b>Settings → Apps → NightLane → Notifications</b>.</li>
+        <li>Tap <b>Notification categories → General</b>.<br><small>Samsung: don't see "Notification categories"? Go to <b>Settings → Notifications → Advanced settings</b> and turn on <b>Manage notification categories for each app</b>.</small></li>
+        <li>Tap <b>Sound → +</b> and pick <b>lane-chime</b> from Downloads.</li>
+      </ol>
+      <p><small>Can't find NightLane under Apps? Look under <b>Chrome → Notifications → nightlane.chat</b>.</small></p>
+    </details>
     <div id="langBox"><h3>Translate</h3>
     <label class="colorpick left"><span>🌐 Translate messages to</span><select class="field" id="langPick"></select></label></div>
     </div>
@@ -1423,7 +1434,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.20m";
+const APP_VERSION="2026.10.20n";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1457,13 +1468,13 @@ const APP_VERSION="2026.10.20m";
   "js/06-effects.js?v=4755ef2b41",
   "js/07-friends.js?v=e3171c777c",
   "js/08-games.js?v=3188c36dec",
-  "js/09-install-birthdays.js?v=8683241bb9",
+  "js/09-install-birthdays.js?v=1d10d65492",
   "js/10-secrets-1.js?v=6150c577b4",
   "js/11-tools.js?v=089379597d",
   "js/12-secrets-2.js?v=b263c6ebf7",
   "js/13-gifs-search.js?v=7765920cc6",
   "js/14-secrets-3.js?v=118683607f",
-  "js/15-bonds-news.js?v=7214d23215",
+  "js/15-bonds-news.js?v=bfcc99201e",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",
