@@ -194,7 +194,7 @@ function loadSfx(){
 }
 function sfx(name){
   if(!uiSoundOn()||document.hidden) return;
-  const now=Date.now(); if(now-(_lastSfx[name]||0)<120) return; _lastSfx[name]=now;   // a burst of messages = one ping, not a machine gun
+  const now=Date.now(); if(now-(_lastSfx[name]||0)<(name==="notify"?1000:120)) return;   // the Lane Chime is longer, so give it a second before it plays again _lastSfx[name]=now;   // a burst of messages = one ping, not a machine gun
   try{
     const ac=sfxCtx(); if(ac.state==="suspended") ac.resume();
     const buf=_sfxBuf[name]; if(!buf){ loadSfx(); return; }

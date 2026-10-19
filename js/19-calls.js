@@ -3,18 +3,19 @@ let callMsgId=null, callOutcome=null, callStartAt=0, callTimer=null, ringTimer=n
 const callClock=ms=>{ const s=Math.floor(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
 function stopRinging(){ clearTimeout(ringTimer); ringTimer=null; clearInterval(ringBuzz); ringBuzz=null; try{ navigator.vibrate&&navigator.vibrate(0); }catch(e){} stopCallTune(); }
 
-/* 🎵 the connecting tune (caller only) + an "access granted" chime when the call connects.
-   Sounds: "CyberFinance Terminal UI Sounds" by pegadance (Hacking Tension Pulse 01, Success Chime 01). */
+/* 🎵 the dial tone (caller), the Night Drive ringtone (person being called, NightLane's own, in 00-media.js),
+   and an "access granted" chime when the call connects. Dial tone + chime: "CyberFinance Terminal UI Sounds" by pegadance (Hacking Tension Pulse 01, Success Chime 01). */
 /* (moved to js/00-media.js) */
 const callSoundOn=()=>typeof uiSoundOn!=="function"||uiSoundOn();
-let tuneBuf=null, chimeBuf=null, tuneSrc=null, tuneGain=null, tuneWanted=false;
+let chimeBuf=null, tuneSrc=null, tuneGain=null, tuneWanted=false;
 async function callBuf(uri){ const r=await fetch(uri); return sfxCtx().decodeAudioData(await r.arrayBuffer()); }
 let tuneEl=null;   // backup player if the phone's sound engine gets paused by the mic turning on
-async function startCallTune(){
-  tuneWanted=true;   // the dial tone always plays (even with UI sounds off): it tells you the call is going through
+const tuneBufs={};   // cache for the dial tone and the ringtone, so they don't have to be reloaded every time
+async function startCallTune(uri=CALL_TUNE){   // CALL_TUNE = dial tone (you're calling), RING_TONE = Night Drive (someone's calling you)
+  tuneWanted=true;   // call sounds always play (even with UI sounds off): it tells you the call is going through
   try{
     const ctx=sfxCtx(); if(ctx.state==="suspended") await ctx.resume();
-    tuneBuf=tuneBuf||await callBuf(CALL_TUNE); if(!tuneWanted||tuneSrc) return;   // the call may have ended while it loaded
+    tuneBufs[uri]=tuneBufs[uri]||await callBuf(uri); const tuneBuf=tuneBufs[uri]; if(!tuneWanted||tuneSrc) return;   // the call may have ended while it loaded
     const s=ctx.createBufferSource(), g=ctx.createGain();
     s.buffer=tuneBuf; s.loop=true; s.loopEnd=Math.min(tuneBuf.duration,32);
     g.gain.setValueAtTime(0,ctx.currentTime); g.gain.linearRampToValueAtTime(.35,ctx.currentTime+.5);   // fade in
@@ -377,9 +378,9 @@ async function showIncomingCall(m){
   show($("callRingBar"), true);
   show($("callMainBar"), false);
   show($("callScreen"), true);
-  // ring: buzz + chime every 2 seconds, and stop after 45 seconds like the caller does
-  const ring=()=>{ try{ navigator.vibrate&&navigator.vibrate([400,200,400]); }catch(e){} if(typeof sfx==="function") sfx("notify"); };
-  ring(); ringBuzz=setInterval(ring,2000);
+  // ring: Night Drive plays and the phone buzzes every 2 seconds; stops after 45 seconds like the caller does
+  const ring=()=>{ try{ navigator.vibrate&&navigator.vibrate([400,200,400]); }catch(e){} };
+  ring(); ringBuzz=setInterval(ring,2000); startCallTune(RING_TONE);
   ringTimer=setTimeout(()=>{ $("callState").textContent="Missed call"; setTimeout(endCall,1200); },45000);
   prefetchIce();
   await joinCallLine(callRoom);   // listen right away, so if they hang up first, the ringing stops
