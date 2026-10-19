@@ -578,9 +578,43 @@ function gSync(){
 function gTile(uid){
   gSelf(); const t=el("div","gtile"+(callVoice?" camoff":"")), v=document.createElement("video"), f=el("span","face"), b=el("b","",nameOf(uid));
   v.autoplay=true; v.playsInline=true; t.append(v,f,b); t.dataset.uid=uid;
+  const nf=el("button","gfilter","🎧 Filter"); nf.type="button"; nf.setAttribute("aria-pressed","false"); nf.setAttribute("aria-label","Filter out this person's background noise (only for you)");
+  nf.onclick=e=>{ e.stopPropagation(); gFilterToggle(uid); }; t.append(nf);
   paintFace(f,cache.get(uid)); ensureProfiles([uid]).then(()=>{ paintFace(f,cache.get(uid)); b.textContent=nameOf(uid); }).catch(()=>{});
   $("callGrid").append(t); gLayout(); return t;
 }
+/* ===== 🎧 background-noise filter, per person, only for you (2026.10.20p) =====
+   Someone's dog, TV or fan coming through? Tap 🎧 on their tile. Their sound goes through a voice band
+   (cuts low rumble, mains hum and hiss) and a "noise gate" that quiets them when they're not talking.
+   Nothing changes for them or anyone else in the call. */
+function gFilterToggle(uid){
+  const p=gc?.peers.get(uid); if(!p) return;
+  if(p.nf) gFilterOff(p);
+  else { const st=p.tile.querySelector("video").srcObject; if(!st||!st.getAudioTracks().length){ callFlash("Their sound hasn't connected yet"); return; } gFilterOn(p,st); }
+  const on=!!p.nf, btn=p.tile.querySelector(".gfilter"); btn.setAttribute("aria-pressed",String(on)); btn.textContent=on?"✨ Filtered":"🎧 Filter";
+  callFlash(on?`✨ Filtering ${nameOf(uid)}'s background noise (only you hear the change)`:`🎧 ${nameOf(uid)} unfiltered`,2200);
+}
+function gFilterOn(p,stream){
+  let ctx; try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ callFlash("This browser can't filter sound"); return; }
+  ctx.resume().catch(()=>{});
+  const src=ctx.createMediaStreamSource(stream);
+  const hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=110; hp.Q.value=.7;    // rumble, traffic, desk bumps
+  const hum=ctx.createBiquadFilter(); hum.type="notch"; hum.frequency.value=60; hum.Q.value=8;     // electrical hum
+  const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=5200; lp.Q.value=.7;   // hiss
+  const an=ctx.createAnalyser(); an.fftSize=1024; const gate=ctx.createGain(); gate.gain.value=1;
+  src.connect(hp).connect(hum).connect(lp); lp.connect(an); lp.connect(gate).connect(ctx.destination);
+  const buf=new Float32Array(an.fftSize); let floor=.004, hold=0;
+  const t=setInterval(()=>{   // the gate: open while they talk, nearly closed in the gaps
+    an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i];
+    const rms=Math.sqrt(s/buf.length), loud=rms>Math.max(.006,floor*2.6);
+    if(rms<floor) floor=floor*.8+rms*.2; else if(!loud) floor=floor*.995+rms*.005;   // learns how loud their background is
+    hold=loud?10:Math.max(0,hold-1);   // stay open ~¼ s after a word so endings aren't clipped
+    const want=hold>0?1:.07; gate.gain.setTargetAtTime(want,ctx.currentTime,want>.5?.012:.09);
+  },25);
+  p.tile.querySelector("video").muted=true;   // the tile keeps playing (Chrome needs that), you hear the cleaned copy instead
+  p.nf={ctx,t,gate};
+}
+function gFilterOff(p){ if(!p?.nf) return; clearInterval(p.nf.t); p.nf.ctx.close().catch(()=>{}); p.nf=null; const v=p.tile.querySelector("video"); if(v) v.muted=false; }
 function gLayout(){ const g=$("callGrid"), me=g.querySelector(".gtile.me"); if(me&&me!==g.lastElementChild) g.append(me); g.dataset.n=String(Math.min(4,g.children.length)); }
 /* your own box in the grid (muted, so you don't hear yourself) */
 function gSelf(){
@@ -595,7 +629,7 @@ function gPeer(uid,offerer){
     const servers=await getIceServers(); if(!gc||gc.peers.get(uid)!==p||!callStream) return;
     const pc=p.pc=new RTCPeerConnection(servers);
     callStream.getTracks().forEach(t=>{ const sn=pc.addTrack(t,callStream); if(t.kind==="video") p.vs=sn; });   // my camera + mic, to this person
-    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); } if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
+    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); if(p.nf){ gFilterOff(p); gFilterOn(p,e.streams[0]); } } if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
     pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{to:uid,c:e.candidate.toJSON()}); };
     pc.onconnectionstatechange=()=>{ if(pc.connectionState==="connected"){ tunePc(pc,true); watchCall(); } if(pc.connectionState==="failed"&&gc?.peers.get(uid)===p) gDrop(uid); };
     if(offerer){ const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{to:uid,sdp:pc.localDescription.toJSON()}); }
@@ -604,7 +638,7 @@ function gPeer(uid,offerer){
 }
 function gDrop(uid){
   const p=gc?.peers.get(uid); if(!p) return;
-  gc.peers.delete(uid); try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
+  gc.peers.delete(uid); gFilterOff(p); try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
   p.tile.querySelector("video").srcObject=null; p.tile.remove(); gLayout(); gPaintState();
 }
 function gLive(){   // someone's picture/sound arrived

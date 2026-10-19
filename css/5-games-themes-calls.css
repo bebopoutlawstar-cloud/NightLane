@@ -973,6 +973,9 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .gtile.me{border-color:#ff4fd8;box-shadow:3px 3px 0 var(--cyan)}.gtile.me b{background:#ff4fd8}.gtile.me video{transform:scaleX(-1)}.gtile.me.back video{transform:none}
 .gtile{position:relative;overflow:hidden;min-height:0;display:grid;place-items:center;background:#0d0826;border:2px solid var(--cyan);box-shadow:3px 3px 0 #ff4fd8;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
 .gtile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent}
+.gtile .gfilter{position:absolute;top:8px;left:8px;z-index:3;min-height:34px;padding:5px 10px;font-family:var(--tech);font-size:11px;letter-spacing:.5px;color:var(--cyan);background:rgba(7,4,26,.78);border:1.5px solid var(--cyan);cursor:pointer}
+.gtile .gfilter[aria-pressed="true"]{background:var(--cyan);color:#07041a}
+.gtile.me .gfilter,.gtile:not(.live) .gfilter,.callscreen.uihidden .gtile .gfilter{display:none}
 .gtile .face{width:72px!important;height:72px!important;font-size:28px;position:relative;z-index:1;opacity:0}
 .gtile:not(.live) .face,.gtile.camoff .face,.callscreen.callvoice .gtile .face{opacity:1}
 .gtile.camoff video,.callscreen.callvoice .gtile video{opacity:0}

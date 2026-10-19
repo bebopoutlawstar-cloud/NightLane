@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20p", title:"Filter background noise 🎧", items:["🎧 Group calls: someone's TV, fan or dog coming through? Tap 🎧 Filter on their tile to clean up their sound. Only you hear the change."]},
     {v:"2026.10.20o", title:"Video sending upgrades 🎬", items:["📶 A progress bar now shows how far along your photos and videos are while they send.","🎬 Send up to 3 videos at once: pick several, or tap + to add more. Each one arrives as its own message.","📷 Fixed: picking more photos while one was waiting no longer drops the first one."]},
     {v:"2026.10.20n", title:"Lane Chime on Android 🎵", items:["🎵 Android: want the Lane Chime even when NightLane is closed? Profile → Alerts has a quick how-to and a Save button."]},
     {v:"2026.10.20m", title:"No more missed messages 🔔", items:["🔔 Fixed: leaving NightLane open on your PC used to count every message as \"read\", so your phone stayed quiet. Now a message only counts as read when you're actually there (NightLane in front, and you've moved the mouse, typed or tapped in the last 2 minutes)."]},
