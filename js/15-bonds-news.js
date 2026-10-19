@@ -446,7 +446,7 @@ setRoomBackground=function(bg){ _setRoomBackground(bg); if(isDm&&dmStyle.bg){ co
 /* picking a normal background in a DM turns the bond background off, so you actually see your pick */
 const _chooseBackground=chooseBackground;
 chooseBackground=async function(bg){ if(isDm&&dmStyle.bg){ await chooseDmStyle(null,dmStyle.bubbles); } return _chooseBackground(bg); };
-async function loadSocialLinks(){ try{ const rows=await api.socialLinks(); socialLinks=new Map(rows.map(r=>[r.user_a===user.id?r.user_b:r.user_a,r])); }catch(e){} }
+async function loadSocialLinks(){ try{ const rows=await api.socialLinks(); socialLinks=new Map(rows.map(r=>[r.user_a===user.id?r.user_b:r.user_a,r])); return true; }catch(e){ return false; } }   // false = couldn't load (bad signal)
 function linkBadge(uid){
   const row=socialLinks.get(uid); if(!row) return null;
   const {rank}=rankFromXp(row.xp);
@@ -463,19 +463,30 @@ function bondCheckSoon(ms=4000){ clearTimeout(bondTimer); bondTimer=setTimeout(c
 async function checkBondNews(){
   if(!user||bondChecking) return; bondChecking=true;
   try{
-    await loadSocialLinks();
-    const seen=bondSeen(), now={}, news=[];
+    if(!await loadSocialLinks()) return;               // bad signal: try again later rather than forget what you've seen
+    const seen=bondSeen(), now={...(seen||{})}, news=[];
     socialLinks.forEach((r,uid)=>{ const rank=rankFromXp(r.xp).rank; now[uid]=rank;
       if(seen&&seen[uid]===undefined) news.push({uid,r,rank,fresh:true});
       else if(seen&&rank>seen[uid]) news.push({uid,r,rank}); });
     bondRemember(now);                                  // first run on a device just learns quietly
     if(!news.length) return;
     await ensureProfiles(news.map(n=>n.uid));
-    news.forEach((n,i)=>setTimeout(()=>bondToast(n),600+i*900));
+    if(news.length>2) bondSummaryToast(news);           // lots at once: one toast, not a pile of them
+    else news.forEach((n,i)=>setTimeout(()=>bondToast(n),600+i*900));
     const up=news.find(n=>!n.fresh);
     if(up&&fxEnabled()&&!reducedMotion()) setTimeout(()=>QX.rankup(nameOf(up.uid),up.r.arcana,up.rank),400);
     if(!$("contactsPane").classList.contains("hidden")) loadContacts();
   }finally{ bondChecking=false; }
+}
+function bondSummaryToast(news){
+  const t=el("button","toast mention"); t.type="button";
+  const body=el("span","tbody"), fresh=news.filter(n=>n.fresh).length, ups=news.length-fresh;
+  const names=news.slice(0,3).map(n=>cache.get(n.uid)?.username||"a friend").join(", ")+(news.length>3?` and ${news.length-3} more`:"");
+  body.append(el("div","ttitle",`💫 ${news.length} Social Bond updates`),
+              el("div","ttext",`${[fresh?`${fresh} new`:"",ups?`${ups} ranked up`:""].filter(Boolean).join(" · ")}: ${names}`));
+  t.append(body); t.onclick=()=>{ t.remove(); $("openBonds").click(); };
+  $("toasts").prepend(t); setTimeout(()=>{ if(t.isConnected){ t.classList.add("out"); setTimeout(()=>t.remove(),260); } },8000);
+  if(navigator.vibrate) navigator.vibrate([20,40,20]);
 }
 function bondToast(n){
   const name=cache.get(n.uid)?.username||"a friend";
@@ -550,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20h", title:"No more Social Bond spam 💫", items:["💫 Fixed: after opening NightLane on a bad signal, you could get a pile of \"New Social Bond\" pop-ups for bonds you already had. Now a failed check is simply tried again later, and lots of updates at once show as one pop-up."]},
     {v:"2026.10.20g", title:"Bad signal? It tells you 📡", items:["📡 On a weak connection, NightLane no longer just sits on the loading screen or the date: after a few seconds it says \"Slow connection… still trying\" with a Try again button, and opens by itself as soon as it gets through.","⚡ On a weak signal, the installed app now opens from its saved copy after 3 seconds instead of hanging on the icon screen, and grabs the newest version in the background."]},
     {v:"2026.10.20f", title:"Quicker start on PC 💻", items:["💻 The computer start-up screen now lets you in by itself after about 3 seconds (a bar shows how long), and says clearly that you can click or press any key to enter."]},
     {v:"2026.10.20e", title:"Lanes, explained 🛣️", items:["🛣️ The Lanes tab now explains the difference: a Room is one chat, a Lane is your crew's home with several chats inside (like a Discord server, but simpler). Tap \"Rooms vs Lanes\" at the top of the tab."]},
