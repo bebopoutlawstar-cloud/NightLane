@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20o", title:"Video sending upgrades 🎬", items:["📶 A progress bar now shows how far along your photos and videos are while they send.","🎬 Send up to 3 videos at once: pick several, or tap + to add more. Each one arrives as its own message.","📷 Fixed: picking more photos while one was waiting no longer drops the first one."]},
     {v:"2026.10.20n", title:"Lane Chime on Android 🎵", items:["🎵 Android: want the Lane Chime even when NightLane is closed? Profile → Alerts has a quick how-to and a Save button."]},
     {v:"2026.10.20m", title:"No more missed messages 🔔", items:["🔔 Fixed: leaving NightLane open on your PC used to count every message as \"read\", so your phone stayed quiet. Now a message only counts as read when you're actually there (NightLane in front, and you've moved the mouse, typed or tapped in the last 2 minutes)."]},
     {v:"2026.10.20l", title:"NightLane's own sound 🎵", items:["🎵 New message sound: the Lane Chime, made just for NightLane.","📞 Incoming calls now ring with \"Night Drive\", our own ringtone, with the Lane Chime built in. Coded by Cole."]},
@@ -1129,7 +1130,7 @@ async function checkForUpdate(){
   }catch(e){}
 }
 function busyRightNow(){
-  return !$("chat").classList.contains("hidden") || !!$("box").value.trim() || !!pendingFile || pendingImages.length>0 || !!rec
+  return !$("chat").classList.contains("hidden") || !!$("box").value.trim() || !!pendingFile || pendingImages.length>0 || (typeof pendingVideos!=="undefined"&&pendingVideos.length>0) || !!rec
       || [...document.querySelectorAll(".overlay")].some(o=>!o.classList.contains("hidden"));
 }
 async function safeReload(){ try{ if(sb) await Promise.race([sb.auth.getSession(),new Promise(r=>setTimeout(r,3000))]); }catch(e){} location.reload(); }

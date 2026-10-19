@@ -482,7 +482,7 @@ function sendTyping(on){
 }
 
 /* ---------- composer ---------- */
-function clearPending(){ spoilerOn=false; pendingFile=null; pendingKind=null; pendingDuration=null; show($("pending"),false); show($("pendingImg")); show($("pendingVid"),false); $("pendingVid").removeAttribute("src"); clearPendingImages(); }
+function clearPending(){ spoilerOn=false; pendingFile=null; pendingKind=null; pendingDuration=null; pendingVideos.forEach(v=>v.url&&URL.revokeObjectURL(v.url)); pendingVideos=[]; show($("pending"),false); show($("pendingImg")); show($("pendingVid"),false); $("pendingVid").removeAttribute("src"); clearPendingImages(); }
 function clearPendingImages(){ spoilerOn=false; pendingImages.forEach(f=>f._url&&URL.revokeObjectURL(f._url)); pendingImages=[]; paintPendingMulti(); }
 /* ---------- spoiler photos ---------- */
 let spoilerOn=false;
@@ -516,8 +516,9 @@ function paintSpoilerBtn(){
   b.innerHTML=`🙈 Send as spoiler: <b>${spoilerOn?"on":"off"}</b>`; b.classList.toggle("on",spoilerOn);
 }
 function paintPendingMulti(){
-  const wrap=$("pendingMulti"); show(wrap, pendingImages.length>1); setTimeout(paintSpoilerBtn,0);
-  if(pendingImages.length<=1) return;
+  const many=pendingImages.length+pendingVideos.length>1;
+  const wrap=$("pendingMulti"); show(wrap, many); setTimeout(paintSpoilerBtn,0);
+  if(!many){ if(pendingVideos.length===1&&!pendingImages.length) showOneVideo(pendingVideos[0]); return; }
   show($("pending"),false);
   const strip=$("pmStrip"); strip.innerHTML="";
   pendingImages.forEach((f,i)=>{
@@ -527,11 +528,40 @@ function paintPendingMulti(){
     x.onclick=()=>{ URL.revokeObjectURL(f._url); pendingImages.splice(i,1); paintPendingMulti(); };
     tile.append(img,x); strip.append(tile);
   });
-  if(pendingImages.length<PENDING_MAX){ const add=el("button","pm-add","+"); add.type="button"; add.setAttribute("aria-label","Add another photo"); add.onclick=()=>$("picker").click(); strip.append(add); }
-  $("pmLabel").textContent=`${pendingImages.length} photo${pendingImages.length===1?"":"s"} ready`;
+  pendingVideos.forEach((v,i)=>{   // 🎬 videos sit in the same strip; each one goes out as its own message
+    const tile=el("span","pm-tile"); let vid;
+    if(v.thumb){ vid=document.createElement("img"); vid.src=v.thumb; vid.alt=""; } else { vid=document.createElement("video"); vid.muted=true; vid.playsInline=true; vid.preload="metadata"; vid.src=v.url+"#t=0.1"; }
+    const x=el("button","",""); x.type="button"; x.setAttribute("aria-label","Remove this video"); x.textContent="✕";
+    x.onclick=()=>{ URL.revokeObjectURL(v.url); pendingVideos.splice(i,1); paintPendingMulti(); };
+    tile.append(vid,el("span","pm-vid","🎬"),x); strip.append(tile);
+  });
+  if(pendingImages.length<PENDING_MAX||pendingVideos.length<VIDEO_MAX){ const add=el("button","pm-add","+"); add.type="button"; add.setAttribute("aria-label","Add more photos or videos"); add.onclick=()=>$("picker").click(); strip.append(add); }
+  const bits=[]; if(pendingImages.length) bits.push(`${pendingImages.length} photo${pendingImages.length===1?"":"s"}`); if(pendingVideos.length) bits.push(`${pendingVideos.length} video${pendingVideos.length===1?"":"s"}`);
+  $("pmLabel").textContent=bits.join(" · ")+" ready";
 }
-const PENDING_MAX=10;
-$("pmClear").onclick=clearPendingImages;
+function showOneVideo(v){ show($("pendingMulti"),false); $("pendingVid").src=v.url; show($("pendingVid")); show($("pendingImg"),false); $("pendingLabel").textContent="Video ready"; show($("pending")); }
+const PENDING_MAX=10, VIDEO_MAX=3;   // up to 10 photos in one album, and up to 3 videos (each sent as its own message)
+let pendingVideos=[];   // [{file, dur, url}]
+/* 📶 the bar above the message box while things upload */
+function setProg(label,frac){ const p=$("upProg"), pct=Math.max(0,Math.min(100,Math.round((frac||0)*100))); show(p); $("upFill").style.width=pct+"%"; $("upTxt").textContent=label.replace("{p}",pct+"%"); p.setAttribute("aria-valuenow",String(pct)); }
+function hideProg(){ show($("upProg"),false); $("upFill").style.width="0"; }
+/* check a video before staging it: returns {file,dur,url} or an error message */
+async function checkVideo(f){
+  if(f.size>MAX_PICK_BYTES) return "That video is too big (over 500 MB). Try a shorter clip.";
+  const d=await videoDuration(f);
+  if(isFinite(d)&&d>MAX_VIDEO_SECONDS+0.5) return `Videos can be up to ${MAX_VIDEO_SECONDS} seconds. That one is ${Math.round(d)}.`;
+  const url=URL.createObjectURL(f);
+  return {file:f, dur:isFinite(d)?Math.round(d*10)/10:null, url, thumb:await videoThumb(url)};
+}
+/* a still picture of the video's first moment, for the little tile (phones don't always draw a paused video) */
+function videoThumb(url){ return new Promise(res=>{
+  const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.preload="auto"; let done=false;
+  const finish=t=>{ if(done) return; done=true; v.removeAttribute("src"); try{ v.load(); }catch(e){} res(t); };
+  v.onloadeddata=()=>{ try{ v.currentTime=Math.min(0.1,(v.duration||1)/2); }catch(e){ finish(null); } };
+  v.onseeked=()=>{ try{ const c=document.createElement("canvas"), k=112/Math.max(v.videoWidth,v.videoHeight,1); c.width=Math.max(1,Math.round(v.videoWidth*k)); c.height=Math.max(1,Math.round(v.videoHeight*k)); c.getContext("2d").drawImage(v,0,0,c.width,c.height); finish(c.toDataURL("image/jpeg",.7)); }catch(e){ finish(null); } };
+  v.onerror=()=>finish(null); setTimeout(()=>finish(null),2500); v.src=url;
+}); }
+$("pmClear").onclick=()=>clearPending();
 $("pickBtn").onclick=()=>{ closeTray(); $("picker").click(); };
 /* Re-records a video at 720p / ~2 Mbps so iPhone clips (often 30-100+ MB) fit the 25 MB upload limit.
    It plays the video silently into a hidden canvas and records that, so it takes about as long as the clip.
@@ -591,20 +621,25 @@ function videoDuration(file){ return new Promise(res=>{ const v=document.createE
 $("picker").onchange=async e=>{
   let files=[...e.target.files]; e.target.value="";
   if(!files.length) return;
-  if(files.length===1&&!pendingImages.length){ takeFile(files[0]); return; }
+  if(files.length===1&&!pendingImages.length&&!pendingVideos.length&&!pendingFile){ takeFile(files[0]); return; }
   if((await Promise.all(files.map(isHeic))).some(Boolean)){
     $("status").textContent="Converting photos…";
     files=(await Promise.all(files.map(f=>readableImage(f).catch(()=>null)))).filter(Boolean); $("status").textContent="";
   }
-  const imgs=files.filter(f=>f.type.startsWith("image/"));
-  if(imgs.length<files.length) $("status").textContent="Only photos can be sent together — videos need their own message.";
-  if(!imgs.length) return;
-  if(pendingFile){ clearPending(); }   // switching from a single video/photo into album mode
-  const room=PENDING_MAX-pendingImages.length;
-  if(room<=0){ $("status").textContent=`You can send up to ${PENDING_MAX} photos at once.`; return; }
-  const oversize=imgs.some(f=>f.size>15e6);
-  if(oversize) $("status").textContent="One or more photos are over 15 MB and were skipped.";
-  pendingImages.push(...imgs.filter(f=>f.size<=15e6).slice(0,room));
+  const imgs=files.filter(f=>f.type.startsWith("image/")), vids=files.filter(f=>f.type.startsWith("video/"));
+  if(!imgs.length&&!vids.length){ $("status").textContent="Only photos and videos can be attached."; return; }
+  if(pendingFile){ pendingImages.push(pendingFile); pendingFile=null; pendingKind=null; show($("pending"),false); }   // a single photo waiting joins the album instead of being dropped
+  const notes=[];
+  if(imgs.length){
+    const room=PENDING_MAX-pendingImages.length;
+    if(room<=0) notes.push(`You can send up to ${PENDING_MAX} photos at once.`);
+    else { if(imgs.some(f=>f.size>15e6)) notes.push("Photos over 15 MB were skipped."); pendingImages.push(...imgs.filter(f=>f.size<=15e6).slice(0,room)); }
+  }
+  for(const f of vids){
+    if(pendingVideos.length>=VIDEO_MAX){ notes.push(`You can send up to ${VIDEO_MAX} videos at once.`); break; }
+    const v=await checkVideo(f); if(typeof v==="string") notes.push(v); else pendingVideos.push(v);
+  }
+  $("status").textContent=notes.join(" ");
   paintPendingMulti();
 };
 async function takeFile(f){
@@ -612,11 +647,13 @@ async function takeFile(f){
   if(!heic&&!f.type.startsWith("image/")&&!f.type.startsWith("video/")){ $("status").textContent="Only photos and videos can be attached."; return; }
   if(heic){ $("status").textContent="Converting photo…"; try{ f=await readableImage(f); $("status").textContent=""; }catch(err){ $("status").textContent=err.message; return; } }
   if(f.type.startsWith("video/")){
-    if(f.size>MAX_PICK_BYTES){ $("status").textContent="That video is too big (over 500 MB). Try a shorter clip."; return; }
-    const d=await videoDuration(f);
-    if(isFinite(d)&&d>MAX_VIDEO_SECONDS+0.5){ $("status").textContent=`Videos can be up to ${MAX_VIDEO_SECONDS} seconds. That one is ${Math.round(d)}.`; return; }
-    pendingFile=f; pendingKind="video"; pendingDuration=isFinite(d)?Math.round(d*10)/10:null;
-    $("pendingVid").src=URL.createObjectURL(f); show($("pendingVid")); show($("pendingImg"),false); $("pendingLabel").textContent="Video ready"; show($("pending"));
+    const v=await checkVideo(f); if(typeof v==="string"){ $("status").textContent=v; return; }
+    if(pendingImages.length||pendingVideos.length||pendingFile){   // already have something waiting: add to it
+      if(pendingFile){ pendingImages.push(pendingFile); pendingFile=null; pendingKind=null; }
+      if(pendingVideos.length>=VIDEO_MAX){ URL.revokeObjectURL(v.url); $("status").textContent=`You can send up to ${VIDEO_MAX} videos at once.`; return; }
+      pendingVideos.push(v); paintPendingMulti(); return;
+    }
+    pendingVideos=[v]; showOneVideo(v);
   } else {
     if(f.size>15e6){ $("status").textContent="Photo is over 15 MB."; return; }
     pendingFile=f; pendingKind="image"; $("pendingImg").src=URL.createObjectURL(f); show($("pendingImg")); show($("pendingVid"),false); $("pendingLabel").textContent="Photo ready"; show($("pending"));
@@ -670,42 +707,57 @@ let sendingNow=false;
 $("sendForm").addEventListener("submit",async e=>{
   e.preventDefault();
   if(sendingNow) return;                     // Enter pressed again while the last one is still sending
-  const text=$("box").value.trim(); if(!text&&!pendingFile&&!pendingImages.length) return;
+  const text=$("box").value.trim(); if(!text&&!pendingFile&&!pendingImages.length&&!pendingVideos.length) return;
   sendingNow=true; $("sendBtn").disabled=true; hideMentions();
-  const hadMedia=!!pendingFile||pendingImages.length>0;
+  const hadMedia=!!pendingFile||pendingImages.length>0||pendingVideos.length>0;
+  let captionSent=false; $("pendingMulti").classList.add("busy"); $("pending").classList.add("busy");   // no removing or adding while it uploads
   if(!hadMedia){ $("box").value=""; $("box").style.height=""; }   // text-only: clear right away so you can keep typing
   paintComposeMode();
   try{
     const f={kind:"text",text,mentions:mentionsIn(text)};
     if(spoilerOn&&hasPendingPhoto()) f.spoiler=true;
-    if(pendingImages.length>1){
-      $("status").textContent=`Uploading ${pendingImages.length} photos…`;
-      const urls=await Promise.all(pendingImages.map(async img=>api.upload("chat-images",user.id,await shrink(img,1280,false))));
-      f.image_urls=urls; f.image_url=urls[0]; f.kind="image";
+    const photos=pendingImages.length?pendingImages.slice():(pendingFile?[pendingFile]:[]);
+    if(photos.length){   // 📷 the photo(s) go first, with the caption
+      const done=new Array(photos.length).fill(0), tick=()=>setProg(photos.length>1?`Uploading ${photos.length} photos · {p}`:"Uploading photo · {p}",done.reduce((a,b)=>a+b,0)/photos.length);
+      tick();
+      const urls=await Promise.all(photos.map(async(img,i)=>api.upload("chat-images",user.id,await shrink(img,1280,false),undefined,k=>{ done[i]=k; tick(); })));
+      if(urls.length>1) f.image_urls=urls; f.image_url=urls[0]; f.kind="image";
+      await sendFields(f); captionSent=true;
+      pendingFile=null; pendingKind=null; clearPendingImages();
     }
-    else if(pendingFile&&pendingKind==="video"){
-      let vid=pendingFile;
+    const vids=pendingVideos.slice();
+    for(let i=0;i<vids.length;i++){   // 🎬 then each video as its own message, one after another
+      const v=vids[i], tag=vids.length>1?`Video ${i+1} of ${vids.length} · `:"Video · ";
+      let vid=v.file;
       if(vid.size>MAX_VIDEO_BYTES){
-        $("status").textContent="Shrinking video… 0%";
-        try{ vid=await shrinkVideo(vid,k=>{ $("status").textContent=`Shrinking video… ${Math.round(k*100)}%`; }); }
+        setProg(tag+"shrinking {p}",0);
+        try{ vid=await shrinkVideo(vid,k=>setProg(tag+"shrinking {p}",k)); }
         catch(err){ throw new Error(err.message||"couldn't shrink that video. Try a shorter clip."); }
         if(vid.size>MAX_VIDEO_BYTES) throw new Error("even after shrinking it's over 25 MB. Try a shorter clip.");
       }
-      $("status").textContent="Uploading video…"; f.media_url=await api.upload("chat-media",user.id,vid); f.media_type="video"; f.media_duration=pendingDuration; f.kind="video"; }
-    else if(pendingFile||pendingImages.length===1){ $("status").textContent="Uploading photo…"; const one=pendingFile||pendingImages[0]; f.image_url=await api.upload("chat-images",user.id,await shrink(one,1280,false)); f.kind="image"; }
-    await sendFields(f);
+      setProg(tag+"uploading {p}",0);
+      const url=await api.upload("chat-media",user.id,vid,undefined,k=>setProg(tag+"uploading {p}",k));
+      const g=captionSent?{kind:"video",text:"",mentions:[]}:f;
+      g.media_url=url; g.media_type="video"; g.media_duration=v.dur; g.kind="video"; delete g.spoiler;
+      await sendFields(g); captionSent=true;
+      URL.revokeObjectURL(v.url); pendingVideos.splice(pendingVideos.indexOf(v),1);   // sent: if a later one fails, this one won't be sent twice
+    }
+    if(!captionSent) await sendFields(f);
     if(room&&!isGameNight()&&isDailyAnswer(text)){ dismissDaily(room); show($("dailyBar"),false);   // answered: the question bar leaves this chat for today
       try{ const k="nl-qotd-xp-"+dayNumber(); if(!LS.get(k)){ LS.set(k,"1"); gainXP("qotd"); } }catch(e){} }   // +15 XP once a day, not once per chat   // answered: the question bar leaves this chat for today
     if(hadMedia&&$("box").value.trim()===text){ $("box").value=""; $("box").style.height=""; }   // only clear the caption you sent, never new typing
     if(hadMedia) clearPending();
+    hideProg();
     mentionPicks.clear(); paintComposeMode();
   }catch(err){
+    hideProg();
+    if(captionSent){ if($("box").value.trim()===text){ $("box").value=""; $("box").style.height=""; } paintPendingMulti(); }   // part of it went out: keep only what's left, and don't resend the caption
     if(text&&!hadMedia){ const now=$("box").value; $("box").value=now.trim()?text+"\n"+now:text; $("box").dispatchEvent(new Event("input")); }   // put your message back
     const offline=navigator.onLine===false||/failed to fetch|network|load failed|fetch/i.test(String(err?.message||err));
     $("status").textContent=offline?"You're offline. Your message is still in the box. Tap Send when you're back.":"Didn't send: "+err.message;
     sfx("error");
   }
-  finally{ sendingNow=false; $("sendBtn").disabled=false; }
+  finally{ sendingNow=false; $("sendBtn").disabled=false; $("pendingMulti").classList.remove("busy"); $("pending").classList.remove("busy"); }
 });
 $("box").addEventListener("keydown",e=>{
   if(e.key==="Escape"){ hideMentions(); return; }

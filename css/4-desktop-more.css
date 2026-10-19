@@ -425,6 +425,12 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .dndswitch.on::after{transform:translateX(20px);background:#ff3d3d;box-shadow:0 0 6px #ff3d3d}
 /* ===== multi-photo send ===== */
 .pendingmulti{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.upprog{position:relative;height:26px;margin-bottom:8px;border:2px solid var(--cyan);background:rgba(0,0,0,.35);overflow:hidden}
+.upprog .upfill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--cyan),var(--mag));transition:width .2s linear}
+.upprog span{position:relative;display:block;padding:0 10px;line-height:22px;font-family:var(--body);font-weight:700;font-size:14px;color:var(--white);text-shadow:0 1px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pendingmulti.busy .pm-tile button,.pendingmulti.busy .pm-add,.pendingmulti.busy #pmClear,.pending.busy #unpick{opacity:.35;pointer-events:none}
+.pm-strip .pm-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.pm-strip .pm-tile .pm-vid{position:absolute;left:2px;bottom:1px;font-size:12px;text-shadow:0 1px 2px #000;pointer-events:none}
 .pm-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
 .pm-strip .pm-tile{position:relative;flex:none;width:56px;height:56px;border:2px solid var(--cyan);overflow:hidden}
 .pm-strip .pm-tile img{width:100%;height:100%;object-fit:cover;display:block}

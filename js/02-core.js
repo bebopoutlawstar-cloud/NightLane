@@ -172,6 +172,21 @@ function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.classN
 
 /* ================= BACKEND ================= */
 let sb=null;
+/* 📶 upload a file to Supabase Storage and report progress (0..1) as it goes. supabase-js can't report progress,
+   so this sends the exact same request it would, with XMLHttpRequest, which can. */
+async function uploadWithProgress(bucket,path,blob,type,onProgress){
+  const token=(await sb.auth.getSession()).data.session?.access_token;
+  await new Promise((resolve,reject)=>{
+    const x=new XMLHttpRequest();
+    x.open("POST",`${SUPABASE_URL}/storage/v1/object/${bucket}/${path.split("/").map(encodeURIComponent).join("/")}`);
+    x.setRequestHeader("Authorization","Bearer "+(token||SUPABASE_ANON_KEY)); x.setRequestHeader("apikey",SUPABASE_ANON_KEY);
+    x.setRequestHeader("Content-Type",type); x.setRequestHeader("x-upsert","false"); x.setRequestHeader("cache-control","max-age=3600");
+    x.upload.onprogress=e=>{ if(e.lengthComputable) onProgress(e.loaded/e.total); };
+    x.onload=()=>{ if(x.status>=200&&x.status<300){ onProgress(1); resolve(); } else { let m="upload failed"; try{ m=JSON.parse(x.responseText).message||m; }catch(e){} reject(new Error(m)); } };
+    x.onerror=()=>reject(new Error("network error: failed to fetch")); x.ontimeout=()=>reject(new Error("upload timed out"));
+    x.send(blob);
+  });
+}
 try{ if(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
   realtime:{heartbeatIntervalMs:15000},   // notice a dead connection sooner (bad Wi-Fi, phone switching networks)
   global:{fetch:(url,opts={})=>{   // on bad Wi-Fi a request can hang forever; give up after 20s so it can retry (uploads get as long as they need)
@@ -240,11 +255,12 @@ const live = {
   async acceptFriendInvite(token){ return must(await sb.rpc("accept_friend_invite",{p_token:token})); },
   async linkPreview(url){ const {data,error}=await sb.functions.invoke("linkpreview",{body:{url}}); if(error||!data||data.error) return null; return data; },
   async saveStyle(uid,style){ must(await sb.from("profiles").update(style).eq("id",uid)); },
-  async upload(bucket,uid,blob,name){
+  async upload(bucket,uid,blob,name,onProgress){
     const t=(blob.type||"image/jpeg").split(";")[0];
     const ext={"image/gif":"gif","image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov","audio/mp4":"m4a","audio/webm":"webm","audio/ogg":"ogg","audio/mpeg":"mp3","audio/aac":"aac","application/pdf":"pdf"}[t]||"bin";
     const path=name?`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}/${name}`:`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-    must(await sb.storage.from(bucket).upload(path,blob,{contentType:t}));
+    if(onProgress) await uploadWithProgress(bucket,path,blob,t,onProgress);   // same upload, but it reports how far along it is
+    else must(await sb.storage.from(bucket).upload(path,blob,{contentType:t}));
     return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   },
   async setAvatar(uid,url){ must(await sb.from("profiles").update({avatar_url:url}).eq("id",uid)); },
@@ -805,7 +821,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
     async setPartnerName(n){ const v=String(n||"").trim().slice(0,16)||null; (window.demoPartner ||= {stage:1}).nickname=v; return v; },
     async deleteAccount(){ user=null; listeners.forEach(f=>f(null,"SIGNED_OUT")); },
     async profiles(ids){ return ids.map(i=>people[i]).filter(Boolean); },
-    async upload(_b,_u,blob){ await new Promise(r=>setTimeout(r,300)); return URL.createObjectURL(blob); },
+    async upload(_b,_u,blob,_n,onProgress){ for(let k=1;k<=10;k++){ await new Promise(r=>setTimeout(r,onProgress?120:30)); onProgress&&onProgress(k/10); } return URL.createObjectURL(blob); },
     async setAvatar(uid,url){ people[uid].avatar_url=url; },
     async saveStyle(uid,style){ Object.assign(people[uid],style); setTimeout(()=>fire("profile",{...people[uid]}),30); },
     async setStatus(uid,emoji,text,until){ Object.assign(people[uid],{status_emoji:emoji||null,status_text:text||null,status_at:(emoji||text)?new Date().toISOString():null,status_until:(emoji||text)&&until?until:null}); setTimeout(()=>fire("profile",{...people[uid]}),30); },
