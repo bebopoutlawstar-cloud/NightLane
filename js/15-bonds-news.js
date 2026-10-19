@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20q", title:"Clearer group calls 📶", items:["📶 Group calls only show someone as LIVE once you can actually hear each other.","🔁 If a connection drops, NightLane tries a fresh route before giving up, and tells you if it can't connect (with a tip to try Wi-Fi) instead of sitting on \"Connecting…\".","🎧 The background-noise filter is stronger: tighter voice range and quieter gaps between words."]},
     {v:"2026.10.20p", title:"Filter background noise 🎧", items:["🎧 Group calls: someone's TV, fan or dog coming through? Tap 🎧 Filter on their tile to clean up their sound. Only you hear the change."]},
     {v:"2026.10.20o", title:"Video sending upgrades 🎬", items:["📶 A progress bar now shows how far along your photos and videos are while they send.","🎬 Send up to 3 videos at once: pick several, or tap + to add more. Each one arrives as its own message.","📷 Fixed: picking more photos while one was waiting no longer drops the first one."]},
     {v:"2026.10.20n", title:"Lane Chime on Android 🎵", items:["🎵 Android: want the Lane Chime even when NightLane is closed? Profile → Alerts has a quick how-to and a Save button."]},

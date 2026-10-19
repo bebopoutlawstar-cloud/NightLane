@@ -271,9 +271,12 @@ async function getIceServers(){
     if(!sb) throw 0;
     const {data,error}=await sb.functions.invoke("turn-credentials");
     if(error||!data?.iceServers?.length) throw error||0;
-    iceCache={iceServers:data.iceServers}; iceAt=Date.now(); return iceCache;
-  }catch(e){ return STUN_ONLY; }
+    iceCache={iceServers:data.iceServers}; iceAt=Date.now(); relayWarned=false; return iceCache;
+  }catch(e){ warnNoRelay(); return STUN_ONLY; }
 }
+/* no relay = calls on mobile data (and many work/school Wi-Fi) usually can't connect. Say so once per call instead of hanging on "Connecting…" */
+let relayWarned=false;
+function warnNoRelay(){ if(!sb||relayWarned) return; relayWarned=true; setTimeout(()=>{ if(callStream||gc) callFlash("⚠️ The call relay isn't answering. On mobile data the call may not connect: try Wi-Fi.",5000); },1200); }
 function prefetchIce(){ getIceServers().catch(()=>{}); }
 
 /* ===== 📶 call quality (2026.10.20k) =====
@@ -598,18 +601,23 @@ function gFilterOn(p,stream){
   let ctx; try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ callFlash("This browser can't filter sound"); return; }
   ctx.resume().catch(()=>{});
   const src=ctx.createMediaStreamSource(stream);
-  const hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=110; hp.Q.value=.7;    // rumble, traffic, desk bumps
+  const hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=150; hp.Q.value=.9;    // rumble, traffic, desk bumps, deep TV bass
+  const hp2=ctx.createBiquadFilter(); hp2.type="highpass"; hp2.frequency.value=150; hp2.Q.value=.6;  // (twice, so it cuts much harder)
   const hum=ctx.createBiquadFilter(); hum.type="notch"; hum.frequency.value=60; hum.Q.value=8;     // electrical hum
-  const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=5200; lp.Q.value=.7;   // hiss
+  const hum2=ctx.createBiquadFilter(); hum2.type="notch"; hum2.frequency.value=120; hum2.Q.value=8; // and its echo
+  const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=4000; lp.Q.value=.7;   // hiss, clatter, fans
+  const lp2=ctx.createBiquadFilter(); lp2.type="lowpass"; lp2.frequency.value=4000; lp2.Q.value=.6;
+  const lev=ctx.createDynamicsCompressor(); lev.threshold.value=-30; lev.ratio.value=4; lev.knee.value=10; lev.attack.value=.005; lev.release.value=.2;   // evens their voice out after all that cutting
+  const boost=ctx.createGain(); boost.gain.value=1.6;
   const an=ctx.createAnalyser(); an.fftSize=1024; const gate=ctx.createGain(); gate.gain.value=1;
-  src.connect(hp).connect(hum).connect(lp); lp.connect(an); lp.connect(gate).connect(ctx.destination);
+  src.connect(hp).connect(hp2).connect(hum).connect(hum2).connect(lp).connect(lp2); lp2.connect(an); lp2.connect(gate).connect(lev).connect(boost).connect(ctx.destination);
   const buf=new Float32Array(an.fftSize); let floor=.004, hold=0;
   const t=setInterval(()=>{   // the gate: open while they talk, nearly closed in the gaps
     an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i];
-    const rms=Math.sqrt(s/buf.length), loud=rms>Math.max(.006,floor*2.6);
+    const rms=Math.sqrt(s/buf.length), loud=rms>Math.max(.008,floor*3.2);
     if(rms<floor) floor=floor*.8+rms*.2; else if(!loud) floor=floor*.995+rms*.005;   // learns how loud their background is
     hold=loud?10:Math.max(0,hold-1);   // stay open ~¼ s after a word so endings aren't clipped
-    const want=hold>0?1:.07; gate.gain.setTargetAtTime(want,ctx.currentTime,want>.5?.012:.09);
+    const want=hold>0?1:.03; gate.gain.setTargetAtTime(want,ctx.currentTime,want>.5?.01:.07);
   },25);
   p.tile.querySelector("video").muted=true;   // the tile keeps playing (Chrome needs that), you hear the cleaned copy instead
   p.nf={ctx,t,gate};
@@ -629,15 +637,27 @@ function gPeer(uid,offerer){
     const servers=await getIceServers(); if(!gc||gc.peers.get(uid)!==p||!callStream) return;
     const pc=p.pc=new RTCPeerConnection(servers);
     callStream.getTracks().forEach(t=>{ const sn=pc.addTrack(t,callStream); if(t.kind==="video") p.vs=sn; });   // my camera + mic, to this person
-    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); if(p.nf){ gFilterOff(p); gFilterOn(p,e.streams[0]); } } if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
+    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); if(p.nf){ gFilterOff(p); gFilterOn(p,e.streams[0]); } } };   // the stream is ready, but it only counts as LIVE once the link actually connects (below)
     pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{to:uid,c:e.candidate.toJSON()}); };
-    pc.onconnectionstatechange=()=>{ if(pc.connectionState==="connected"){ tunePc(pc,true); watchCall(); } if(pc.connectionState==="failed"&&gc?.peers.get(uid)===p) gDrop(uid); };
+    const markLive=()=>{ clearTimeout(p.slowT); clearTimeout(p.retryT); if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
+    pc.onconnectionstatechange=()=>{ if(gc?.peers.get(uid)!==p) return; const st=pc.connectionState;
+      if(st==="connected"){ markLive(); tunePc(pc,true); watchCall(); }
+      if(st==="failed"){
+        if(offerer&&!p.retried){ p.retried=true; gRestart(p); return; }   // one more try on a fresh route
+        if(!offerer&&!p.retried){ p.retried=true; return; }               // the other phone is retrying: give it a moment
+        callFlash(`Couldn't connect to ${nameOf(uid)}. If either of you is on mobile data, try Wi-Fi.`,5000); gDrop(uid);
+      } };
+    p.slowT=setTimeout(()=>{ if(gc?.peers.get(uid)===p&&!p.tile.classList.contains("live")) callFlash(`Still connecting to ${nameOf(uid)}… If you're on mobile data, Wi-Fi usually fixes this.`,4500); },15000);
+    p.retryT=setTimeout(()=>{ if(gc?.peers.get(uid)===p&&!p.tile.classList.contains("live")&&offerer&&!p.retried){ p.retried=true; gRestart(p); } },45000);   // stuck without ever "failing": try a fresh route anyway
     if(offerer){ const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{to:uid,sdp:pc.localDescription.toJSON()}); }
   })().catch(()=>{});
   gPaintState(); return p;
 }
+async function gRestart(p){   // find a new route without leaving the call
+  try{ p.pc.restartIce?.(); const o=await p.pc.createOffer({iceRestart:true}); await p.pc.setLocalDescription(o); sendSignal("offer",{to:p.uid,sdp:p.pc.localDescription.toJSON()}); }catch(e){}
+}
 function gDrop(uid){
-  const p=gc?.peers.get(uid); if(!p) return;
+  const p=gc?.peers.get(uid); if(!p) return; clearTimeout(p.slowT); clearTimeout(p.retryT);
   gc.peers.delete(uid); gFilterOff(p); try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
   p.tile.querySelector("video").srcObject=null; p.tile.remove(); gLayout(); gPaintState();
 }
