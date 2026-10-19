@@ -1191,7 +1191,7 @@ async function handleAuth(u){
   const q=new URLSearchParams(location.search);
   if(!u){
     myInviteTok=null; tellSwAuth(null); signedLinks.clear(); isAdmin=false; show($("openCheats"),false); clearBadge();
-    hideSplash();
+    hideSplash(); appReady();
     if(unsub){unsub();unsub=null;} if(unsubAll){unsubAll();unsubAll=null;} if(typeof stopPresence==="function") stopPresence();
     say("authMsg","");   // clear any leftover "Logging in…"
     if(q.get("friend")) say("authMsg","A friend invited you to NightLane. Log in or sign up to add them.");
@@ -1214,7 +1214,7 @@ async function handleAuth(u){
   show($("authCard"),false); show($("roomCard"));
   try{ const last=LS.get("nl-room")||""; $("room").value=last.startsWith("dm-")?"":last; }catch(e){}
   $("front").classList.add("logged");
-  await Promise.all([ensureProfiles([...blocked]), loadContacts(), loadInbox()]); startPresence(); owlBack(); partnerSoon(2500);
+  await Promise.all([ensureProfiles([...blocked]), loadContacts(), loadInbox()]); appReady(); startPresence(); owlBack(); partnerSoon(2500);
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));   // let the real front screen actually paint first
   hideSplash();
   try{ LS.set("nl-welcomed-lane","1"); }catch(e){}

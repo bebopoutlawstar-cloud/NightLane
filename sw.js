@@ -1,4 +1,4 @@
-// NightLane service worker (v22): push notifications + fast repeat loads.
+// NightLane service worker (v23): push notifications + fast repeat loads, and quick opens on a weak signal.
 // (v22: the app's code now lives in js/ and css/. The cache keeps its old name on purpose, so nobody loses
 //  their saved sign-in, badge count or settings that live in it.)
 const CACHE="nightlane-v21";
@@ -43,6 +43,17 @@ async function privateFile(req, url) {
   return fetch(req);
 }
 
+// save a fresh copy of the app page, then drop saved js/css versions that page no longer points to
+async function saveShell(resp) {
+  try {
+    const c = await caches.open(CACHE); const html = await resp.clone().text();
+    await c.put("shell", resp);
+    const keep = new Set(codeLinks(html).map(u => new URL(u, self.registration.scope).href));
+    if (!keep.size) return;
+    for (const k of await c.keys()) { const u = new URL(k.url); if (CODE.test(u.pathname) && !keep.has(u.href)) await c.delete(k); }
+  } catch (e) {}
+}
+
 self.addEventListener("fetch", e => {
   const req = e.request; if (req.method !== "GET") return;
   const url = new URL(req.url);
@@ -58,14 +69,23 @@ self.addEventListener("fetch", e => {
   if (CODE.test(url.pathname)) {
     // js/ and css/: the saved copy if we have this exact version, otherwise download it, save it, and drop older versions
     e.respondWith(caches.open(CACHE).then(c => c.match(req, { ignoreVary: true }).then(hit => hit || fetch(req).then(r => {
-      if (r.ok && url.search) { const copy = r.clone(); c.put(req, copy).then(() => c.keys()).then(ks => ks.forEach(k => { const u = new URL(k.url); if (u.pathname === url.pathname && u.search !== url.search) c.delete(k); })).catch(() => {}); }
+      if (r.ok && url.search) { const copy = r.clone(); c.put(req, copy).catch(() => {}); }   // (old versions are tidied up when a new app page is saved, below)
       return r;
     }))));
     return;
   }
   if (isShell) {
-    // network first: always pick up your latest upload; fall back to the cached copy when offline
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("shell", copy)); return r; }).catch(() => caches.match("shell")));
+    // Network first, so you always get the latest upload, but never wait more than 3 seconds on a weak signal:
+    // after that, open the saved copy right away and keep downloading the new one in the background for next time.
+    e.respondWith((async () => {
+      const net = fetch(req).then(async r => { if (r.ok) await saveShell(r.clone()); return r; });
+      const cached = await caches.match("shell");
+      if (!cached) return net.catch(() => caches.match("shell"));
+      const quick = await Promise.race([net.catch(() => null), new Promise(res => setTimeout(() => res(null), 3000))]);
+      if (quick) return quick;
+      e.waitUntil(net.catch(() => {}));
+      return cached;
+    })());
   } else if (STATIC.some(s => url.pathname.endsWith("/" + s))) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); return r; })));
   }

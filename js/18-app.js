@@ -180,6 +180,17 @@ addEventListener("keydown",e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); if(user) openSearch(room?"room":"all"); }
   if((e.ctrlKey||e.metaKey)&&e.key==="/"){ e.preventDefault(); if(user){ openProfile(); profTab("me"); setTimeout(()=>{ const d=$("secretSummary")?.closest("details"); if(d) d.open=true; $("secretSummary").scrollIntoView({behavior:"smooth",block:"center"}); },300); } }
 });
+/* 📡 slow start: if signing in and loading your chats takes more than 9 seconds (bad signal), say so instead of
+   leaving you on the bare date stamp. Goes away by itself the moment everything's loaded. */
+let appIsReady=false;
+function appReady(){ appIsReady=true; document.getElementById("slowStart")?.remove(); }
+setTimeout(()=>{
+  if(appIsReady) return;
+  const box=el("div","slowstart"); box.id="slowStart"; box.setAttribute("role","status");
+  const txt=el("div","ss-text"); txt.append(el("b","","📡 Slow connection… still trying"),el("small","","Your signal might be weak. NightLane will open as soon as it gets through."));
+  const again=el("button","go ss-again","Try again"); again.type="button"; again.onclick=()=>location.reload();
+  box.append(txt,again); document.body.append(box);
+},9000);
 /* boot sequence: once per session, desktop only */
 function bootSequence(){
   if(!isDesktop()) return;
@@ -222,7 +233,7 @@ function startOffline(saved,slow){   // show your saved chats right away; the re
   meProfile=(cached&&cached.id===saved.id)?cached:{id:saved.id,username:saved.user_metadata?.username||"you",avatar_url:null};
   cache.set(user.id,meProfile); paintMe(); applyTheme(meProfile.theme||savedTheme());
   show($("authCard"),false); show($("roomCard")); $("front").classList.add("logged");
-  loadInbox(); paintOffline(); hideSplash();
+  loadInbox(); paintOffline(); hideSplash(); appReady();
   try{ const t=LS.get("nl-front-tab"); if(["chats","lanes","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
 }
 addEventListener("offline",()=>paintOffline());

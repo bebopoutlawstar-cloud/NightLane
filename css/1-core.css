@@ -824,3 +824,8 @@ details.fgroup[open] > summary.fsec::after{content:" ▾"}
 .lanehow-cmp span{color:var(--muted)}
 .lanehow ul{margin:0 0 12px;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 .lanehow b{color:var(--white)}
+
+/* 📡 slow start note (bad signal while NightLane is signing you in) */
+.slowstart{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1001;width:min(92vw,440px);display:flex;align-items:center;gap:12px;padding:12px 14px;background:#120a33;border:2px solid var(--cyan);box-shadow:4px 4px 0 var(--mag);text-align:left}
+.slowstart .ss-text{display:grid;gap:2px;flex:1;min-width:0}.slowstart b{color:var(--cyan)}.slowstart small{color:var(--muted);font-size:13px}
+.slowstart .ss-again{flex:none;padding:10px 14px;font-size:15px}

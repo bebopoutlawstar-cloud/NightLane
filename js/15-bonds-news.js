@@ -550,6 +550,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20g", title:"Bad signal? It tells you 📡", items:["📡 On a weak connection, NightLane no longer just sits on the loading screen or the date: after a few seconds it says \"Slow connection… still trying\" with a Try again button, and opens by itself as soon as it gets through.","⚡ On a weak signal, the installed app now opens from its saved copy after 3 seconds instead of hanging on the icon screen, and grabs the newest version in the background."]},
     {v:"2026.10.20f", title:"Quicker start on PC 💻", items:["💻 The computer start-up screen now lets you in by itself after about 3 seconds (a bar shows how long), and says clearly that you can click or press any key to enter."]},
     {v:"2026.10.20e", title:"Lanes, explained 🛣️", items:["🛣️ The Lanes tab now explains the difference: a Room is one chat, a Lane is your crew's home with several chats inside (like a Discord server, but simpler). Tap \"Rooms vs Lanes\" at the top of the tab."]},
     {v:"2026.10.20d", title:"Get the app 📲", items:["📲 New download page at nightlane.chat/download: one place to get NightLane on Android (Google Play), iPhone and computers, with a one-tap Install button where your browser allows it.","🔑 The sign-in screen now has a big Get the app button, and the Install sheet links to the full download page."]},
