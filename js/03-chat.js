@@ -94,7 +94,7 @@ function inboxRow(r){
     wrap.append(pin);
     return wrap;
 }
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ if(room) markReadSoon(); else loadInbox(); } });
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ if(typeof lastActive!=="undefined") lastActive=Date.now();   /* opening the app = you're looking */ if(room) markReadSoon(); else loadInbox(); } });
 
 /* ================= UI SOUNDS (Kenney "Interface Sounds", CC0 public domain) ================= */
 /* (moved to js/00-media.js) */

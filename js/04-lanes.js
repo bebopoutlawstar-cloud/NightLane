@@ -395,14 +395,23 @@ function paintPins(){
 
 /* ---------- read receipts ---------- */
 let readTimer=null;
+/* only count a message as read when you're really there. A PC can sit with a chat open on screen while you're away
+   or using another app: that used to mark everything read, so your phone thought you'd seen it and stayed quiet. */
+const READ_IDLE=2*60*1000;   // no mouse / keys / touch / scroll for 2 minutes = you're away
+let lastActive=Date.now();
+const reallyLooking=()=>!document.hidden&&(typeof document.hasFocus!=="function"||document.hasFocus())&&Date.now()-lastActive<READ_IDLE;
+["pointerdown","pointermove","keydown","wheel","touchstart","scroll"].forEach(ev=>addEventListener(ev,()=>{
+  const wasAway=Date.now()-lastActive>=READ_IDLE; lastActive=Date.now(); if(wasAway&&room) markReadSoon();   // back at the screen: now it's read
+},{passive:true,capture:true}));
+addEventListener("focus",()=>{ lastActive=Date.now(); if(room) markReadSoon(); });   // clicked back into NightLane
 function markReadSoon(){
-  if(!room||document.hidden||$("chat").classList.contains("hidden")) return;
+  if(!room||!reallyLooking()||$("chat").classList.contains("hidden")) return;
   const code=room;
-  clearTimeout(readTimer); readTimer=setTimeout(()=>api.markRead(code).then(()=>{
+  clearTimeout(readTimer); readTimer=setTimeout(()=>{ if(room!==code||!reallyLooking()) return; api.markRead(code).then(()=>{
     // You've read it: clear its pop-ups, and on PC (where the chat list stays on screen next to the chat) refresh the unread numbers too
     if(typeof closeRoomNotifications==="function") closeRoomNotifications(code);
     if((document.body.classList.contains("desktop")||!$("front").classList.contains("hidden"))&&typeof loadInboxSoon==="function") loadInboxSoon();
-  }).catch(()=>{}),700);
+  }).catch(()=>{}); },700);
 }
 function setMember(r){
   if(!r?.user_id) return;

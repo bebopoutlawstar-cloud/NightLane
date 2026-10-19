@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20m", title:"No more missed messages 🔔", items:["🔔 Fixed: leaving NightLane open on your PC used to count every message as \"read\", so your phone stayed quiet. Now a message only counts as read when you're actually there (NightLane in front, and you've moved the mouse, typed or tapped in the last 2 minutes)."]},
     {v:"2026.10.20l", title:"NightLane's own sound 🎵", items:["🎵 New message sound: the Lane Chime, made just for NightLane.","📞 Incoming calls now ring with \"Night Drive\", our own ringtone, with the Lane Chime built in. Coded by Cole."]},
     {v:"2026.10.20k", title:"Smoother calls 📞", items:["🎙️ Voices come first: on a weak signal the video softens instead of the sound cutting out.","📶 A heads-up shows when the connection is struggling, and calls try to reconnect on their own after a short drop.","🎵 The dial tone plays again when you start a call (phones were muting it when the camera turned on)."]},
     {v:"2026.10.20j", title:"Tidier Alerts tab 🧹", items:["🧹 Removed an empty \"Translate\" heading from Profile → Alerts. Translation isn't switched on yet, so it shouldn't show."]},
