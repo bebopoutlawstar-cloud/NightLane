@@ -9,8 +9,9 @@ function stopRinging(){ clearTimeout(ringTimer); ringTimer=null; clearInterval(r
 const callSoundOn=()=>typeof uiSoundOn!=="function"||uiSoundOn();
 let tuneBuf=null, chimeBuf=null, tuneSrc=null, tuneGain=null, tuneWanted=false;
 async function callBuf(uri){ const r=await fetch(uri); return sfxCtx().decodeAudioData(await r.arrayBuffer()); }
+let tuneEl=null;   // backup player if the phone's sound engine gets paused by the mic turning on
 async function startCallTune(){
-  if(!callSoundOn()) return; tuneWanted=true;
+  tuneWanted=true;   // the dial tone always plays (even with UI sounds off): it tells you the call is going through
   try{
     const ctx=sfxCtx(); if(ctx.state==="suspended") await ctx.resume();
     tuneBuf=tuneBuf||await callBuf(CALL_TUNE); if(!tuneWanted||tuneSrc) return;   // the call may have ended while it loaded
@@ -20,8 +21,18 @@ async function startCallTune(){
     s.connect(g).connect(ctx.destination); s.start(); tuneSrc=s; tuneGain=g;
   }catch(e){}
 }
+/* phones pause the sound engine for a moment when the mic/camera turns on, which killed the dial tone: wake it back up,
+   and if it won't wake, play the tune through a plain audio player instead */
+async function kickCallTune(){
+  if(!tuneWanted) return;
+  try{ const ctx=sfxCtx(); if(ctx.state!=="running") await Promise.race([ctx.resume(),new Promise(r=>setTimeout(r,700))]);
+    if(ctx.state==="running"){ if(!tuneSrc) startCallTune(); return; } }catch(e){}
+  if(!tuneWanted||tuneEl) return;
+  try{ tuneEl=new Audio(CALL_TUNE); tuneEl.loop=true; tuneEl.volume=.35; await tuneEl.play(); }catch(e){ tuneEl=null; }
+}
 function stopCallTune(){
-  tuneWanted=false; if(!tuneSrc) return;
+  tuneWanted=false; if(tuneEl){ try{ tuneEl.pause(); }catch(e){} tuneEl=null; }
+  if(!tuneSrc) return;
   const ctx=sfxCtx(), s=tuneSrc, g=tuneGain; tuneSrc=tuneGain=null;
   try{ g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(g.gain.value,ctx.currentTime); g.gain.linearRampToValueAtTime(0,ctx.currentTime+.3); s.stop(ctx.currentTime+.35); }catch(e){}   // quick fade out
 }
@@ -105,8 +116,9 @@ function updateCallLook(){
 }
 /* made right on the tap (phones only start audio from a tap); used to boost the mic */
 function makeCallCtx(){ try{ callCtx=new (window.AudioContext||window.webkitAudioContext)(); callCtx.resume().catch(()=>{}); }catch(e){ callCtx=null; } }
+const CAM_SIZE={width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30}};   // 640x480 @ 24fps: smooth on weak signal, still clear on a phone screen
 async function getCallMedia(){
-  const raw=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}, video:callVoice?false:{facingMode:camFacing}});
+  const raw=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}, video:callVoice?false:{facingMode:camFacing,...CAM_SIZE}});
   micRaw=raw.getAudioTracks()[0]; camTrack=raw.getVideoTracks()[0]||null;
   let mic=micRaw;
   try{   // mic -> volume knob -> limiter (stops the boost from crackling) -> the call
@@ -141,7 +153,7 @@ async function swapSentVideo(track){   // send a different picture without redia
   if(old!==track){ if(old) callStream.removeTrack(old); callStream.addTrack(track); }
   if(videoSender) await videoSender.replaceTrack(track).catch(()=>{});
   if(gc) await Promise.all([...gc.peers.values()].map(p=>p.vs?.replaceTrack(track).catch(()=>{})));
-  paintLocal();
+  tuneAll(); paintLocal();
 }
 function setMyCam(on){
   myCam=!!on; if(camTrack) camTrack.enabled=myCam; if(glitch) glitch.track.enabled=myCam;
@@ -155,7 +167,7 @@ async function flipCam(){
   const want=camFacing==="user"?"environment":"user";
   try{
     camTrack.stop();   // some phones can't open 2 cameras at once
-    const fresh=(await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:want}}})).getVideoTracks()[0];
+    const fresh=(await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:want},...CAM_SIZE}})).getVideoTracks()[0];
     camFacing=want; camTrack=fresh; camTrack.enabled=myCam;
     if(glitch) glitch.v.srcObject=new MediaStream([camTrack]); else if(!shareTrack) await swapSentVideo(camTrack);
     paintLocal();
@@ -210,7 +222,7 @@ async function openCall(voice=false){
     $("callName").textContent=nameOf(dmUser);      // their name
     paintFace($("callFace"), cache.get(dmUser));   // their picture in the middle
     $("callState").textContent="Calling…";
-    show($("callScreen"));
+    show($("callScreen")); kickCallTune();
     callRoom=room; callOutcome=null; prefetchIce();
     await joinCallLine(room);   // join the private call channel for this DM
     const m=await sendFields({kind:"call", text:callVoice?"📞 Voice call":"📞 Call"});
@@ -263,6 +275,39 @@ async function getIceServers(){
 }
 function prefetchIce(){ getIceServers().catch(()=>{}); }
 
+/* ===== 📶 call quality (2026.10.20k) =====
+   Voice matters more than picture: when the signal gets weak, the phone keeps the sound clear and lets the video
+   get softer instead of freezing everything. Video is capped so it never floods a slow connection, and a quick
+   check every few seconds warns you when the link is struggling, so you know to repeat what you missed. */
+async function tuneSender(s,kind,group){
+  if(!s?.getParameters||!s.track) return;
+  try{ const p=s.getParameters(); if(!p.encodings||!p.encodings.length) p.encodings=[{}]; const e=p.encodings[0], share=!!shareTrack&&s.track===shareTrack;
+    if(kind==="audio"){ e.priority="high"; e.networkPriority="high"; }
+    else { e.maxBitrate=share?1200000:(group?350000:700000); if(share) delete e.maxFramerate; else e.maxFramerate=24; e.priority="low"; e.networkPriority="low"; p.degradationPreference=share?"maintain-resolution":"balanced"; }
+    await s.setParameters(p); }catch(e){}
+}
+function tunePc(c,group){ try{ c.getSenders().forEach(s=>s.track&&tuneSender(s,s.track.kind,group)); }catch(e){} }
+function tuneAll(){ if(pc) tunePc(pc); if(typeof gc!=="undefined"&&gc) gc.peers.forEach(p=>p.pc&&tunePc(p.pc,true)); }
+let watchT=null, lastStats=new WeakMap(), weakWarnAt=0;
+function unwatchCall(){ clearInterval(watchT); watchT=null; }
+function watchCall(){
+  if(watchT) return;
+  watchT=setInterval(async()=>{
+    const list=pc?[pc]:(typeof gc!=="undefined"&&gc)?[...gc.peers.values()].map(p=>p.pc).filter(Boolean):[];
+    if(!list.length){ unwatchCall(); return; }
+    let weak=false;
+    for(const c of list){ try{
+      let rtt=0, lost=0, got=0; (await c.getStats()).forEach(r=>{
+        if(r.type==="candidate-pair"&&r.nominated&&r.currentRoundTripTime) rtt=Math.max(rtt,r.currentRoundTripTime);
+        if(r.type==="inbound-rtp"){ lost+=r.packetsLost||0; got+=r.packetsReceived||0; } });
+      const old=lastStats.get(c)||{lost,got}; lastStats.set(c,{lost,got});
+      const dl=lost-old.lost, dg=got-old.got, loss=dl+dg>50?dl/(dl+dg):0;
+      if(loss>.08||rtt>.5) weak=true;
+    }catch(e){} }
+    if(weak&&Date.now()-weakWarnAt>20000){ weakWarnAt=Date.now(); callFlash("📶 Weak connection: video may blur or freeze",2600); }
+  },3000);
+}
+
 /* ===== the video link (WebRTC) =====
    Each phone makes a "peer connection", plugs its camera + mic into it, and they swap 3 kinds of notes over
    the call line: an OFFER (caller: "here's what I can send"), an ANSWER (callee: "ok, here's mine"), and
@@ -275,14 +320,22 @@ async function startPeer(){
   pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; $("callScreen").classList.add("live");   // their video arrived
     if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
   pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
-  pc.onconnectionstatechange=()=>{ if(pc?.connectionState==="failed"){ $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } };
+  pc.onconnectionstatechange=()=>{ const st=pc?.connectionState;
+    if(st==="connected"){ clearTimeout(iceFixT); tunePc(pc); watchCall(); }
+    if(st==="disconnected"){ clearTimeout(iceFixT); iceFixT=setTimeout(()=>restartIce(),2500); callFlash("📶 Signal dropped, reconnecting…",2500); }
+    if(st==="failed"){ if(iAmOfferer&&!iceRetried){ iceRetried=true; restartIce(); return; } $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } };
 }
 async function flushIce(){ for(const c of pendingIce.splice(0)){ try{ await pc.addIceCandidate(c); }catch(e){} } }
-async function sendOffer(){ if(!pc) return; const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }
+let iAmOfferer=false, iceRetried=false, iceFixT=null;
+async function restartIce(){   // the network changed (wifi <-> data, weak spot): find a new route without hanging up
+  if(!pc||!iAmOfferer||pc.connectionState==="connected"||pc.connectionState==="closed") return;
+  try{ pc.restartIce?.(); const o=await pc.createOffer({iceRestart:true}); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }catch(e){}
+}
+async function sendOffer(){ if(!pc) return; iAmOfferer=true; const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }
 async function onOffer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); const a=await pc.createAnswer(); await pc.setLocalDescription(a); sendSignal("answer",{sdp:pc.localDescription.toJSON()}); }
 async function onAnswer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); }
 async function onIce(c){ if(!pc||!pc.remoteDescription){ pendingIce.push(c); return; } try{ await pc.addIceCandidate(c); }catch(e){} }
-function stopPeer(){ if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("callScreen").classList.remove("live"); }
+function stopPeer(){ iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("callScreen").classList.remove("live"); }
 
 function endCall(){
   if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
@@ -346,8 +399,8 @@ function onCallSignal(s){
   if(s.type==="share") $("callScreen").classList.toggle("theysharing",!!s.on);   // they started / stopped sharing their screen
   if(s.type==="decline"){ callOutcome="declined"; stopRinging(); callBlip("decline"); $("callState").textContent="Declined"; setTimeout(endCall,1500); }
   if(s.type==="end"){ callBlip("decline"); leaveCallLine(); endCall(); }   // they hung up (leave first so we don't say "end" back)
-  if(s.type==="offer") onOffer(s.sdp);     // video link notes (handled by the helpers above)
-  if(s.type==="answer") onAnswer(s.sdp);
+  if(s.type==="offer") onOffer(s.sdp).catch(()=>{});     // video link notes (handled by the helpers above)
+  if(s.type==="answer") onAnswer(s.sdp).catch(()=>{});
   if(s.type==="ice") onIce(s.c);
   if(s.type==="cam"){ theirCam=!!s.on; loudPick=null; updateCallLook(); }   // they turned their camera on/off
   if(s.type==="vol"){ loudPick=!!s.loud; updateCallLook(); flashVol(); }     // they tapped 🔊
@@ -543,7 +596,7 @@ function gPeer(uid,offerer){
     callStream.getTracks().forEach(t=>{ const sn=pc.addTrack(t,callStream); if(t.kind==="video") p.vs=sn; });   // my camera + mic, to this person
     pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); } if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
     pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{to:uid,c:e.candidate.toJSON()}); };
-    pc.onconnectionstatechange=()=>{ if(pc.connectionState==="failed"&&gc?.peers.get(uid)===p) gDrop(uid); };
+    pc.onconnectionstatechange=()=>{ if(pc.connectionState==="connected"){ tunePc(pc,true); watchCall(); } if(pc.connectionState==="failed"&&gc?.peers.get(uid)===p) gDrop(uid); };
     if(offerer){ const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{to:uid,sdp:pc.localDescription.toJSON()}); }
   })().catch(()=>{});
   gPaintState(); return p;
@@ -584,7 +637,7 @@ function leaveGroup(){
   sendSignal("bye");
   // last one out closes the note in the chat, so it stops showing Join
   if(!others&&!g.full&&g.msgId!=null) api.callLog(g.msgId,`${g.voice?"📞 Group voice call":"📞 Group call"} · ${callClock(Date.now()-g.msgAt)}`).catch(()=>{});
-  clearTimeout(g.aloneT);
+  clearTimeout(g.aloneT); unwatchCall();
   [...g.peers.keys()].forEach(gDrop);
   gc=null; leaveCallLine();
   $("callGrid").replaceChildren(); $("callGrid").dataset.n="0";

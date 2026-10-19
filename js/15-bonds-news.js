@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20k", title:"Smoother calls 📞", items:["🎙️ Voices come first: on a weak signal the video softens instead of the sound cutting out.","📶 A heads-up shows when the connection is struggling, and calls try to reconnect on their own after a short drop.","🎵 The dial tone plays again when you start a call (phones were muting it when the camera turned on)."]},
     {v:"2026.10.20j", title:"Tidier Alerts tab 🧹", items:["🧹 Removed an empty \"Translate\" heading from Profile → Alerts. Translation isn't switched on yet, so it shouldn't show."]},
     {v:"2026.10.20i", title:"Read in peace 📖", items:["📖 Scrolling up to catch up on missed messages no longer gets you thrown back to the bottom when new messages arrive out of order on a slow connection. A \"new messages\" pill shows instead.","🌧️ While you're scrolled up reading, screen effects (rain, confetti…) don't play over what you're reading."]},
     {v:"2026.10.20h", title:"No more Social Bond spam 💫", items:["💫 Fixed: after opening NightLane on a bad signal, you could get a pile of \"New Social Bond\" pop-ups for bonds you already had. Now a failed check is simply tried again later, and lots of updates at once show as one pop-up."]},
