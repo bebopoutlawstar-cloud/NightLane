@@ -516,7 +516,10 @@ async function addMessages(list){
   for(const m of list){ claimed.delete(m.id); if(byId.has(m.id)) continue; byId.set(m.id,m); msgs.push(m); }
   msgs.sort((a,b)=>a.created_at<b.created_at?-1:a.created_at>b.created_at?1:0);
   if(appendOnly && feed.querySelector(".msg,.empty,.older")) list.forEach(appendEl);
-  else { renderAll(); list.forEach(m=>playFx(m)); }   // first message in an empty chat still gets its effect/secret (playFx skips anything older than 15s)
+  else {   // a message landed out of order (slow network): redraw, but don't yank someone who's scrolled up reading back to the bottom
+    const stick=!feed.querySelector(".msg,.empty,.older")||feed.scrollHeight-feed.scrollTop-feed.clientHeight<150||list.some(m=>m.user_id===user?.id);
+    renderAll(stick); if(!stick) newPillAdd();
+    list.forEach(m=>playFx(m)); }   // first message in an empty chat still gets its effect/secret (playFx skips anything older than 15s)
 }
 
 function visible(m){ return !blocked.has(m.user_id); }

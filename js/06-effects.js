@@ -150,6 +150,7 @@ function playFx(m,force){
   const s=secretFor(m.text), t=s?null:fxFor(m.text); if(!s&&!t) return;
   if(s?.mode&&!force&&m.user_id===user?.id&&Date.now()-new Date(m.created_at)<=15000&&(!fxEnabled()||document.hidden||reducedMotion())&&!fxPlayed.has(m.id)){
     fxPlayed.add(m.id); s.mode(); discoverSecret(s.id); return; }   // a spell still works with effects off, just without the show
+  if(!force&&typeof feed!=="undefined"&&feed.isConnected&&feed.scrollHeight-feed.scrollTop-feed.clientHeight>600&&!$("chat").classList.contains("hidden")){ fxPlayed.add(m.id); return; }   // you're scrolled up reading: don't cover the screen with effects
   if(!force){ if(!fxEnabled()||document.hidden||fxPlayed.has(m.id)) return; const age=Date.now()-new Date(m.created_at); if(age>15000&&!(m._live&&Date.now()-m._live<5000&&age<180000)) return; }   // just arrived live = fresh (phones' clocks and slow networks can be off)
   fxPlayed.add(m.id); if(typeof markSecretAsked==="function") markSecretAsked(m.id);   // remember it was seen, even after the app closes
   if(s) playSecretFromMessage(m,s,force);

@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20i", title:"Read in peace 📖", items:["📖 Scrolling up to catch up on missed messages no longer gets you thrown back to the bottom when new messages arrive out of order on a slow connection. A \"new messages\" pill shows instead.","🌧️ While you're scrolled up reading, screen effects (rain, confetti…) don't play over what you're reading."]},
     {v:"2026.10.20h", title:"No more Social Bond spam 💫", items:["💫 Fixed: after opening NightLane on a bad signal, you could get a pile of \"New Social Bond\" pop-ups for bonds you already had. Now a failed check is simply tried again later, and lots of updates at once show as one pop-up."]},
     {v:"2026.10.20g", title:"Bad signal? It tells you 📡", items:["📡 On a weak connection, NightLane no longer just sits on the loading screen or the date: after a few seconds it says \"Slow connection… still trying\" with a Try again button, and opens by itself as soon as it gets through.","⚡ On a weak signal, the installed app now opens from its saved copy after 3 seconds instead of hanging on the icon screen, and grabs the newest version in the background."]},
     {v:"2026.10.20f", title:"Quicker start on PC 💻", items:["💻 The computer start-up screen now lets you in by itself after about 3 seconds (a bar shows how long), and says clearly that you can click or press any key to enter."]},
