@@ -153,9 +153,39 @@ function playFx(m,force){
   if(!force&&typeof feed!=="undefined"&&feed.isConnected&&feed.scrollHeight-feed.scrollTop-feed.clientHeight>600&&!$("chat").classList.contains("hidden")){ fxPlayed.add(m.id); return; }   // you're scrolled up reading: don't cover the screen with effects
   if(!force){ if(!fxEnabled()||document.hidden||fxPlayed.has(m.id)) return; const age=Date.now()-new Date(m.created_at); if(age>15000&&!(m._live&&Date.now()-m._live<5000&&age<180000)) return; }   // just arrived live = fresh (phones' clocks and slow networks can be off)
   fxPlayed.add(m.id); if(typeof markSecretAsked==="function") markSecretAsked(m.id);   // remember it was seen, even after the app closes
-  if(s) playSecretFromMessage(m,s,force);
-  else if(t.fx==="kiss") playKiss(m);
-  else { FX.play(t.fx,{text:hypeText(m.text)}); if(t.fx==="boom") pxfx("boom",{scale:5}); }
+  fxEnqueue(()=>{
+    if(s) playSecretFromMessage(m,s,force);
+    else if(t.fx==="kiss") playKiss(m);
+    else { FX.play(t.fx,{text:hypeText(m.text)}); if(t.fx==="boom") pxfx("boom",{scale:5}); }
+  },force);
+}
+/* 🎟️ effects take turns (2026.10.20v): when several people fire secrets or effects at once, they line up and play
+   one after another instead of piling on top of each other. An effect counts as finished when its layers are empty
+   again; none can hold the line for more than 9 seconds, and anything waiting over 40 seconds is skipped. */
+const fxQueue=[]; let fxTimer=null, fxCurrentAt=0, fxQuietUntil=0;
+function fxLayersBusy(){
+  const sx=document.getElementById("sfx"), ft=document.getElementById("fxText");
+  return (sx&&sx.children.length>0)||(ft&&ft.children.length>0)||(typeof FX!=="undefined"&&FX.busy());
+}
+function fxEnqueue(fn,first){
+  if(first) fxQueue.unshift({fn,at:Date.now()});   // a replay you tapped yourself goes next
+  else { if(fxQueue.length>=5) return; fxQueue.push({fn,at:Date.now()}); }   // a spam storm doesn't build an endless line
+  fxPump();
+}
+function fxPump(){
+  if(fxTimer) return;
+  const step=()=>{
+    fxTimer=null;
+    if(!fxQueue.length) return;
+    const now=Date.now(), playing=fxCurrentAt&&now-fxCurrentAt<9000&&(now<fxQuietUntil||fxLayersBusy());
+    if(playing){ fxTimer=setTimeout(step,200); return; }
+    const it=fxQueue.shift();
+    if(now-it.at>40000){ step(); return; }   // too old by now
+    fxCurrentAt=now; fxQuietUntil=now+1500;   // every effect gets at least 1.5 s to itself
+    try{ it.fn(); }catch(e){}
+    fxTimer=setTimeout(step,400);
+  };
+  step();
 }
 /* 😘 "mwah": a kiss flies from the sender's picture to whoever it's for (the other person in a DM, the person being
    replied to, or whoever spoke last), and that picture blushes. Kisses aimed at you land on your own picture up top. */
