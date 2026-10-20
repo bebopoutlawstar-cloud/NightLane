@@ -660,11 +660,11 @@ body.desktop #authCard label.agree::before{content:none}
 @keyframes bondembers{to{background-position:20px -440px,-30px -520px}}
 @keyframes bondflicker{0%{opacity:.75}40%{opacity:1}70%{opacity:.85}100%{opacity:1}}
 #chat[data-bg="bond-twinstars"]::before{background:linear-gradient(180deg,#030820,#0d0b33 60%,#1a0d3f)}
-#chat[data-bg="bond-twinstars"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),radial-gradient(circle,rgba(0,240,255,.8) 0 1px,transparent 2px);background-size:90px 110px,150px 130px;opacity:.6}
+#chat[data-bg="bond-twinstars"]::after{background:var(--nightsky) center/cover;opacity:.9;animation:nsBreathe 6s ease-in-out infinite}
 #chat[data-bg="bond-twinstars"]>.bgfx::before{inset:auto;left:50%;top:40%;width:min(80vw,380px);aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(circle at 22% 50%,#fff 0 5px,rgba(0,240,255,.7) 8px,rgba(0,240,255,.15) 26px,transparent 46px),radial-gradient(circle at 78% 50%,#fff 0 5px,rgba(224,122,198,.75) 8px,rgba(224,122,198,.15) 26px,transparent 46px);animation:bondorbit 22s linear infinite}
 @keyframes bondorbit{to{transform:translate(-50%,-50%) rotate(360deg)}}
 #chat[data-bg="bond-constellation"]::before{background:linear-gradient(180deg,#07031a,#1a0838 55%,#2a0c46)}
-#chat[data-bg="bond-constellation"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),radial-gradient(circle,rgba(243,255,58,.8) 0 1px,transparent 2px);background-size:70px 90px,130px 110px;animation:ffblink 3.4s ease-in-out infinite}
+#chat[data-bg="bond-constellation"]::after{background:var(--nightsky) center/cover;opacity:.85;animation:nsBreathe 7s ease-in-out infinite}
 #chat[data-bg="bond-constellation"]>.bgfx::before{inset:auto;left:50%;top:38%;width:min(78vw,360px);aspect-ratio:1;transform:translate(-50%,-50%);background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='none' stroke='%23F3FF3A' stroke-opacity='.55' stroke-width='.6'><path d='M50 82 L22 54 L20 34 L32 22 L50 32 L68 22 L80 34 L78 54 Z'/><path d='M32 22 L50 32 L68 22' stroke='%2300F0FF'/></g><g fill='%23fff'><circle cx='50' cy='82' r='1.8'/><circle cx='22' cy='54' r='1.5'/><circle cx='20' cy='34' r='1.4'/><circle cx='32' cy='22' r='1.7'/><circle cx='50' cy='32' r='2'/><circle cx='68' cy='22' r='1.7'/><circle cx='80' cy='34' r='1.4'/><circle cx='78' cy='54' r='1.5'/></g></svg>") center/contain no-repeat;filter:drop-shadow(0 0 6px rgba(243,255,58,.6));animation:bondpulse 4s ease-in-out infinite}
 @keyframes bondpulse{50%{opacity:.6;filter:drop-shadow(0 0 12px rgba(224,122,198,.8))}}
 /* bond bubbles: both people's bubbles match in this DM */
@@ -693,8 +693,9 @@ body.desktop #authCard label.agree::before{content:none}
 #chat[data-bg="aurora"]::before{animation:aurora 14s ease-in-out infinite}
 @keyframes aurora{50%{background-position:100% 50%}}
 #chat[data-bg="void"]::before,.bgtile[data-bg="void"]{background:#000}
-#chat[data-bg="stars"]::before,.bgtile[data-bg="stars"]{background:none}
-.bgtile[data-bg="stars"]{background:radial-gradient(circle at 30% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 60%,#00F0FF 0 1px,transparent 2px),linear-gradient(#07041A,#140A3A)}
+#chat[data-bg="stars"]::before,@keyframes nsBreathe{0%,100%{opacity:.95}50%{opacity:.7}}
+.bgtile[data-bg="stars"]{background:none}
+.bgtile[data-bg="stars"]{background:var(--nightsky) center/cover,linear-gradient(#050A1E,#0B1638)}
 #chat[data-bg="custom"]::before{background:linear-gradient(180deg,var(--roombg),#07041A 85%)}
 @media (prefers-reduced-motion:reduce){html:not(.motion-always) #chat::before,html:not(.motion-always) #chat::after{animation:none!important}}
 

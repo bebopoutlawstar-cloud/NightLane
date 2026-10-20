@@ -139,9 +139,9 @@ body.desktop #chat{display:flex;flex-direction:column;overflow:hidden;isolation:
 body.desktop #chat .feed{flex:1 1 auto;min-height:0}
 body.desktop #chat::before,body.desktop #chat::after{position:absolute;z-index:-1}   /* (no inset here: it was stretching each theme's sun, skyline and grid to fill the whole pane) */
 /* 🌌 Stars on a computer: on phones the starfield behind the app shows through; the computer frame hides it, so the room draws its own */
-body.desktop #chat[data-bg="stars"]::before{background:radial-gradient(ellipse at 80% 0%,rgba(80,60,200,.35),transparent 55%),radial-gradient(ellipse at 10% 100%,rgba(0,140,200,.18),transparent 50%),linear-gradient(180deg,#07041A,#140A3A)}
-body.desktop #chat[data-bg="stars"]::after{background-image:radial-gradient(circle,#fff 0 1px,transparent 1.6px),radial-gradient(circle,rgba(0,240,255,.9) 0 1px,transparent 1.6px),radial-gradient(circle,rgba(255,255,255,.7) 0 1.4px,transparent 2.2px),radial-gradient(circle,rgba(255,61,139,.8) 0 1px,transparent 1.6px);background-size:97px 89px,151px 137px,233px 211px,311px 173px;background-position:0 0,40px 60px,120px 30px,70px 140px;animation:twinkle 3.2s ease-in-out infinite alternate}
-body.desktop #chat[data-bg="stars"]>.bgfx::before{background-image:radial-gradient(circle,rgba(255,255,255,.45) 0 .8px,transparent 1.3px);background-size:41px 47px;opacity:.6}
+body.desktop #chat[data-bg="stars"]::before{background:linear-gradient(180deg,#040818,#0A1433 60%,#0B1638)}
+body.desktop #chat[data-bg="stars"]::after{background:var(--nightsky) center/cover;animation:nsBreathe 6s ease-in-out infinite}
+body.desktop #chat[data-bg="stars"]>.bgfx::before{background:var(--nightsky) 40% 30%/140% auto;opacity:.35;transform:scaleX(-1)}
 body.desktop #chat .compose{flex:none}
 body.desktop #chat>*:not(.feed){flex-shrink:0}   /* only the messages scroll; the bars above them keep their full height */
 body.desktop #front.logged .stamp{display:none}

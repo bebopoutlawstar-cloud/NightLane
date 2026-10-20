@@ -113,12 +113,11 @@ const SX=(()=>{   // secret effects layer
     },
     easycome(){
       canvasFx(layer,{
-        init(box){ return {stars:[...Array(170)].map(()=>({x:R(0,box.width),y:R(0,box.height),r:R(.4,1.8),p:R(0,6),c:Math.random()<.12?"#00F0FF":Math.random()<.1?"#E07AC6":"#fff"}))}; },
+        init(box){ return {sky:NightSky.make(box.width,box.height,{count:170,flares:5})}; },
         step(ctx,box,s,t,k){
           const a=k<.12?k/.12:k>.82?(1-k)/.18:1;
           ctx.fillStyle=`rgba(3,2,12,${.88*a})`; ctx.fillRect(0,0,box.width,box.height);
-          for(const st of s.stars){ ctx.globalAlpha=a*(.35+.65*Math.abs(Math.sin(t/500+st.p))); ctx.fillStyle=st.c; ctx.beginPath(); ctx.arc(st.x,st.y,st.r,0,7); ctx.fill(); }
-          ctx.globalAlpha=1;
+          NightSky.draw(ctx,s.sky,t*2.5,a);
         }
       },5600);
       const ship=add("sx-ship",`<svg viewBox="0 0 160 80"><defs><linearGradient id="sxhull" x1="0" x2="1"><stop offset="0" stop-color="#2a2f55"/><stop offset="1" stop-color="#9aa4c0"/></linearGradient><radialGradient id="sxflame"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#00F0FF"/><stop offset="1" stop-color="rgba(0,240,255,0)"/></radialGradient></defs>

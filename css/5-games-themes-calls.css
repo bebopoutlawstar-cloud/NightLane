@@ -596,7 +596,7 @@ body.theme-mochi .send{background:#ff8fb8!important}
 .face.frame-thunder{--fr:linear-gradient(135deg,#fff36b,#ffcf00 40%,#fff 50%,#ffcf00 60%,#b8860b);animation:frzap 1.8s steps(1) infinite}
 .face.frame-thunder>.frx::after{content:"⚡";position:absolute;left:-.3em;top:-.4em;font-size:max(11px,.48em)}
 @keyframes frzap{0%,60%,64%,100%{filter:drop-shadow(0 0 3px #ffcf00)}62%{filter:drop-shadow(0 0 12px #fff) drop-shadow(0 0 4px #ffcf00) brightness(1.6)}}
-.face.frame-galaxy{--fr:radial-gradient(circle at 30% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 75%,#fff 0 1px,transparent 2px),conic-gradient(from 0deg,#2a0a5a,#6a2fd6,#1c6fd6,#d6389b,#2a0a5a);filter:drop-shadow(0 0 6px rgba(160,90,255,.8))}
+.face.frame-galaxy{--fr:var(--nightsky) 60% 20%/400% auto,conic-gradient(from 0deg,#2a0a5a,#6a2fd6,#1c6fd6,#d6389b,#2a0a5a);filter:drop-shadow(0 0 6px rgba(160,90,255,.8))}
 .face.frame-galaxy::before{animation:frgal 8s linear infinite}
 @keyframes frgal{to{filter:hue-rotate(360deg)}}
 .face.frame-sakura{--fr:linear-gradient(135deg,#ffd6e7,#ff9ec4 50%,#ffc2d8);filter:drop-shadow(0 0 5px rgba(255,158,196,.8))}
@@ -674,7 +674,7 @@ body.theme-mochi .send{background:#ff8fb8!important}
 #chat[data-bg="nebula"]::before,.bgtile[data-bg="nebula"]{background:radial-gradient(ellipse at 30% 30%,#5a1a8a,transparent 55%),radial-gradient(ellipse at 75% 70%,#0e5a8a,transparent 55%),#05020f}
 #chat[data-bg="nebula"]::after{inset:-30%;background:conic-gradient(from 0deg at 50% 50%,rgba(214,56,155,.25),rgba(28,111,214,.2),rgba(106,47,214,.3),rgba(214,56,155,.25));filter:blur(40px);animation:nebspin 60s linear infinite}
 @keyframes nebspin{to{transform:rotate(360deg)}}
-#chat[data-bg="nebula"]>.bgfx::before{background-image:radial-gradient(circle,#fff 0 1px,transparent 1.5px),radial-gradient(circle,#bfe3ff 0 1px,transparent 1.5px);background-size:70px 90px,110px 130px;animation:twinkle 3s ease-in-out infinite alternate}
+#chat[data-bg="nebula"]>.bgfx::before{background:var(--nightsky) center/cover;opacity:.9;animation:nsBreathe 6s ease-in-out infinite}
 @keyframes twinkle{to{opacity:.4}}
 /* NEW: Sakura (unlockable) */
 #chat[data-bg="sakura"]::before,.bgtile[data-bg="sakura"]{background:linear-gradient(180deg,#2a1440,#6a2a6a 55%,#c96a9a)}

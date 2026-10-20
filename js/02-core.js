@@ -109,7 +109,57 @@ let lastDay=new Date().toDateString();
 setInterval(()=>{ const now=new Date().toDateString(); if(now===lastDay) return; lastDay=now;
   if(typeof user!=="undefined"&&user){ paintMe(); if(room) renderAll(false); loadInbox(); loadContacts(); celebrateMyBirthday(); } },60000);
 
-/* ---------- starfield ---------- */
+/* ---------- ⭐ NightSky (2026.10.21a): the star look for room backgrounds, secrets and the Galaxy frame (the app's own sky + loading screen keep the original twinkle) ----------
+   A soft deep-blue nebula glow, lots of tiny stars in every size (a few tinted blue/lavender), and a handful of
+   bright "flare" stars with a cross-shaped sparkle that slowly pulse. Made in code, no image files. */
+const NightSky=(()=>{
+  const R=(a,b)=>a+Math.random()*(b-a), pick=a=>a[(Math.random()*a.length)|0];
+  const DOT=["#ffffff","#ffffff","#ffffff","#DCEBFF","#BFE0FF","#E8DCFF"];
+  // the part that never moves: nebula + fine star dust, painted once into its own canvas
+  function base(w,h,{nebula=1,dust=1,dpr=1}={}){
+    const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d");
+    if(nebula){ const m=Math.max(w,h);
+      [[.72,.18,.55,"rgba(64,140,255,.22)"],[.86,.08,.32,"rgba(130,200,255,.16)"],[.18,.85,.6,"rgba(38,84,200,.2)"],[.45,.5,.45,"rgba(60,90,210,.08)"],[.95,.7,.35,"rgba(70,110,230,.12)"]]
+        .forEach(([cx,cy,r,col])=>{ const g=x.createRadialGradient(cx*w,cy*h,0,cx*w,cy*h,r*m*nebula); g.addColorStop(0,col); g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g; x.fillRect(0,0,w,h); }); }
+    const n=Math.round(w*h/2600*dust);
+    for(let i=0;i<n;i++){ x.globalAlpha=R(.12,.55); x.fillStyle=pick(DOT); x.beginPath(); x.arc(R(0,w),R(0,h),R(.25,.75)*dpr,0,7); x.fill(); }
+    x.globalAlpha=1; return c;
+  }
+  // a bright star with the cross-shaped sparkle
+  function flare(x,cx,cy,L,a,dpr){
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,L*.38); g.addColorStop(0,`rgba(255,255,255,${a})`); g.addColorStop(.22,`rgba(205,232,255,${a*.8})`); g.addColorStop(1,"rgba(80,160,255,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,L*.38,0,7); x.fill();
+    const ray=(dx,dy,len,wid,op)=>{ const lg=x.createLinearGradient(cx-dx*len,cy-dy*len,cx+dx*len,cy+dy*len);
+      lg.addColorStop(0,"rgba(190,225,255,0)"); lg.addColorStop(.5,`rgba(255,255,255,${op})`); lg.addColorStop(1,"rgba(190,225,255,0)");
+      x.strokeStyle=lg; x.lineWidth=wid; x.beginPath(); x.moveTo(cx-dx*len,cy-dy*len); x.lineTo(cx+dx*len,cy+dy*len); x.stroke(); };
+    ray(1,0,L,1.1*dpr,a); ray(0,1,L*.8,1.1*dpr,a); ray(.707,.707,L*.3,.7*dpr,a*.35); ray(.707,-.707,L*.3,.7*dpr,a*.35);
+    x.fillStyle=`rgba(255,255,255,${a})`; x.beginPath(); x.arc(cx,cy,1.4*dpr,0,7); x.fill();
+  }
+  // a whole sky for a w×h canvas
+  function make(w,h,{count,flares,nebula=1,dust=1,dpr=1}={}){
+    const area=w*h/(dpr*dpr);
+    count=count??Math.round(Math.min(220,Math.max(60,area/3200)));
+    flares=flares??Math.round(Math.min(7,Math.max(3,area/120000)));
+    return {w,h,dpr,bg:base(w,h,{nebula,dust,dpr}),
+      dots:[...Array(count)].map(()=>({x:R(0,w),y:R(0,h),r:pick([.4,.5,.6,.7,.8,1,1.2,1.5])*dpr,c:pick(DOT),p:R(0,6),sp:R(900,2200)})),
+      fl:[...Array(flares)].map((_,i)=>({x:R(.05,.95)*w,y:R(.04,.7)*h,L:(i?R(11,20):R(26,32))*dpr,p:R(0,6),sp:R(1800,3200)}))};
+  }
+  function draw(x,S,t=0,alpha=1){
+    x.globalAlpha=alpha; x.drawImage(S.bg,0,0);
+    for(const d of S.dots){ x.globalAlpha=alpha*(.35+.65*Math.abs(Math.sin(t/d.sp+d.p))); x.fillStyle=d.c; x.beginPath(); x.arc(d.x,d.y,d.r,0,7); x.fill(); }
+    x.globalAlpha=1;
+    for(const f of S.fl){ const k=.78+.22*Math.sin(t/f.sp+f.p); flare(x,f.x,f.y,f.L*k,alpha*(.7+.3*k),S.dpr); }
+  }
+  // the same sky as a picture, for CSS backgrounds (room backgrounds, bond skies, secret scenes): var(--nightsky)
+  function css(){
+    try{ const w=1100,h=1300, S=make(w,h,{count:330,flares:8}), c=document.createElement("canvas"); c.width=w; c.height=h; draw(c.getContext("2d"),S,0,1);
+      c.toBlob(b=>{ if(b) document.documentElement.style.setProperty("--nightsky",`url(${URL.createObjectURL(b)})`); },"image/png"); }catch(e){}
+  }
+  return {make,draw,flare,css};
+})();
+NightSky.css();
+
+/* ---------- starfield (behind the whole app): the original simple twinkle, kept on purpose ---------- */
 (function(){
   const c=$("stars"),x=c.getContext("2d"); let s=[];
   const still=reducedMotion();
