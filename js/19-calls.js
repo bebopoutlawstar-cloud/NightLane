@@ -142,7 +142,26 @@ async function getCallMedia(){
   myCam=!callVoice; theirCam=!callVoice; loudPick=null; updateCallLook();
   paintLocal();
   if(camTrack){ try{ const cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); show($("callFlip"),cams.length>1); }catch(e){} }
+  startTalkWatch();
 }
+/* 🎙️ who's talking: your mic button lights up while you speak, and so does the tile (or picture) of whoever's talking.
+   Reads the sound levels the call already measures (getStats), so it costs almost nothing. */
+let talkT=null;
+function startTalkWatch(){
+  if(talkT) return;
+  talkT=setInterval(async()=>{
+    const links=pc?[{c:pc,el:$("callFace")}]:(typeof gc!=="undefined"&&gc)?[...gc.peers.values()].filter(p=>p.pc).map(p=>({c:p.pc,el:p.tile})):[];
+    let me=0;
+    for(const {c,el:who} of links){ try{ let them=0; (await c.getStats()).forEach(r=>{
+        if(r.kind!=="audio"||r.audioLevel==null) return;
+        if(r.type==="media-source") me=Math.max(me,r.audioLevel);
+        if(r.type==="inbound-rtp") them=Math.max(them,r.audioLevel); });
+      who&&who.classList.toggle("talking",them>.03); }catch(e){} }
+    const live=callStream?.getAudioTracks().some(t=>t.enabled), b=$("callMute"), on=!!live&&me>.035;
+    b.classList.toggle("talking",on); b.style.setProperty("--lvl",on?Math.min(1,me*3).toFixed(2):"0");
+  },150);
+}
+function stopTalkWatch(){ clearInterval(talkT); talkT=null; const b=$("callMute"); b.classList.remove("talking"); b.style.removeProperty("--lvl"); $("callFace").classList.remove("talking"); }
 function useRawMic(){
   const old=callStream?.getAudioTracks()[0]; if(!old||old===micRaw) return;
   micRaw.enabled=old.enabled; audioSender?.replaceTrack(micRaw).catch(()=>{});
@@ -345,7 +364,7 @@ function endCall(){
   if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
   sendSignal("end");   // tell the other phone we hung up
   leaveCallLine();
-  stopPeer(); stopRinging();
+  stopPeer(); stopRinging(); stopTalkWatch();
   // the caller updates the call note in the chat: "📞 Call · 2:31", "📞 Missed call" or "📞 Call declined"
   if(callMsgId!=null){
     const kind=callVoice?"Voice call":"Call";

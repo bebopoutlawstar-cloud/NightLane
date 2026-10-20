@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20s", title:"See who's talking 🎙️", items:["🎙️ In calls, your mic button lights up while you speak (brighter when you're louder), so you know you're coming through.","🟨 In group calls, whoever's talking gets a glowing tile. In 1-on-1 calls, their picture glows."]},
     {v:"2026.10.20r", title:"Filter volume fix 🎧", items:["🎧 Filtering someone in a group call no longer makes them louder: same volume, less background noise."]},
     {v:"2026.10.20q", title:"Clearer group calls 📶", items:["📶 Group calls only show someone as LIVE once you can actually hear each other.","🔁 If a connection drops, NightLane tries a fresh route before giving up, and tells you if it can't connect (with a tip to try Wi-Fi) instead of sitting on \"Connecting…\".","🎧 The background-noise filter is stronger (tighter voice range, quieter gaps between words) and no longer makes people louder."]},
     {v:"2026.10.20p", title:"Filter background noise 🎧", items:["🎧 Group calls: someone's TV, fan or dog coming through? Tap 🎧 Filter on their tile to clean up their sound. Only you hear the change."]},
