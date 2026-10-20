@@ -608,14 +608,16 @@ async function openGroupCall(voice=false,joinMsg=null,opt={}){
   if(opt.silent) loungeUnwatch(code);   // don't watch a lounge from outside while we're in it
   gc={room:code, voice:!!voice, peers:new Map(), msgId:joinMsg?.id??null, msgAt:joinMsg?new Date(joinMsg.created_at).getTime():Date.now(), aloneT:null, full:false};
   setCallVoice(voice===true); audioForCapture(true); makeCallCtx();
+  startCallTune();   // 🎵 dial tone while joining (started right on the tap: phones only allow sound that starts from a tap)
   try{
-    await getCallMedia();
+    await getCallMedia(); kickCallTune();   // phones pause sound for a moment when the mic turns on: keep the tone going
     const cs=$("callScreen"); cs.classList.add("group"); theirCam=true; updateCallLook();
     $("callName").textContent=roomTitle(code); paintFace($("callFace"),meProfile||cache.get(user.id));
     $("callState").textContent=joinMsg||opt.silent?"Joining…":"Starting…"; $("callGrid").replaceChildren(); $("callGrid").dataset.n="0";
     show($("callScreen")); callRoom=code; prefetchIce();
     await joinGroupLine(code);
     if(!gc) return;   // hung up while joining
+    gc.joined=true; gc.joinedAt=Date.now(); setTimeout(gPaintState,1300);   // give "who's here" a moment to arrive before deciding the tone can stop
     if(!joinMsg&&!opt.silent){ const m=await sendFields({kind:"call",text:voice?"📞 Group voice call":"📞 Group call"}); if(gc){ gc.msgId=m?.id??null; gc.msgAt=Date.now(); } }
     if(opt.silent) gc.lounge=true;   // 🔊 a voice lounge: nobody gets rung, and you can sit in it alone
     gPaintState();
@@ -742,6 +744,8 @@ function gPaintState(){
   const live=[...gc.peers.values()].some(p=>p.tile.classList.contains("live"));
   $("callScreen").classList.toggle("live",live);
   $("callState").textContent=live?`LIVE ${callClock(Date.now()-callStartAt)} · ${gc.peers.size+1} IN CALL`:gc.peers.size?"Connecting…":gc.lounge?"🔊 In the lounge · hang out until someone hops in":"Waiting for others…";
+  // 🎵 dial tone only while you're connecting to someone: not once you can hear each other, and not while you wait alone
+  if(!live&&gc.peers.size>0){ if(!tuneWanted) startCallTune(); } else if(tuneWanted&&gc.joined&&Date.now()-gc.joinedAt>1200) stopCallTune();
 }
 async function groupSignal(s){
   if(!gc||!s||(s.to&&s.to!==user.id)) return;

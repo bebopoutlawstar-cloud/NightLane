@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20u", title:"Lounge dial tone 🎵", items:["🎵 Joining a voice lounge or group call now plays the dial tone while you connect, then the connect chime once you can hear each other."]},
     {v:"2026.10.20t", title:"Chat during calls 💬", items:["💬 In a call, tap CHAT to go back to the chat while the call keeps going. A little floating bar shows the timer, with mute and hang up. Tap it to return to the call. (Rosella's idea!)","📱 Fixed: leaving the app during a call no longer cuts the sound both ways.","🎧 Smarter noise filter: it learns what someone's background sounds like and keeps it quiet between their words, and a safety limit stops anyone from blasting over everyone else."]},
     {v:"2026.10.20s", title:"See who's talking 🎙️", items:["🎙️ In calls, your mic button lights up while you speak (brighter when you're louder), so you know you're coming through.","🟨 In group calls, whoever's talking gets a glowing tile. In 1-on-1 calls, their picture glows."]},
     {v:"2026.10.20r", title:"Filter volume fix 🎧", items:["🎧 Filtering someone in a group call no longer makes them louder: same volume, less background noise."]},
