@@ -570,7 +570,7 @@ function gainXP(kind,mult=1){
 /* is an easter egg / screen effect playing right now? (the effects layer has something in it, or the confetti canvas is running) */
 function effectsBusy(){
   const s=document.getElementById("sfx"), t=document.getElementById("fxText");
-  return !!(s&&s.children.length) || !!(t&&t.children.length) || (typeof FX!=="undefined"&&!!FX.busy?.());
+  return !!(s&&s.children.length) || !!(t&&t.children.length) || !!document.querySelector(".sxscene:not(.ambient):not(.out)") || (typeof FX!=="undefined"&&!!FX.busy?.());
 }
 /* run fn once the screen has been calm for a moment (gives up waiting after 20 seconds) */
 function whenEffectsQuiet(fn){

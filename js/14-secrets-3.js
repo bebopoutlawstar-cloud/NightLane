@@ -486,23 +486,7 @@ QX.animeLine=function(text,mood,emoji){
   spans.forEach((sp,i)=>setTimeout(()=>{ spans.forEach(x=>x.classList.remove("on")); sp.classList.add("on","seen"); },400+i*per));
   setTimeout(()=>spans.forEach(x=>x.classList.remove("on")),400+words.length*per+300);
 };
-const ANIME_LINES=[
-  ["binaryhoes","Greetings",/bitches and bros and non[- ]?binary hoes/i,"Hey, bitches and bros and non-binary hoes!","hype","👋"],
-  ["sunrising","Why the sun",/why does the sun keep rising/i,"Why does the sun keep rising?","dark","🌅"],
-  ["lottohandle","Exhausted",/that was a lot to handle/i,"That was a lot to handle. And now I'm exhausted.","comedy","😮‍💨"],
-  ["threaten","How dare you",/how dare you threaten me/i,"How dare you threaten me?!","hype","😤"],
-  ["giveback","Give them back",/give them back right now/i,"Give them back right now!","hype","😡"],
-  ["eyelashes","Long lashes",/extremely long eyelashes/i,"Anyone ever told you you've got extremely long eyelashes?","sparkle","👁️"],
-  ["noanswer","No answer",/girl ask question|why,? boy\??,? no answer/i,"Girl ask question. Why, boy? No answer.","comedy","🤷"],
-  ["consent","Consent, bud",/can'?t sniff folks|gotta get consent,? bud/i,"You can't sniff folks without permission. You gotta get consent, bud.","comedy","👃"],
-  ["twentyfour","Not old",/i'?m not old,? i'?m twenty[- ]freaking[- ]four/i,"I'm not old, I'm twenty freaking four!","hype","🎂"],
-  ["stayfrosty","Stay frosty",/stay low,? stay frosty|don'?t speak\.? don'?t turn around/i,"Don't speak. Don't turn around. No sudden moves. Stay low, stay frosty.","dark","🥶"],
-  ["notenough","Not enough",/sometimes your best just isn'?t enough/i,"Today we learned that sometimes your best just isn't enough.","dark","📉"],
-  ["tantrum","Tantrum",/tantrum in your hallway/i,"I'm in the middle of throwing a tantrum in your hallway.","comedy","😤"],
-  ["samecolor","Same color",/bleed the same colou?r/i,"Whether it's a guy or a girl, both will bleed the same color of red if you stab them.","dark","🩸"],
-  ["hirose","Happier",/nothing will make me happier,? hirose/i,"Nothing will make me happier, Hirose.","sparkle","🥹"],
-  ["tasty","Is it tasty",/you know damn well (that )?it'?s not/i,"Is it tasty? You know damn well that it's not.","comedy","🤢"]
-];
+/* (Jimmy's anime-line captions were removed in 2026.10.20x; "stay frosty" got its own action-movie scene below) */
 /* Jimmy's idea: "it's right behind me, isn't it?" works with it / he / she / they, and the answer matches */
 QX.behind=function(who){
   const L=sxLayer("sxBehind",6400); L.classList.add("bh-dark");
@@ -625,7 +609,7 @@ SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
   {id:"sharpshooter",name:"Sharpshooter",      re:/(i'?m|i am) the sharpshooter/i, play:()=>QX.sharpshooter()},
   {id:"behind",     name:"Right behind me",    re:/(it|he|she|they)('?s|'?re| is| are) right behind me/i,
    play:m=>{ const w=((m&&m.text)||"").match(/(it|he|she|they)('?s|'?re| is| are) right behind me/i); QX.behind(w?w[1].toLowerCase():"it"); }},
-  ...ANIME_LINES.map(([id,name,re,text,mood,emoji])=>({id,name,re,play:()=>QX.animeLine(text,mood,emoji)})),
+  {id:"stayfrosty", name:"Stay frosty",       re:/(^|[^a-z])stay frosty/i, play:()=>QX.stayfrosty()},
   {id:"justwho",    name:"Who the hell",       re:/just who the (hell|heck) do (you|ya|u) think (i am|i'm)/i, play:()=>QX.justwho()},
   {id:"rowrow",     name:"Row, row",           re:/row,?\s*row,?\s*fight the power/i, play:()=>QX.rowrow()},
   {id:"kickreason", name:"Do the impossible",  re:/kick reason to the curb|do the impossible/i, play:()=>QX.kickreason()},
@@ -666,21 +650,7 @@ Object.assign(HINTS,{
   spacemall:"The paladins went shopping in outer space. Where?",
   sharpshooter:"The blue paladin keeps reminding everyone what he is. I'm the…",
   behind:"A horror-movie character slowly realizes something is standing right behind them… isn't it?",
-  binaryhoes:"A very inclusive anime greeting: hey, bitches and bros and…",
-  sunrising:"A tired, dramatic question about the sun. Why does it keep…?",
-  lottohandle:"That was a lot to… handle. (And now someone's exhausted.)",
-  threaten:"An outraged anime line: how dare you… (four words in).",
-  giveback:"An angry demand: give them back… right when?",
-  eyelashes:"A weirdly specific compliment: anyone ever told you you've got extremely long…?",
-  noanswer:"Girl ask question. Why, boy? …what does he give?",
-  consent:"You can't sniff folks without permission. You gotta get…",
-  twentyfour:"I'm not old. I'm twenty freaking…",
-  stayfrosty:"Don't speak. Don't turn around. No sudden moves. Stay low, stay…",
-  notenough:"Today we learned that sometimes your best just isn't…",
-  tantrum:"Someone's in the middle of throwing a tantrum in your… where?",
-  samecolor:"Guy or girl, it doesn't matter, you'll all bleed the same…",
-  hirose:"Nothing will make me happier, … (a character's last name).",
-  tasty:"Is it tasty? You know damn well that it's…",
+  stayfrosty:"What the sergeant tells his squad before things get loud. Stay…",
   justwho:"A big brother in shades yells a question that's really an answer: just who the hell…?",
   rowrow:"The battle chant from a certain drill anime's hype song. Row, row…",
   kickreason:"The team's motto says to kick something to the curb and do the impossible.",
@@ -768,3 +738,175 @@ function checkMissedSecret(){   // (name kept: also covers regular effects now)
   },1400);
 }
 
+
+/* ===== 2026.10.20x: Lyra's list + Pokémon, Digimon, Ace Combat, Spider-Man, Ghibli, Gundam =====
+   Nods to famous lines only: every picture and sound here is NightLane's own (no characters, logos or clips). */
+function nsAudio(fn){ try{ if(typeof uiSoundOn==="function"&&!uiSoundOn()) return; const ac=sfxCtx(); if(ac.state==="suspended") ac.resume(); fn(ac,ac.currentTime+.03); }catch(e){} }
+function nsTone(ac,t,f,d,o={}){ const os=ac.createOscillator(), g=ac.createGain(); os.type=o.type||"square"; os.frequency.setValueAtTime(f,t); if(o.to) os.frequency.exponentialRampToValueAtTime(o.to,t+d);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(o.vol||.05,t+.012); g.gain.exponentialRampToValueAtTime(.001,t+d); os.connect(g).connect(ac.destination); os.start(t); os.stop(t+d+.05); }
+function nsNoise(ac,t,d,o={}){ const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*d),ac.sampleRate), x=b.getChannelData(0); for(let i=0;i<x.length;i++) x[i]=Math.random()*2-1;
+  const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type=o.ftype||"bandpass"; fl.frequency.setValueAtTime(o.f||1200,t); if(o.to) fl.frequency.exponentialRampToValueAtTime(o.to,t+d); fl.Q.value=o.q||1;
+  const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(o.vol||.1,t+Math.min(o.att||.04,d/3)); g.gain.exponentialRampToValueAtTime(.001,t+d); s.connect(fl).connect(g).connect(ac.destination); s.start(t); s.stop(t+d+.05); }
+const nsBuzz=p=>{ try{ navigator.vibrate&&navigator.vibrate(p); }catch(e){} };
+const nsR=(a,b)=>a+Math.random()*(b-a);
+
+QX.ridetogether=function(){   // ⚔️ Together we ride: banner unrolls, pennants charge past, trumpets + hooves, the chat goes medieval
+  const L=sxLayer("sxRide",5200); L.classList.add("dim");
+  L.innerHTML=`<div class="md-banner"><span>Together we ride!</span></div>`;
+  const cols=["#c8323c","#2f5fb3","#e0b23a","#2f8f4e","#7b3fa0","#c8323c"];
+  cols.forEach((c,i)=>{ const p=el("div","md-pennant"); p.style.setProperty("--c",c); p.style.bottom=(6+(i%3)*7)+"%"; p.style.animationDelay=(.5+i*.22)+"s"; L.append(p); });
+  const ch=$("chat"); ch.classList.add("md-chat"); setTimeout(()=>ch.classList.remove("md-chat"),10000);
+  const fr=sxLayer("sxRideFrame",10000); fr.classList.add("md-frame","ambient");   // ambient: the next effect doesn't have to wait for this frame
+  nsAudio((ac,t)=>{ [392,523,659,784].forEach((f,i)=>nsTone(ac,t+i*.16,f,i===3?.9:.2,{type:"sawtooth",vol:.045})); nsTone(ac,t+.64,523,.9,{type:"square",vol:.03});
+    for(let k=0;k<8;k++){ const b=t+1.1+k*.38; nsNoise(ac,b,.07,{f:220,vol:.22,q:2}); nsNoise(ac,b+.11,.06,{f:200,vol:.18,q:2}); nsNoise(ac,b+.2,.08,{f:180,vol:.26,q:2}); } });
+  nsBuzz([40,90,40,90,40]);
+};
+QX.society=function(){   // 🃏 We live in a society: jester hat, flying cards, HA HA HA
+  const L=sxLayer("sxSociety",4600); L.classList.add("dim");
+  L.innerHTML=`<svg class="js-hat" viewBox="0 0 120 90" aria-hidden="true"><path d="M10 80 Q20 30 8 10 Q40 30 60 8 Q80 30 112 10 Q100 30 110 80 Z" fill="#7a2fa0" stroke="#07041a" stroke-width="4"/><path d="M60 8 Q80 30 112 10 Q100 30 110 80 L60 80 Z" fill="#2f9e52" stroke="#07041a" stroke-width="4"/><rect x="6" y="74" width="108" height="14" rx="4" fill="#e0b23a" stroke="#07041a" stroke-width="4"/><circle cx="8" cy="10" r="7" fill="#e0b23a" stroke="#07041a" stroke-width="3"/><circle cx="60" cy="8" r="7" fill="#e0b23a" stroke="#07041a" stroke-width="3"/><circle cx="112" cy="10" r="7" fill="#e0b23a" stroke="#07041a" stroke-width="3"/></svg>`;
+  ["♠","♥","♦","♣","♠","♥","♦","♣","♠","♥"].forEach((s,i)=>{ const c=el("span","js-card"+(s==="♥"||s==="♦"?" red":""),s); c.style.setProperty("--tx",nsR(-48,48)+"vw"); c.style.setProperty("--ty",nsR(-40,40)+"vh"); c.style.setProperty("--r",nsR(-400,400)+"deg"); c.style.animationDelay=(.3+i*.06)+"s"; L.append(c); });
+  [["HA",18,30,"#39ff9a"],["HA",50,22,"#c066ff"],["HA",76,34,"#39ff9a"],["HA HA!",40,62,"#c066ff"]].forEach(([t,x,y,c],i)=>{ const h=el("span","js-ha",t); h.style.left=x+"%"; h.style.top=y+"%"; h.style.color=c; h.style.animationDelay=(1+i*.35)+"s"; L.append(h); });
+  sxCap(L,"We live in a society.","js-cap");
+  nsAudio((ac,t)=>{ [[1,660],[1.35,600],[1.7,540],[2.1,480],[2.3,560]].forEach(([d,f])=>nsTone(ac,t+d,f,.22,{type:"square",to:f*.8,vol:.05})); });
+};
+QX.titansgo=function(){   // 💥 Titans, go!: comic burst with speed lines in five hero colours
+  const L=sxLayer("sxTitans",3800);
+  L.innerHTML=`<div class="tt-lines"></div><div class="tt-burst"><span class="tt-small">TITANS,</span><span class="tt-big">GO!</span></div>`;
+  ["#e8313d","#2f6bff","#9b4dff","#2fd16a","#ff9a1f"].forEach((c,i)=>{ const s=el("div","tt-stripe"); s.style.background=c; s.style.top=(18+i*14)+"%"; s.style.animationDelay=(i*.07)+"s"; L.append(s); });
+  nsAudio((ac,t)=>{ nsNoise(ac,t,.45,{f:600,to:3000,vol:.12}); [262,330,392,523].forEach(f=>nsTone(ac,t+.42,f,.6,{type:"sawtooth",vol:.035})); });
+  document.body.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300,delay:400}); nsBuzz([20,40,80]);
+};
+QX.reeses=function(){   // 🥣 cereal puffs pour into a bowl, milk splash
+  const L=sxLayer("sxPuffs",4600);
+  L.innerHTML=`<div class="rp-bowl"><div class="rp-milk"></div></div>`;
+  for(let i=0;i<46;i++){ const p=el("i","rp-puff"+(i%2?" pb":"")); p.style.left=nsR(32,68)+"%"; p.style.setProperty("--d",nsR(1.1,1.8)+"s"); p.style.animationDelay=nsR(0,1.6)+"s"; p.style.setProperty("--s",nsR(.7,1.2)); L.append(p); }
+  setTimeout(()=>{ for(let i=0;i<14;i++){ const d=el("i","rp-drop"); d.style.setProperty("--dx",nsR(-90,90)+"px"); d.style.setProperty("--dy",nsR(-120,-40)+"px"); L.append(d); } sxCap(L,"Breakfast is served 🥣","rp-cap"); },2100);
+  nsAudio((ac,t)=>{ for(let k=0;k<26;k++) nsNoise(ac,t+.3+k*.07+Math.random()*.03,.03,{f:nsR(2500,5000),vol:.06,q:3}); nsNoise(ac,t+2.1,.5,{f:900,to:300,vol:.12,ftype:"lowpass"}); });
+};
+function nsOrb(L,cls){ const o=el("div","po-orb "+(cls||"")); o.innerHTML=`<i class="po-top"></i><i class="po-band"></i><i class="po-btn"></i>`; L.append(o); return o; }
+QX.catchem=function(){   // 🔮 Gotta catch 'em all: a neon capture orb is thrown, wobbles 3 times… CAUGHT!
+  const L=sxLayer("sxCatch",5200); nsOrb(L,"throw");
+  setTimeout(()=>{ for(let i=0;i<16;i++){ const s=el("i","po-star"); s.style.setProperty("--a",(i*22.5)+"deg"); L.append(s); } sxCap(L,"CAUGHT!","po-cap"); nsBuzz([30,40,90]); },3500);
+  nsAudio((ac,t)=>{ nsNoise(ac,t,.5,{f:800,to:2400,vol:.08}); [1.4,2.1,2.8].forEach(d=>{ nsTone(ac,t+d,180,.08,{type:"square",vol:.07}); nsTone(ac,t+d+.09,140,.08,{type:"square",vol:.06}); });
+    [784,988,1175,1568].forEach((f,i)=>nsTone(ac,t+3.5+i*.1,f,i===3?.6:.12,{type:"square",vol:.045})); });
+};
+QX.ichooseyou=function(){   // 🔮 I choose you!: the orb flies out and bursts open in light
+  const L=sxLayer("sxChoose",3800); nsOrb(L,"release");
+  setTimeout(()=>{ L.append(el("div","po-burst")); sxCap(L,"I choose you!","po-cap"); nsBuzz(60); },1300);
+  nsAudio((ac,t)=>{ nsNoise(ac,t,.6,{f:700,to:2600,vol:.08}); nsTone(ac,t+1.3,300,.7,{type:"sine",to:1800,vol:.08}); nsNoise(ac,t+1.3,.6,{f:3000,to:600,vol:.08}); });
+};
+QX.wild=function(m){   // 👾 A wild ___ appeared!: retro battle flash, then the text box
+  const name=((m?.text||"").match(/a wild (.{1,24}?) appear(ed|s)/i)||[])[1]||"friend";
+  const L=sxLayer("sxWild",4600);
+  L.innerHTML=`<div class="wl-bars">${'<i></i>'.repeat(8)}</div><div class="wl-box"><span></span></div>`;
+  const span=L.querySelector(".wl-box span"), line=`A wild ${name.trim().toUpperCase()} appeared!`;   // textContent only: nothing typed is treated as code
+  setTimeout(()=>{ let k=0; const iv=setInterval(()=>{ span.textContent=line.slice(0,++k); if(k>=line.length) clearInterval(iv); },45); },1300);
+  nsAudio((ac,t)=>{ for(let i=0;i<3;i++) nsTone(ac,t+i*.18,1200,.12,{type:"square",vol:.04}); [262,330,392,523,659].forEach((f,i)=>nsTone(ac,t+.7+i*.08,f,.12,{type:"square",vol:.045})); });
+};
+QX.digivolve=function(m){   // 🧬 Digivolve: your picture spins in data rings and evolves
+  const L=sxLayer("sxDigi",5000); L.classList.add("dim");
+  const w=el("div","dg-wrap"), f=el("span","face dg-face"); try{ paintFace(f,cache.get(m?.user_id)||meProfile); }catch(e){}
+  w.append(el("i","dg-ring r1"),el("i","dg-ring r2"),el("i","dg-ring r3"),f,el("i","dg-flash")); L.append(w);
+  for(let i=0;i<10;i++){ const c=el("span","dg-code",Array.from({length:14},()=>Math.random()<.5?"0":"1").join("\n")); c.style.left=(4+i*10)+"%"; c.style.animationDelay=nsR(0,1)+"s"; L.append(c); }
+  setTimeout(()=>{ sxCap(L,"EVOLVE.exe ✓","dg-cap"); nsBuzz([20,30,20,30,120]); },2600);
+  nsAudio((ac,t)=>{ nsTone(ac,t,180,2.4,{type:"sawtooth",to:1400,vol:.04}); nsTone(ac,t+.2,240,2.2,{type:"square",to:1800,vol:.02}); [1046,1318,1568,2093].forEach((f,i)=>nsTone(ac,t+2.6+i*.07,f,.5,{type:"sine",vol:.05})); });
+};
+QX.foxtwo=function(){   // 🚀 Fox two: lock-on tone, missile streaks with a smoke trail, flares pop
+  const L=sxLayer("sxFox",4400);
+  L.innerHTML=`<div class="ac-hud"><i class="ac-ret"></i><b class="ac-lock">LOCK</b></div><div class="ac-missile"><i></i></div>`;
+  setTimeout(()=>{ for(let i=0;i<12;i++){ const f=el("i","ac-flare"); f.style.setProperty("--dx",nsR(-80,80)+"px"); f.style.animationDelay=(i*.06)+"s"; L.append(f); } },1700);
+  setTimeout(()=>sxCap(L,"FOX 2","ac-cap"),900);
+  nsAudio((ac,t)=>{ for(let i=0;i<8;i++) nsTone(ac,t+i*.12,1050,.06,{type:"square",vol:.035}); nsTone(ac,t+.96,1050,.5,{type:"square",vol:.035}); nsNoise(ac,t+1,1.2,{f:500,to:3000,vol:.13}); for(let i=0;i<6;i++) nsNoise(ac,t+1.8+i*.07,.08,{f:2500,vol:.05}); });
+};
+QX.splashone=function(){   // 💥 Splash one: far-off explosion on the HUD
+  const L=sxLayer("sxSplash",4000);
+  L.innerHTML=`<div class="ac-hud"><i class="ac-ret"></i></div><div class="ac-boom"><i class="ac-fire"></i><i class="ac-smoke"></i></div>`;
+  setTimeout(()=>sxCap(L,"SPLASH ONE","ac-cap"),700);
+  nsAudio((ac,t)=>{ nsNoise(ac,t+.3,1.6,{f:180,to:60,vol:.35,ftype:"lowpass"}); nsTone(ac,t+.3,70,1,{type:"sine",to:35,vol:.15}); });
+  nsBuzz([60,40,120]);
+};
+function nsWebSvg(){ let s=`<svg viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#e8eef8" stroke-width="2.2" stroke-linecap="round">`;
+  for(let a=0;a<=90;a+=15){ const r=a*Math.PI/180; s+=`<path d="M0 0 L${(200*Math.cos(r)).toFixed(1)} ${(200*Math.sin(r)).toFixed(1)}"/>`; }
+  for(let k=1;k<=6;k++){ const R=k*30; let d=""; for(let a=0;a<=90;a+=15){ const r=a*Math.PI/180, sag=a%30?0.93:1; d+=(a?" L":"M")+(R*sag*Math.cos(r)).toFixed(1)+" "+(R*sag*Math.sin(r)).toFixed(1); } s+=`<path d="${d}"/>`; }
+  return s+`</g></svg>`; }
+const nsThwip=(ac,t)=>nsNoise(ac,t,.16,{f:5200,to:900,vol:.12,q:4});
+QX.greatpower=function(){   // 🕸️ With great power…: webs shoot in from the corners and stick
+  const L=sxLayer("sxWebs",4800);
+  ["tl","tr","bl","br"].forEach((c,i)=>{ const w=el("div","wb-corner "+c); w.innerHTML=nsWebSvg(); w.style.animationDelay=(i*.25)+"s"; L.append(w); });
+  setTimeout(()=>sxCap(L,"…comes great responsibility.","wb-cap"),1300);
+  nsAudio((ac,t)=>{ for(let i=0;i<4;i++) nsThwip(ac,t+i*.25); });
+};
+QX.thwip=function(){   // 🕸️ Thwip: one web line zips across
+  const L=sxLayer("sxThwip",2400);
+  L.innerHTML=`<svg class="wb-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M-2 78 Q50 70 102 22" fill="none" stroke="#e8eef8" stroke-width=".9" vector-effect="non-scaling-stroke"/></svg><div class="wb-splat">${nsWebSvg()}</div>`;
+  nsAudio((ac,t)=>nsThwip(ac,t)); nsBuzz(25);
+};
+QX.windrises=function(){   // 🍃 The wind rises: a gust sweeps leaves and a paper plane across
+  const L=sxLayer("sxWind",5200);
+  for(let i=0;i<22;i++){ const f=el("i","wr-leaf"); f.style.top=nsR(5,90)+"%"; f.style.setProperty("--c",["#7cc46a","#b7d96b","#e0c25a","#5fae7a"][i%4]); f.style.setProperty("--d",nsR(2.2,3.6)+"s"); f.style.animationDelay=nsR(0,1.6)+"s"; L.append(f); }
+  L.insertAdjacentHTML("beforeend",`<svg class="wr-plane" viewBox="0 0 60 30" aria-hidden="true"><path d="M2 15 L58 3 L30 27 L26 17 Z" fill="#f6f2e8" stroke="#8a8170" stroke-width="1.5"/><path d="M26 17 L58 3" stroke="#8a8170" stroke-width="1"/></svg>`);
+  nsAudio((ac,t)=>{ nsNoise(ac,t,3.8,{f:400,to:1400,vol:.09,ftype:"lowpass",att:1.2}); nsNoise(ac,t+1,2.4,{f:900,to:500,vol:.05,att:.8}); });
+};
+QX.spiritedaway=function(){   // 🏮 Spirited away: dusk falls, paper lanterns and petals drift up
+  const L=sxLayer("sxSpirit",6200); L.classList.add("sp-dusk");
+  for(let i=0;i<14;i++){ const l=el("i","sp-lantern"); l.style.left=nsR(4,92)+"%"; l.style.setProperty("--d",nsR(4,5.6)+"s"); l.style.animationDelay=nsR(0,1.6)+"s"; l.style.setProperty("--s",nsR(.7,1.2)); L.append(l); }
+  for(let i=0;i<18;i++){ const p=el("i","sp-petal"); p.style.left=nsR(0,100)+"%"; p.style.animationDelay=nsR(0,3)+"s"; L.append(p); }
+  nsAudio((ac,t)=>{ [587,659,784,880,1046,880,784].forEach((f,i)=>nsTone(ac,t+.3+i*.42,f,1.2,{type:"sine",vol:.045})); });
+};
+QX.launch=function(){   // 🚀 ___, launching!: catapult lights race forward, thrusters flare, LAUNCH!
+  const L=sxLayer("sxLaunch",4200); L.classList.add("dim");
+  L.innerHTML=`<div class="gl-deck"></div><div class="gl-thrust"></div>`;
+  setTimeout(()=>{ sxCap(L,"LAUNCH!","gl-cap"); document.body.animate([{transform:"translateY(0)"},{transform:"translateY(-6px)"},{transform:"translateY(3px)"},{transform:"none"}],{duration:420}); nsBuzz([30,30,160]); },1600);
+  nsAudio((ac,t)=>{ nsTone(ac,t,220,1.6,{type:"sawtooth",to:1100,vol:.035}); nsNoise(ac,t+1.6,1.4,{f:300,to:80,vol:.3,ftype:"lowpass"}); nsNoise(ac,t+1.6,.8,{f:2000,to:500,vol:.1}); });
+};
+QX.redcomet=function(){   // ☄️ Three times faster: a red comet tears across, faster each pass
+  const L=sxLayer("sxComet",4400);
+  [[0,1.3],[1.4,.85],[2.35,.42]].forEach(([d,dur],i)=>{ const c=el("i","rc-comet"); c.style.setProperty("--dur",dur+"s"); c.style.setProperty("--y",(30+i*18)+"%"); c.style.animationDelay=d+"s"; L.append(c); });
+  setTimeout(()=>{ L.append(el("div","rc-flash")); sxCap(L,"3× faster","rc-cap"); nsBuzz([20,20,20,20,90]); },2800);
+  nsAudio((ac,t)=>{ [[0,1.3,500],[1.4,.85,800],[2.35,.42,1300]].forEach(([d,dur,f])=>nsNoise(ac,t+d,dur,{f,to:f*3,vol:.12})); });
+};
+SECRET_LIST.splice(SECRET_LIST.findIndex(s=>s.id==="konami"),0,
+  {id:"ridetogether", name:"Together we ride", re:/together,? we ride/i, play:()=>QX.ridetogether()},
+  {id:"society",      name:"We live in a society", re:/we live in a society/i, play:()=>QX.society()},
+  {id:"titansgo",     name:"Titans, go!",      re:/titans,? go/i, play:()=>QX.titansgo()},
+  {id:"reeses",       name:"Breakfast puffs",  re:/reese'?s puffs/i, play:()=>QX.reeses()},
+  {id:"catchem",      name:"Gotta catch 'em all", re:/gotta catch ('?em|them) all/i, play:()=>QX.catchem()},
+  {id:"ichooseyou",   name:"I choose you",     re:/(^|[^a-z])i choose you([^a-z]|$)/i, play:()=>QX.ichooseyou()},
+  {id:"wild",         name:"A wild one appeared", re:/a wild .{1,24}? appear(ed|s)/i, play:m=>QX.wild(m)},
+  {id:"digivolve",    name:"Digivolve",        re:/(^|[^a-z])digivolv(e|ing|ed)/i, play:m=>QX.digivolve(m)},
+  {id:"foxtwo",       name:"Fox two",          re:/(^|[^a-z])fox (two|2)\s*([.!?,~]|$)/i, play:()=>QX.foxtwo()},
+  {id:"splashone",    name:"Splash one",       re:/(^|[^a-z])splash (one|1)\s*([.!?,~]|$)/i, play:()=>QX.splashone()},
+  {id:"greatpower",   name:"Great responsibility", re:/with great power( comes)? great responsibility|great power,? great responsibility/i, play:()=>QX.greatpower()},
+  {id:"thwip",        name:"Thwip",            re:/(^|[^a-z])thwip/i, play:()=>QX.thwip()},
+  {id:"windrises",    name:"The wind rises",   re:/the wind (rises|is rising)/i, play:()=>QX.windrises()},
+  {id:"spiritedaway", name:"Spirited away",    re:/(^|[^a-z])spirited away/i, play:()=>QX.spiritedaway()},
+  {id:"launch",       name:"Launching!",       re:/(^|[^a-z])[a-z]{2,20}, (ikimasu|launching!)|amuro,? (ikimasu|launching)/i, play:()=>QX.launch()},
+  {id:"redcomet",     name:"Red comet",        re:/three times (faster|as fast)|3x faster|red comet/i, play:()=>QX.redcomet()}
+);
+Object.assign(HINTS,{
+  ridetogether:"Saddle up with your allies. Three words, a fire emblem on the banner.",
+  society:"The clown's favourite complaint about the world we live in.",
+  titansgo:"The team's leader shouts it before every fight. Two words.",
+  reeses:"A chocolate-and-peanut-butter cereal that's famous for its song. Say its name.",
+  catchem:"The promise every young trainer makes. Gotta…",
+  ichooseyou:"Three words a trainer shouts when sending out their partner.",
+  wild:"A ___ appeared! (Fill in the blank with anything.)",
+  digivolve:"When digital monsters grow up, they…",
+  foxtwo:"A fighter pilot's call when firing a heat-seeker.",
+  splashone:"A fighter pilot's call when the target goes down.",
+  greatpower:"Uncle Ben's advice. With great power…",
+  thwip:"The sound a web-shooter makes.",
+  windrises:"The wind ___. We must try to live.",
+  spiritedaway:"A girl gets ___ ___ to a bathhouse of spirits.",
+  launch:"Say a pilot's name, then that they're launching. (Or the famous one: Amuro, ikimasu!)",
+  redcomet:"The red one is three times… what?"
+});
+
+QX.stayfrosty=function(){   // 🚨 Stay frosty: cop lights strobe, frost creeps in, the shades come down, siren whoop
+  const L=sxLayer("sxFrosty",5200); L.classList.add("dim");
+  L.innerHTML=`<div class="sf-lights"><i class="r"></i><i class="b"></i></div><div class="sf-frost tl"></div><div class="sf-frost tr"></div><div class="sf-frost bl"></div><div class="sf-frost br"></div>
+    <svg class="sf-shades" viewBox="0 0 240 80" aria-hidden="true"><path d="M8 14 H232" stroke="#c9ced8" stroke-width="5" stroke-linecap="round"/><path d="M14 16 Q16 70 62 70 Q104 70 108 22 Q108 14 100 14 H20 Q14 14 14 16Z" fill="#101626" stroke="#c9ced8" stroke-width="4"/><path d="M226 16 Q224 70 178 70 Q136 70 132 22 Q132 14 140 14 H220 Q226 14 226 16Z" fill="#101626" stroke="#c9ced8" stroke-width="4"/><path d="M108 22 Q120 12 132 22" fill="none" stroke="#c9ced8" stroke-width="4"/><path d="M30 24 L58 52" stroke="rgba(120,200,255,.5)" stroke-width="6" stroke-linecap="round"/><path d="M150 24 L178 52" stroke="rgba(120,200,255,.5)" stroke-width="6" stroke-linecap="round"/></svg>`;
+  setTimeout(()=>{ sxCap(L,"STAY FROSTY.","sf-cap"); L.append(el("div","sf-glint")); nsBuzz([30,60,30,60,140]); },1500);
+  nsAudio((ac,t)=>{ for(let k=0;k<3;k++){ nsTone(ac,t+k*.5,700,.25,{type:"sine",to:1400,vol:.06}); nsTone(ac,t+k*.5+.25,1400,.25,{type:"sine",to:700,vol:.06}); }   // whoop whoop
+    nsTone(ac,t+1.5,110,.9,{type:"sawtooth",to:55,vol:.06}); nsNoise(ac,t+1.5,.7,{f:4000,to:9000,vol:.05}); });
+};

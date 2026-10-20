@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20x", title:"16 new secrets 🔓", items:["🔓 16 new secrets to find, from fighter jets and web-slinging to capture orbs, mobile-suit launches and a medieval charge. Some ideas came from GoddessLyra!","🚨 \"Stay frosty\" is now a full action-movie scene. The old caption-style anime lines were retired.","🎟️ Every secret now takes its turn, including the newer scene-style ones."]},
     {v:"2026.10.20w", title:"Easier side chats 🛣️", items:["🛣️ Lots of side chats in a Lane? Arrows show when there are more, and you can swipe the strip on phones, or use the mouse wheel or drag it on computers."]},
     {v:"2026.10.20v", title:"Effects take turns 🎟️", items:["🎟️ When several people trigger secrets or effects at once, they now play one after another instead of stacking on top of each other."]},
     {v:"2026.10.20u", title:"Lounge dial tone 🎵", items:["🎵 Joining a voice lounge or group call now plays the dial tone while you connect, then the connect chime once you can hear each other."]},

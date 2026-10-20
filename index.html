@@ -24,29 +24,29 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
 <link rel="preload" href="js/00-media.js?v=7d4cf9c94a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/02-core.js?v=9665eb29db" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/02-core.js?v=ab80a54753" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/03-chat.js?v=25ef61b0cb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/04-lanes.js?v=b30023ef52" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/05-chat-extras.js?v=83fdb9dead" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/06-effects.js?v=f352c7f4c3" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=e3171c777c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/09-install-birthdays.js?v=1d10d65492" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/10-secrets-1.js?v=6150c577b4" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/11-tools.js?v=089379597d" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/12-secrets-2.js?v=b263c6ebf7" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/12-secrets-2.js?v=0fbb7e84b1" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=7765920cc6" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/14-secrets-3.js?v=118683607f" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=c95f9ca054" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=fb1250fc65" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=0b11a39119" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=d17988470a">
 <link rel="stylesheet" href="css/2-features.css?v=8ac9fcc022">
-<link rel="stylesheet" href="css/3-secrets.css?v=970d9b0662">
+<link rel="stylesheet" href="css/3-secrets.css?v=550f685aae">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=781cc8ca79">
-<link rel="stylesheet" href="css/5-games-themes-calls.css?v=ed0389b5b9">
+<link rel="stylesheet" href="css/5-games-themes-calls.css?v=94a9714d04">
 </head>
 <body>
 <div id="splash" aria-hidden="true">
@@ -1031,8 +1031,9 @@
   <div class="sheet"><div class="sheetbody">
     <h2 id="cheatTitle">Secret cheat sheet</h2>
     <p class="sub" id="cheatCount"></p>
-    <div class="cheatbar"><label for="cheatSearch" class="sr">Search secrets</label><input class="field" id="cheatSearch" placeholder="Search secrets, phrases, hints…" autocomplete="off">
+    <div class="cheatbar"><label for="cheatSearch" class="sr">Search secrets</label><input class="field" id="cheatSearch" type="search" enterkeyhint="search" placeholder="Search a show, game, phrase or hint…" autocomplete="off">
       <button type="button" class="ghost" id="cheatFilter" aria-pressed="false">Not found yet</button></div>
+    <div class="cheatcats" id="cheatCats" role="group" aria-label="Categories"></div>
     <div class="cheatlist" id="cheatList"></div>
     <button class="ghost" type="button" id="cheatClose">Close</button>
   </div></div>
@@ -1442,7 +1443,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.20w";
+const APP_VERSION="2026.10.20x";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1469,20 +1470,20 @@ const APP_VERSION="2026.10.20w";
   const FILES=[
   "js/00-media.js?v=7d4cf9c94a",
   "js/01-boards.js?v=82bebb9adc",
-  "js/02-core.js?v=9665eb29db",
+  "js/02-core.js?v=ab80a54753",
   "js/03-chat.js?v=25ef61b0cb",
   "js/04-lanes.js?v=b30023ef52",
   "js/05-chat-extras.js?v=83fdb9dead",
-  "js/06-effects.js?v=f352c7f4c3",
+  "js/06-effects.js?v=25cefc7232",
   "js/07-friends.js?v=e3171c777c",
   "js/08-games.js?v=3188c36dec",
   "js/09-install-birthdays.js?v=1d10d65492",
   "js/10-secrets-1.js?v=6150c577b4",
   "js/11-tools.js?v=089379597d",
-  "js/12-secrets-2.js?v=b263c6ebf7",
+  "js/12-secrets-2.js?v=0fbb7e84b1",
   "js/13-gifs-search.js?v=7765920cc6",
-  "js/14-secrets-3.js?v=118683607f",
-  "js/15-bonds-news.js?v=c95f9ca054",
+  "js/14-secrets-3.js?v=9f08adc739",
+  "js/15-bonds-news.js?v=fb1250fc65",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",

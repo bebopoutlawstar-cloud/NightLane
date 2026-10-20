@@ -1447,17 +1447,65 @@ function secretWhen(sec){
   if(/getHours\(\)===0/.test(w)) return "Only works during the midnight hour (12:00–12:59 AM).";
   return w?"Has a special condition.":"";
 }
+/* 🗂️ cheat sheet categories (2026.10.20x): each secret's group, plus the show/game it's from so search finds it by name */
+const SECRET_CATS=[
+  ["NightLane & friends","⭐","creator hagrid jay xen writer lightsout midnight goodkid hifive emc2 reeses"],
+  ["Hidden gestures","🤫","combo shiny lateowl credits konami moonwink shake"],
+  ["Persona","🎭","showtime takeyourtime allout callingcard persona velvet midnightchannel darkhour rankup batonpass iamthou lookingcool shadow beefbowl junes allrevealed"],
+  ["Cyberpunk","🌃","cityburn netrunner choom jackin flatline preem gonk blackwall easycome"],
+  ["Steins;Gate","🧪","elpsy tuturu dmail timeleap organization hououin worldline phonewave microwave steinsgate fuhaha christina gelbanana readingsteiner johntitor okarin"],
+  ["Voltron","🦁","voltronpals formvoltron blazingsword patience vrepitsa quiznak spacemall sharpshooter"],
+  ["Gurren Lagann","🌀","justwho rowrow kickreason gigadrill gattai pierce believe"],
+  ["Danganronpa","🐻","monokuma classtrial nonstop despair notguilty guilty"],
+  ["Anime","🍥","over9000 kamehameha nani onepiece yuri meguca uwa ein spacecowboy cutdeep rainday drift potofgreed yugioh catchem ichooseyou wild digivolve windrises spiritedaway launch redcomet"],
+  ["Games","🎮","barrelroll leeroy fatality hadouken gameover oneup cake headshot victory levelup crit pog achievement pressf gofast letsago mammamia powerup fallguys ps5 xbox kingdomhearts keyblade residentevil greenherb artyom forhonor steak palico warchanged war pipboy nuka foxtwo splashone ridetogether d20 dice"],
+  ["Movies & TV","🎬","matrix snap greatpower thwip mask canon leap society titansgo terminate illbeback yippee stayfrosty jawstheme biggerboat amity smileyou kenough sharknado"],
+  ["Sci-fi","🚀","beamup assimilate hyperspace force shotfirst fortytwo"],
+  ["Horror & Halloween","🎃","ghost zombies wendigo behindyou behind boo cursed redrum johnny floatdown theyrehere scarymovie wassup asabove slasher fnaf horhor trickortreat dayofthedead grimreaper toilandtrouble"],
+  ["Wizards & fantasy","🧙","lumos solemnly mischief dragon"]
+];
+const SECRET_FROM={war:"Fallout",pipboy:"Fallout",nuka:"Fallout",gofast:"Sonic",letsago:"Mario",mammamia:"Mario",powerup:"Mario",oneup:"Mario",palico:"Monster Hunter",steak:"Monster Hunter",
+  warchanged:"Metal Gear",artyom:"Metro",forhonor:"For Honor",fnaf:"Five Nights at Freddy's FNAF",horhor:"Five Nights at Freddy's FNAF",residentevil:"Resident Evil",greenherb:"Resident Evil",
+  kingdomhearts:"Kingdom Hearts",keyblade:"Kingdom Hearts",fallguys:"Fall Guys",cake:"Portal",leeroy:"World of Warcraft WoW",fatality:"Mortal Kombat",hadouken:"Street Fighter",barrelroll:"Star Fox",
+  foxtwo:"Ace Combat",splashone:"Ace Combat",ridetogether:"Fire Emblem",over9000:"Dragon Ball",kamehameha:"Dragon Ball",nani:"Fist of the North Star",onepiece:"One Piece",meguca:"Madoka Magica",
+  ein:"Cowboy Bebop",spacecowboy:"Cowboy Bebop",cutdeep:"Naruto",rainday:"Fullmetal Alchemist",drift:"Initial D",catchem:"Pokemon Pokémon",ichooseyou:"Pokemon Pokémon",wild:"Pokemon Pokémon",
+  digivolve:"Digimon",windrises:"Studio Ghibli",spiritedaway:"Studio Ghibli",launch:"Gundam",redcomet:"Gundam",potofgreed:"Yu-Gi-Oh",yugioh:"Yu-Gi-Oh",matrix:"The Matrix",snap:"Avengers Marvel Thanos",
+  greatpower:"Spider-Man Marvel",thwip:"Spider-Man Marvel",mask:"Spider-Verse Spider-Man",canon:"Spider-Verse Spider-Man",leap:"Spider-Verse Spider-Man",society:"Joker Batman",titansgo:"Teen Titans",
+  terminate:"Terminator",illbeback:"Terminator",yippee:"Die Hard",stayfrosty:"Aliens action cop",jawstheme:"Jaws",biggerboat:"Jaws",amity:"Jaws",smileyou:"Jaws",kenough:"Barbie",johnny:"The Shining",
+  redrum:"The Shining",floatdown:"IT Pennywise",theyrehere:"Poltergeist",scarymovie:"Scream",wassup:"Scary Movie",cursed:"The Ring",asabove:"As Above So Below",beamup:"Star Trek",assimilate:"Star Trek",
+  hyperspace:"Star Wars",force:"Star Wars",shotfirst:"Star Wars",fortytwo:"Hitchhiker's Guide",lumos:"Harry Potter",solemnly:"Harry Potter",mischief:"Harry Potter",showtime:"Persona 5",
+  takeyourtime:"Persona 5",callingcard:"Persona 5",lookingcool:"Persona 5",midnightchannel:"Persona 4",beefbowl:"Persona 4",junes:"Persona 4",shadow:"Persona 4",darkhour:"Persona 3",
+  cityburn:"Cyberpunk 2077",ps5:"PlayStation Sony",xbox:"Xbox Microsoft",hagrid:"Cole's cat",jay:"Cole's brother",xen:"Cole's brother",creator:"Cole",d20:"Dungeons & Dragons D&D dice",dice:"Dungeons & Dragons D&D dice",crit:"Dungeons & Dragons D&D"};
+const SECRET_CAT_OF=new Map(); SECRET_CATS.forEach(([name],i)=>SECRET_CATS[i][2].split(" ").forEach(id=>SECRET_CAT_OF.set(id,name)));
+const secretCat=id=>SECRET_CAT_OF.get(id)||"Other";
+let cheatCat="All";
+function paintCheatCats(found){
+  const row=$("cheatCats"); row.replaceChildren();
+  const cats=[["All","🗝️"],...SECRET_CATS.map(([n,ic])=>[n,ic])];
+  if(SECRET_LIST.some(x=>!SECRET_CAT_OF.has(x.id))) cats.push(["Other","✨"]);
+  cats.forEach(([n,ic])=>{
+    const list=n==="All"?SECRET_LIST:SECRET_LIST.filter(x=>secretCat(x.id)===n); if(!list.length) return;
+    const b=el("button","cheat-cat"+(cheatCat===n?" on":""),`${ic} ${n} · ${list.filter(x=>found.has(x.id)).length}/${list.length}`); b.type="button"; b.setAttribute("aria-pressed",String(cheatCat===n));
+    b.onclick=()=>{ cheatCat=n; paintCheats(); $("cheatList").scrollTop=0; }; row.append(b);
+  });
+  row.querySelector(".on")?.scrollIntoView({inline:"nearest",block:"nearest"});
+}
 function paintCheats(){
   const q=$("cheatSearch").value.trim().toLowerCase(), onlyMissing=$("cheatFilter").getAttribute("aria-pressed")==="true";
   const found=new Set(foundSecrets()), box=$("cheatList"); box.innerHTML="";
   $("cheatCount").textContent=`You've found ${SECRET_LIST.filter(x=>found.has(x.id)).length} of ${SECRET_LIST.length}. Only you can see this.`;
-  let shown=0;
-  SECRET_LIST.forEach(sec=>{
+  paintCheatCats(found);
+  let shown=0, lastCat=null;
+  const order=SECRET_LIST.slice().sort((a,b)=>{ const ia=SECRET_CATS.findIndex(c=>c[0]===secretCat(a.id)), ib=SECRET_CATS.findIndex(c=>c[0]===secretCat(b.id)); return (ia<0?99:ia)-(ib<0?99:ib); });
+  order.forEach(sec=>{
     const how=sec.re?secretPhrase(sec.re):GESTURE_HOW[sec.id]||"A special gesture.";
-    const hint=HINTS[sec.id]||"", when=secretWhen(sec);
+    const hint=HINTS[sec.id]||"", when=secretWhen(sec), cat=secretCat(sec.id);
     const unl=(typeof UNLOCKS!=="undefined"?UNLOCKS:[]).filter(u=>u.by?.secret===sec.id).map(u=>u.label);
     if(onlyMissing&&found.has(sec.id)) return;
-    if(q&&!(sec.name+" "+sec.id+" "+how+" "+hint).toLowerCase().includes(q)) return;
+    if(cheatCat!=="All"&&cat!==cheatCat) return;
+    const hay=(sec.name+" "+sec.id+" "+how+" "+hint+" "+cat+" "+(SECRET_FROM[sec.id]||"")).toLowerCase().replace(/[’']/g,"");
+    if(q&&!q.replace(/[’']/g,"").split(/\s+/).every(w=>hay.includes(w))) return;   // every word you type has to be somewhere (order doesn't matter)
+    if(cheatCat==="All"&&cat!==lastCat){ lastCat=cat; const ic=(SECRET_CATS.find(c=>c[0]===cat)||[0,"✨"])[1]; box.append(el("h3","cheat-sec",`${ic} ${cat}`)); }
     shown++;
     const row=el("div","cheat"+(found.has(sec.id)?" got":""));
     const head=el("div","cheat-head"); head.append(el("b","",(found.has(sec.id)?"✓ ":"")+sec.name));
@@ -1465,15 +1513,17 @@ function paintCheats(){
       t.onclick=()=>{ show($("cheatSheet"),false); setTimeout(()=>{ try{ sec.play({id:0,user_id:user.id,room,kind:"text",text:how,created_at:new Date().toISOString()}); }catch(e){} },250); };
       head.append(t); }
     row.append(head, el("div","cheat-how",(sec.re?"Say: ":"How: ")+how));
+    if(SECRET_FROM[sec.id]) row.append(el("div","cheat-from","From: "+SECRET_FROM[sec.id].replace(/ (Pokémon|FNAF|WoW|Marvel|Thanos|Sony|Microsoft|D&D dice|D&D|Spider-Man|Batman|Pennywise|action cop)$/,"")));
     if(when) row.append(el("div","cheat-when","⏰ "+when));
     if(hint) row.append(el("div","cheat-hint","💡 "+hint));
     if(unl.length) row.append(el("div","cheat-unl","🎁 Unlocks "+unl.join(", ")));
     box.append(row);
   });
-  if(!shown) box.append(el("p","note",onlyMissing&&!q?"You've found them all! 🏆":"No secrets match that."));
+  if(!shown) box.append(el("p","note",onlyMissing&&!q?"You've found them all! 🏆":"No secrets match that. Try a show, a game, or a word from the phrase."));
 }
-$("openCheats").onclick=()=>{ if(!isAdmin) return; show($("profile"),false); $("cheatSearch").value=""; paintCheats(); show($("cheatSheet")); };
-$("cheatSearch").addEventListener("input",paintCheats);
+$("openCheats").onclick=()=>{ if(!isAdmin) return; show($("profile"),false); $("cheatSearch").value=""; cheatCat="All"; paintCheats(); show($("cheatSheet")); };
+["input","keyup","change","search","compositionend"].forEach(ev=>$("cheatSearch").addEventListener(ev,()=>{ clearTimeout(window.__cheatT); window.__cheatT=setTimeout(paintCheats,80); }));   // phone keyboards don't always send "input"
+$("cheatSearch").addEventListener("keydown",e=>e.stopPropagation());   // typing here never triggers app shortcuts
 $("cheatFilter").onclick=()=>{ const on=$("cheatFilter").getAttribute("aria-pressed")!=="true"; $("cheatFilter").setAttribute("aria-pressed",String(on)); $("cheatFilter").classList.toggle("on",on); paintCheats(); };
 $("cheatClose").onclick=()=>show($("cheatSheet"),false);
 

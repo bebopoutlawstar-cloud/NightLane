@@ -165,7 +165,7 @@ function playFx(m,force){
 const fxQueue=[]; let fxTimer=null, fxCurrentAt=0, fxQuietUntil=0;
 function fxLayersBusy(){
   const sx=document.getElementById("sfx"), ft=document.getElementById("fxText");
-  return (sx&&sx.children.length>0)||(ft&&ft.children.length>0)||(typeof FX!=="undefined"&&FX.busy());
+  return (sx&&sx.children.length>0)||(ft&&ft.children.length>0)||!!document.querySelector(".sxscene:not(.ambient):not(.out)")||(typeof FX!=="undefined"&&FX.busy());   // newer secrets draw in their own .sxscene layers
 }
 function fxEnqueue(fn,first){
   if(first) fxQueue.unshift({fn,at:Date.now()});   // a replay you tapped yourself goes next
