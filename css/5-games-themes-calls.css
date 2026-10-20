@@ -937,7 +937,8 @@ body.theme-divergence .notice-line{font-family:ui-monospace,monospace;color:#c9a
 .callscreen.callvoice.live .callinfo b,.callscreen.theyoff.live .callinfo b{font-size:34px}
 .callscreen.callvoice.live .callreticle,.callscreen.theyoff.live .callreticle{animation-duration:12s}
 /* second row: flip camera, privacy glitch, loud/quiet (hidden while it's ringing) */
-.callbar.sub{bottom:calc(env(safe-area-inset-bottom) + 150px);gap:12px}
+.callbar.sub{bottom:calc(env(safe-area-inset-bottom) + 150px);gap:8px;left:0;right:0;padding:0 10px;flex-wrap:wrap-reverse;justify-content:center}   /* buttons shrink to fit; too many → an extra row stacks above */
+.callbar.sub .hudbtn.mini{width:clamp(52px,calc((100vw - 20px - 40px) / 6),68px);height:54px}
 #callRingBar:not(.hidden)~#callSubBar{display:none}
 .hudbtn.mini{width:68px;height:58px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;clip-path:polygon(0 22%,10px 0,100% 0,100% 78%,calc(100% - 10px) 100%,0 100%)}.hudbtn.mini svg{width:24px;height:24px}
 .hudbtn.mini span{text-shadow:none!important;animation:none!important;font-family:var(--tech);font-size:9px;letter-spacing:1.5px;color:var(--cyan)}.hudbtn.mini.on span{color:#ff4fd8}

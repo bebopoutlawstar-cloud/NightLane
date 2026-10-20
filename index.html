@@ -37,16 +37,16 @@
 <link rel="preload" href="js/12-secrets-2.js?v=0fbb7e84b1" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=7765920cc6" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=fb1250fc65" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=280123fd8b" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/19-calls.js?v=0b11a39119" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/19-calls.js?v=89e52f4d8f" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=d17988470a">
 <link rel="stylesheet" href="css/2-features.css?v=8ac9fcc022">
 <link rel="stylesheet" href="css/3-secrets.css?v=550f685aae">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=781cc8ca79">
-<link rel="stylesheet" href="css/5-games-themes-calls.css?v=94a9714d04">
+<link rel="stylesheet" href="css/5-games-themes-calls.css?v=3d8038b614">
 </head>
 <body>
 <div id="splash" aria-hidden="true">
@@ -693,6 +693,7 @@
     <button type="button" class="hudbtn mini" id="callGlitch" aria-label="Privacy glitch: hide your face" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 5h7M14 5h7M3 9h4M10 9h11M3 13h10M16 13h5M3 17h6M12 17h9"/><path d="M5 21h4M14 21h5"/></svg><span>MASK</span></button>
     <button type="button" class="hudbtn mini on" id="callVol" aria-label="Volume: loud (tap for quiet)" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="wave2" d="M18.5 7a7 7 0 0 1 0 10"/></svg><span id="callVolTxt">LOUD</span></button>
     <button type="button" class="hudbtn mini hidden" id="callShare" aria-label="Share your screen" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/><path d="M12 13V7M9 10l3-3 3 3"/></svg><span id="callShareTxt">SHARE</span></button>
+    <button type="button" class="hudbtn mini hidden" id="callFilter" aria-pressed="false" aria-label="Filter out their background noise (only for you)"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1"/><rect x="17" y="14" width="4" height="6" rx="1"/></svg><span id="callFilterTxt">FILTER</span></button>
     <button type="button" class="hudbtn mini" id="callMin" aria-label="Back to the chat (the call keeps going)"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><span>CHAT</span></button>
     <button type="button" class="hudbtn mini" id="callHide" aria-label="Hide the buttons (tap the screen to bring them back)"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 21L21 3"/></svg><span>HIDE</span></button>
   </div>
@@ -1443,7 +1444,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.20x";
+const APP_VERSION="2026.10.20y";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1483,11 +1484,11 @@ const APP_VERSION="2026.10.20x";
   "js/12-secrets-2.js?v=0fbb7e84b1",
   "js/13-gifs-search.js?v=7765920cc6",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=fb1250fc65",
+  "js/15-bonds-news.js?v=280123fd8b",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",
-  "js/19-calls.js?v=0b11a39119"
+  "js/19-calls.js?v=89e52f4d8f"
   ];
   const failed=()=>{ const s=document.getElementById("splash"); if(!s) return;
     s.classList.remove("gone"); s.setAttribute("aria-hidden","false");

@@ -175,11 +175,11 @@ document.addEventListener("visibilitychange",()=>{
   if(document.hidden){
     const cur=callStream.getAudioTracks()[0];
     if(cur&&micRaw&&cur!==micRaw&&!micProcessed){ micRaw.enabled=cur.enabled; sendMicTrack(micRaw); micProcessed=cur; }
-    g&&g.peers.forEach(p=>{ if(p.nf&&p.au){ p.au.muted=false; try{ p.nf.out.gain.value=0; }catch(e){} p.nfBypass=true; } });
+    [...(g?g.peers.values():[]),oneNF].forEach(p=>{ if(p.nf&&p.au){ p.au.muted=false; try{ p.nf.out.gain.value=0; }catch(e){} p.nfBypass=true; } });
   } else {
     if(callCtx&&callCtx.state!=="running") callCtx.resume().catch(()=>{});
     if(micProcessed){ const t=micProcessed; setTimeout(()=>{ if(!callStream||micProcessed!==t) return; micProcessed=null; if(callCtx?.state==="running"&&t.readyState==="live"){ t.enabled=micRaw.enabled; sendMicTrack(t); } },500); }
-    g&&g.peers.forEach(p=>{ if(!p.nfBypass||!p.nf) return; p.nfBypass=false; p.nf.ctx.resume().catch(()=>{}).finally(()=>{ if(!p.nf) return; try{ p.nf.out.gain.value=1; }catch(e){} if(p.au) p.au.muted=true; }); });
+    [...(g?g.peers.values():[]),oneNF].forEach(p=>{ if(!p.nfBypass||!p.nf) return; p.nfBypass=false; p.nf.ctx.resume().catch(()=>{}).finally(()=>{ if(!p.nf) return; try{ p.nf.out.gain.value=1; }catch(e){} if(p.au) p.au.muted=true; }); });
   }
 });
 /* 💬 back to the chat during a call: the call shrinks to a little floating bar (timer, mute, hang up). Tap it to come back. */
@@ -379,7 +379,8 @@ async function startPeer(){
   const servers=await getIceServers(); if(!callStream) return;
   pc=new RTCPeerConnection(servers); pendingIce=[];
   callStream.getTracks().forEach(t=>{ const s=pc.addTrack(t,callStream); if(t.kind==="video") videoSender=s; else audioSender=s; });   // send my camera + mic
-  pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; const au=$("remoteAudio"); if(au.srcObject!==e.streams[0]){ au.srcObject=e.streams[0]; au.play().catch(()=>{}); } $("callScreen").classList.add("live");   // their video arrived
+  pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; const au=$("remoteAudio"); if(au.srcObject!==e.streams[0]){ au.srcObject=e.streams[0]; au.play().catch(()=>{}); if(oneNF.nf){ gFilterOff(oneNF); oneNF.au=au; gFilterOn(oneNF,e.streams[0]); } }
+    show($("callFilter"),true); $("callScreen").classList.add("live");   // their video arrived
     if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
   pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
   pc.onconnectionstatechange=()=>{ const st=pc?.connectionState;
@@ -397,7 +398,14 @@ async function sendOffer(){ if(!pc) return; iAmOfferer=true; const o=await pc.cr
 async function onOffer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); const a=await pc.createAnswer(); await pc.setLocalDescription(a); sendSignal("answer",{sdp:pc.localDescription.toJSON()}); }
 async function onAnswer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); }
 async function onIce(c){ if(!pc||!pc.remoteDescription){ pendingIce.push(c); return; } try{ await pc.addIceCandidate(c); }catch(e){} }
-function stopPeer(){ iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("remoteAudio").srcObject=null; $("callScreen").classList.remove("live"); }
+/* 🎧 the noise filter in 1-on-1 calls too (same filter as group tiles) */
+const oneNF={au:null,nf:null};
+function paintCallFilter(){ const on=!!oneNF.nf, b=$("callFilter"); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on)); $("callFilterTxt").textContent=on?"FILTERED":"FILTER"; }
+$("callFilter").onclick=e=>{ e.stopPropagation(); oneNF.au=$("remoteAudio");
+  if(oneNF.nf) gFilterOff(oneNF);
+  else { const st=$("remoteAudio").srcObject; if(!st||!st.getAudioTracks().length){ callFlash("Their sound hasn't connected yet"); return; } gFilterOn(oneNF,st); }
+  paintCallFilter(); callFlash(oneNF.nf?"✨ Filtering their background noise (only you hear the change)":"🎧 Filter off",2200); };
+function stopPeer(){ gFilterOff(oneNF); show($("callFilter"),false); paintCallFilter(); iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("remoteAudio").srcObject=null; $("callScreen").classList.remove("live"); }
 
 function endCall(){
   if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
