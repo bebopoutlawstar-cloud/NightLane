@@ -143,6 +143,7 @@ async function getCallMedia(){
   paintLocal();
   if(camTrack){ try{ const cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); show($("callFlip"),cams.length>1); }catch(e){} }
   startTalkWatch();
+  try{ navigator.mediaSession.metadata=new MediaMetadata({title:"NightLane call",artist:"Tap to return"}); navigator.mediaSession.playbackState="playing"; }catch(e){}   // tells the phone a call is going on
 }
 /* 🎙️ who's talking: your mic button lights up while you speak, and so does the tile (or picture) of whoever's talking.
    Reads the sound levels the call already measures (getStats), so it costs almost nothing. */
@@ -162,6 +163,44 @@ function startTalkWatch(){
   },150);
 }
 function stopTalkWatch(){ clearInterval(talkT); talkT=null; const b=$("callMute"); b.classList.remove("talking"); b.style.removeProperty("--lvl"); $("callFace").classList.remove("talking"); }
+/* ===== 📱 leaving the app mid-call (2026.10.20t) =====
+   Android can pause the app's sound engine in the background. Your boosted mic and the noise filter both run
+   through it, so the call went silent both ways. Now: while you're away, send your plain mic and hear people
+   unfiltered (both keep working in the background); when you're back, switch the extras on again. */
+let micProcessed=null;
+function sendMicTrack(t){ if(!t) return; audioSender?.replaceTrack(t).catch(()=>{}); if(typeof gc!=="undefined"&&gc) gc.peers.forEach(p=>{ const s=p.pc?.getSenders().find(x=>x.track&&x.track.kind==="audio"); s?.replaceTrack(t).catch(()=>{}); }); }
+document.addEventListener("visibilitychange",()=>{
+  if(!callStream) return;
+  const g=(typeof gc!=="undefined"&&gc)?gc:null;
+  if(document.hidden){
+    const cur=callStream.getAudioTracks()[0];
+    if(cur&&micRaw&&cur!==micRaw&&!micProcessed){ micRaw.enabled=cur.enabled; sendMicTrack(micRaw); micProcessed=cur; }
+    g&&g.peers.forEach(p=>{ if(p.nf&&p.au){ p.au.muted=false; try{ p.nf.out.gain.value=0; }catch(e){} p.nfBypass=true; } });
+  } else {
+    if(callCtx&&callCtx.state!=="running") callCtx.resume().catch(()=>{});
+    if(micProcessed){ const t=micProcessed; setTimeout(()=>{ if(!callStream||micProcessed!==t) return; micProcessed=null; if(callCtx?.state==="running"&&t.readyState==="live"){ t.enabled=micRaw.enabled; sendMicTrack(t); } },500); }
+    g&&g.peers.forEach(p=>{ if(!p.nfBypass||!p.nf) return; p.nfBypass=false; p.nf.ctx.resume().catch(()=>{}).finally(()=>{ if(!p.nf) return; try{ p.nf.out.gain.value=1; }catch(e){} if(p.au) p.au.muted=true; }); });
+  }
+});
+/* 💬 back to the chat during a call: the call shrinks to a little floating bar (timer, mute, hang up). Tap it to come back. */
+function minimizeCall(on){
+  $("callScreen").classList.toggle("minimized",!!on); show($("callPill"),!!on); document.body.classList.toggle("callmini",!!on);   // the chat leaves room for the bar
+  if(on){ const f=$("feed"); if(f&&f.scrollHeight-f.scrollTop-f.clientHeight<200) requestAnimationFrame(()=>f.scrollTop=f.scrollHeight); }
+  if(on) paintCallPill();
+}
+function paintCallPill(){
+  if($("callPill").classList.contains("hidden")) return;
+  const name=$("callName").textContent.trim(), st=$("callState").textContent.trim();
+  $("cpText").textContent=st.replace(/·\s*(\d+)\s*IN CALL/i,"· 👥$1"); $("cpOpen").setAttribute("aria-label",`Back to the call${name?" in "+name:""}: ${st}`);
+  const off=$("callMute").classList.contains("off"); $("cpMute").classList.toggle("off",off); $("cpMute").setAttribute("aria-label",off?"Unmute":"Mute");
+  $("cpMute").classList.toggle("talking",$("callMute").classList.contains("talking"));
+}
+new MutationObserver(paintCallPill).observe($("callState"),{childList:true,characterData:true,subtree:true});
+new MutationObserver(paintCallPill).observe($("callMute"),{attributes:true,attributeFilter:["class"]});
+$("callMin").onclick=e=>{ e.stopPropagation(); minimizeCall(true); };
+$("cpOpen").onclick=()=>minimizeCall(false);
+$("cpMute").onclick=()=>$("callMute").click();
+$("cpEnd").onclick=()=>{ callBlip("decline"); endCall(); };
 function useRawMic(){
   const old=callStream?.getAudioTracks()[0]; if(!old||old===micRaw) return;
   micRaw.enabled=old.enabled; audioSender?.replaceTrack(micRaw).catch(()=>{});
@@ -340,7 +379,7 @@ async function startPeer(){
   const servers=await getIceServers(); if(!callStream) return;
   pc=new RTCPeerConnection(servers); pendingIce=[];
   callStream.getTracks().forEach(t=>{ const s=pc.addTrack(t,callStream); if(t.kind==="video") videoSender=s; else audioSender=s; });   // send my camera + mic
-  pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; $("callScreen").classList.add("live");   // their video arrived
+  pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; const au=$("remoteAudio"); if(au.srcObject!==e.streams[0]){ au.srcObject=e.streams[0]; au.play().catch(()=>{}); } $("callScreen").classList.add("live");   // their video arrived
     if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
   pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
   pc.onconnectionstatechange=()=>{ const st=pc?.connectionState;
@@ -358,13 +397,14 @@ async function sendOffer(){ if(!pc) return; iAmOfferer=true; const o=await pc.cr
 async function onOffer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); const a=await pc.createAnswer(); await pc.setLocalDescription(a); sendSignal("answer",{sdp:pc.localDescription.toJSON()}); }
 async function onAnswer(sdp){ if(!pc) return; await pc.setRemoteDescription(sdp); await flushIce(); }
 async function onIce(c){ if(!pc||!pc.remoteDescription){ pendingIce.push(c); return; } try{ await pc.addIceCandidate(c); }catch(e){} }
-function stopPeer(){ iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("callScreen").classList.remove("live"); }
+function stopPeer(){ iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("remoteAudio").srcObject=null; $("callScreen").classList.remove("live"); }
 
 function endCall(){
   if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
   sendSignal("end");   // tell the other phone we hung up
   leaveCallLine();
-  stopPeer(); stopRinging(); stopTalkWatch();
+  stopPeer(); stopRinging(); stopTalkWatch(); minimizeCall(false); micProcessed=null;
+  try{ navigator.mediaSession.playbackState="none"; navigator.mediaSession.metadata=null; }catch(e){}
   // the caller updates the call note in the chat: "📞 Call · 2:31", "📞 Missed call" or "📞 Call declined"
   if(callMsgId!=null){
     const kind=callVoice?"Voice call":"Call";
@@ -599,7 +639,7 @@ function gSync(){
 }
 function gTile(uid){
   gSelf(); const t=el("div","gtile"+(callVoice?" camoff":"")), v=document.createElement("video"), f=el("span","face"), b=el("b","",nameOf(uid));
-  v.autoplay=true; v.playsInline=true; t.append(v,f,b); t.dataset.uid=uid;
+  v.autoplay=true; v.playsInline=true; v.muted=true; t.append(v,f,b); t.dataset.uid=uid;   // picture only: their voice plays from an <audio> (keeps going in the background)
   const nf=el("button","gfilter","🎧 Filter"); nf.type="button"; nf.setAttribute("aria-pressed","false"); nf.setAttribute("aria-label","Filter out this person's background noise (only for you)");
   nf.onclick=e=>{ e.stopPropagation(); gFilterToggle(uid); }; t.append(nf);
   paintFace(f,cache.get(uid)); ensureProfiles([uid]).then(()=>{ paintFace(f,cache.get(uid)); b.textContent=nameOf(uid); }).catch(()=>{});
@@ -626,22 +666,31 @@ function gFilterOn(p,stream){
   const hum2=ctx.createBiquadFilter(); hum2.type="notch"; hum2.frequency.value=120; hum2.Q.value=8; // and its echo
   const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=4000; lp.Q.value=.7;   // hiss, clatter, fans
   const lp2=ctx.createBiquadFilter(); lp2.type="lowpass"; lp2.frequency.value=4000; lp2.Q.value=.6;
-  const lev=ctx.createDynamicsCompressor(); lev.threshold.value=-24; lev.ratio.value=3; lev.knee.value=10; lev.attack.value=.005; lev.release.value=.2;   // evens their voice out after all that cutting
-  const boost=ctx.createGain(); boost.gain.value=.9;   // the leveller already lifts quiet bits, so no extra boost: same volume as unfiltered
+  const out=ctx.createGain(); out.gain.value=1;   // no auto-boost (that made background noise louder too)
   const an=ctx.createAnalyser(); an.fftSize=1024; const gate=ctx.createGain(); gate.gain.value=1;
-  src.connect(hp).connect(hp2).connect(hum).connect(hum2).connect(lp).connect(lp2); lp2.connect(an); lp2.connect(gate).connect(lev).connect(boost).connect(ctx.destination);
-  const buf=new Float32Array(an.fftSize); let floor=.004, hold=0;
-  const t=setInterval(()=>{   // the gate: open while they talk, nearly closed in the gaps
+  const spec=ctx.createAnalyser(); spec.fftSize=1024; spec.smoothingTimeConstant=.5; src.connect(spec);   // the raw sound's shape: is it a voice?
+  src.connect(hp).connect(hp2).connect(hum).connect(hum2).connect(lp).connect(lp2); lp2.connect(an); lp2.connect(gate).connect(out).connect(ctx.destination);
+  const buf=new Float32Array(an.fftSize), fq=new Float32Array(spec.frequencyBinCount), hz=ctx.sampleRate/spec.fftSize;
+  const bgHist=[]; let hold=0;   // what their background sounds like, learned only while they're NOT talking
+  const mid=(arr,k)=>{ const v=arr.map(x=>x[k]).sort((a,b)=>a-b); return v[Math.floor(v.length/2)]; };
+  const t=setInterval(()=>{
     an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i];
-    const rms=Math.sqrt(s/buf.length), loud=rms>Math.max(.008,floor*3.2);
-    if(rms<floor) floor=floor*.8+rms*.2; else if(!loud) floor=floor*.995+rms*.005;   // learns how loud their background is
-    hold=loud?10:Math.max(0,hold-1);   // stay open ~¼ s after a word so endings aren't clipped
-    const want=hold>0?1:.03; gate.gain.setTargetAtTime(want,ctx.currentTime,want>.5?.01:.07);
+    const rms=Math.sqrt(s/buf.length);
+    spec.getFloatFrequencyData(fq); let vb=0, all=1e-12;
+    for(let k=1;k<fq.length;k++){ const f=k*hz; if(f<80||f>8000) continue; const e=Math.pow(10,fq[k]/10); all+=e; if(f>=250&&f<=3500) vb+=e; }
+    const ratio=vb/all;   // how much of the sound sits where voices live
+    let talking;
+    if(bgHist.length<20) talking=rms>.01&&ratio>.6;   // first half-second: simple guess while it learns
+    else talking=rms>.006&&vb>mid(bgHist,0)*2.2&&ratio>Math.min(.95,mid(bgHist,1)+.08);   // louder in the voice range AND shaped more like a voice than their usual background
+    if(!talking&&hold===0){ bgHist.push([vb,ratio]); if(bgHist.length>240) bgHist.shift(); }   // last ~6 s of their background
+    hold=talking?10:Math.max(0,hold-1);
+    const lim=Math.min(1,.12/(rms+1e-6));   // safety limit: a filtered person can never blast over everyone else
+    const want=(hold>0?1:.02)*lim; gate.gain.setTargetAtTime(want,ctx.currentTime,want>gate.gain.value?.01:.06);
   },25);
-  p.tile.querySelector("video").muted=true;   // the tile keeps playing (Chrome needs that), you hear the cleaned copy instead
-  p.nf={ctx,t,gate};
+  if(p.au) p.au.muted=true;   // the plain copy keeps playing (Chrome needs that) but muted: you hear the cleaned one
+  p.nf={ctx,t,gate,out};
 }
-function gFilterOff(p){ if(!p?.nf) return; clearInterval(p.nf.t); p.nf.ctx.close().catch(()=>{}); p.nf=null; const v=p.tile.querySelector("video"); if(v) v.muted=false; }
+function gFilterOff(p){ if(!p?.nf) return; clearInterval(p.nf.t); p.nf.ctx.close().catch(()=>{}); p.nf=null; p.nfBypass=false; if(p.au) p.au.muted=false; }
 function gLayout(){ const g=$("callGrid"), me=g.querySelector(".gtile.me"); if(me&&me!==g.lastElementChild) g.append(me); g.dataset.n=String(Math.min(4,g.children.length)); }
 /* your own box in the grid (muted, so you don't hear yourself) */
 function gSelf(){
@@ -656,7 +705,10 @@ function gPeer(uid,offerer){
     const servers=await getIceServers(); if(!gc||gc.peers.get(uid)!==p||!callStream) return;
     const pc=p.pc=new RTCPeerConnection(servers);
     callStream.getTracks().forEach(t=>{ const sn=pc.addTrack(t,callStream); if(t.kind==="video") p.vs=sn; });   // my camera + mic, to this person
-    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{}); if(p.nf){ gFilterOff(p); gFilterOn(p,e.streams[0]); } } };   // the stream is ready, but it only counts as LIVE once the link actually connects (below)
+    pc.ontrack=e=>{ const v=p.tile.querySelector("video"); if(v.srcObject!==e.streams[0]){ v.srcObject=e.streams[0]; v.play().catch(()=>{});
+        if(!p.au){ p.au=document.createElement("audio"); p.au.autoplay=true; $("callAudio").append(p.au); }
+        p.au.srcObject=e.streams[0]; p.au.play().catch(()=>{});
+        if(p.nf){ gFilterOff(p); gFilterOn(p,e.streams[0]); } } };   // the stream is ready, but it only counts as LIVE once the link actually connects (below)
     pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{to:uid,c:e.candidate.toJSON()}); };
     const markLive=()=>{ clearTimeout(p.slowT); clearTimeout(p.retryT); if(!p.tile.classList.contains("live")){ p.tile.classList.add("live"); gLive(); } };
     pc.onconnectionstatechange=()=>{ if(gc?.peers.get(uid)!==p) return; const st=pc.connectionState;
@@ -677,7 +729,7 @@ async function gRestart(p){   // find a new route without leaving the call
 }
 function gDrop(uid){
   const p=gc?.peers.get(uid); if(!p) return; clearTimeout(p.slowT); clearTimeout(p.retryT);
-  gc.peers.delete(uid); gFilterOff(p); try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
+  gc.peers.delete(uid); gFilterOff(p); if(p.au){ p.au.srcObject=null; p.au.remove(); } try{ p.pc&&(p.pc.ontrack=p.pc.onicecandidate=p.pc.onconnectionstatechange=null, p.pc.close()); }catch(e){}
   p.tile.querySelector("video").srcObject=null; p.tile.remove(); gLayout(); gPaintState();
 }
 function gLive(){   // someone's picture/sound arrived
