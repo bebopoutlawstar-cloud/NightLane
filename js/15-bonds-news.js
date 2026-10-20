@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20w", title:"Easier side chats 🛣️", items:["🛣️ Lots of side chats in a Lane? Arrows show when there are more, and you can swipe the strip on phones, or use the mouse wheel or drag it on computers."]},
     {v:"2026.10.20v", title:"Effects take turns 🎟️", items:["🎟️ When several people trigger secrets or effects at once, they now play one after another instead of stacking on top of each other."]},
     {v:"2026.10.20u", title:"Lounge dial tone 🎵", items:["🎵 Joining a voice lounge or group call now plays the dial tone while you connect, then the connect chime once you can hear each other."]},
     {v:"2026.10.20t", title:"Chat during calls 💬", items:["💬 In a call, tap CHAT to go back to the chat while the call keeps going. A little floating bar shows the timer, with mute and hang up. Tap it to return to the call. (Rosella's idea!)","📱 Fixed: leaving the app during a call no longer cuts the sound both ways.","🎧 Smarter noise filter: it learns what someone's background sounds like and keeps it quiet between their words, and a safety limit stops anyone from blasting over everyone else."]},

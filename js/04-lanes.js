@@ -107,8 +107,35 @@ function paintLaneBar(){
       b.append(chatIconEl({...r,lane_label:r.lane_label&&r.lane_label!=="💬"?r.lane_label:"nl:phones"}),el("span","",(r.name||"Lounge")+(n?` · ${n}`:""))); b.title="Voice lounge: hop in without pinging anyone"; b.onclick=()=>joinLounge(r); bar.append(b); return; }
     const b=el("button",!on&&+ir?.unread>0?"dot":""); b.type="button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",String(on));
     b.append(chatIconEl(r),el("span","",r.name||"chat")); b.onclick=()=>{ if(!on) enterRoom(r.code); }; bar.append(b); });
+  // ‹ › arrows at the edges (sticky, so they stay put while the strip scrolls)
+  const L=el("button","lb-arrow left","‹"), R=el("button","lb-arrow right","›");
+  L.type=R.type="button"; L.setAttribute("aria-label","Earlier side chats"); R.setAttribute("aria-label","More side chats"); L.tabIndex=R.tabIndex=-1;
+  L.onclick=()=>bar.scrollBy({left:-bar.clientWidth*.7,behavior:reducedMotion()?"auto":"smooth"});
+  R.onclick=()=>bar.scrollBy({left:bar.clientWidth*.7,behavior:reducedMotion()?"auto":"smooth"});
+  bar.prepend(L); bar.append(R);
   bar.querySelector('[aria-selected="true"]')?.scrollIntoView({inline:"center",block:"nearest"});
+  requestAnimationFrame(paintLaneArrows);
 }
+/* 🛣️ lots of side chats: show arrows where more are hidden, and let the mouse wheel / a mouse drag scroll the strip on computers */
+function paintLaneArrows(){
+  const bar=$("laneBar"); if(!bar) return;
+  const over=bar.scrollWidth>bar.clientWidth+4;
+  bar.classList.toggle("more-l",over&&bar.scrollLeft>4);
+  bar.classList.toggle("more-r",over&&bar.scrollLeft+bar.clientWidth<bar.scrollWidth-4);
+}
+(()=>{
+  const bar=$("laneBar"); if(!bar) return;
+  bar.addEventListener("scroll",paintLaneArrows,{passive:true}); addEventListener("resize",paintLaneArrows);
+  bar.addEventListener("wheel",e=>{ if(bar.scrollWidth<=bar.clientWidth||Math.abs(e.deltaX)>Math.abs(e.deltaY)) return; bar.scrollLeft+=e.deltaY; e.preventDefault(); },{passive:false});
+  let drag=null;
+  bar.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"||e.button>0||e.target.closest(".lb-arrow")) return; drag={x:e.clientX,left:bar.scrollLeft,moved:false,id:e.pointerId}; });
+  bar.addEventListener("pointermove",e=>{ if(!drag||e.pointerId!==drag.id) return; const dx=e.clientX-drag.x;
+    if(!drag.moved&&Math.abs(dx)<6) return; if(!drag.moved){ drag.moved=true; bar.setPointerCapture(e.pointerId); bar.classList.add("dragging"); }
+    bar.scrollLeft=drag.left-dx; });
+  const end=()=>{ if(!drag) return; const moved=drag.moved; drag=null; bar.classList.remove("dragging");
+    if(moved) bar.addEventListener("click",ev=>{ ev.stopPropagation(); ev.preventDefault(); },{capture:true,once:true}); };   // a drag isn't a tap on a chat
+  bar.addEventListener("pointerup",end); bar.addEventListener("pointercancel",end);
+})();
 async function openLaneSheet(id){
   const l=laneOf(id); if(!l) return; laneSheetId=id;
   const mgr=l.my_role!=="member";
