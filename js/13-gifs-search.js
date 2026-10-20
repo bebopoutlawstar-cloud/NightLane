@@ -517,7 +517,7 @@ $("resetInviteBtn").onclick=async()=>{
   finally{ btn.disabled=false; }
 };
 async function handleFriendInvite(token){
-  try{ const r=await api.acceptFriendInvite(token); await loadContacts(); const name=r?.username||"your friend";
+  try{ const r=await api.acceptFriendInvite(token); await loadContacts(); const name=r?.username||"your friend"; sfx("friend");
     say("contactMsg",`You and ${name} are friends now 🤝`); setFrontTab("contacts"); if(fxEnabled()&&typeof FX!=="undefined"){ FX.play("hearts"); pxfx("hearts",{scale:4}); } }
   catch(err){ say("contactMsg",/expired|invalid|not_found/i.test(err.message)?"That invite link isn't valid anymore.":"Couldn't use that invite: "+err.message,true); setFrontTab("contacts"); }
 }

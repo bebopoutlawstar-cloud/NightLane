@@ -12,7 +12,7 @@ const isFriend=uid=>contactIds.includes(uid);
 const addedMe=uid=>addedMeIds.includes(uid);
 async function addFriend(uid){
   if(isFriend(uid)) return;
-  await api.addContact(uid); contactIds.push(uid); gainXP("friend");
+  await api.addContact(uid); contactIds.push(uid); if(addedMe(uid)) sfx("friend"); gainXP("friend");   // 🤝 the chime plays when it makes you friends both ways
   refreshFriendUI();
 }
 async function removeFriend(uid){

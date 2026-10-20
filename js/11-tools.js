@@ -138,7 +138,7 @@ function paintTasks(){
   const box=$("taskList"); box.innerHTML=""; $("taskTitle").textContent=`Checklist (${list.filter(t=>!t.done).length} open)`;
   list.forEach(t=>{
     const row=el("label","taskrow"+(t.done?" done":"")); const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!t.done;
-    cb.onchange=async()=>{ t.done=cb.checked; paintTasks(); try{ await api.setTaskDone(t.id,cb.checked); }catch(err){ t.done=!cb.checked; paintTasks(); say("rsMsg",err.message,true); } };
+    cb.onchange=async()=>{ t.done=cb.checked; if(cb.checked) sfx("tick"); paintTasks(); try{ await api.setTaskDone(t.id,cb.checked); }catch(err){ t.done=!cb.checked; paintTasks(); say("rsMsg",err.message,true); } };
     const txt=el("span","tasktext",t.text); const who=el("small","",nameOf(t.created_by));
     const x=el("button","rm","✕"); x.type="button"; x.setAttribute("aria-label","Remove task"); x.onclick=async e=>{ e.preventDefault(); if(!confirm("Remove this task?")) return; tasks.delete(t.id); paintTasks(); try{ await api.deleteTask(t.id); }catch(err){ say("rsMsg",err.message,true); loadTasks(); } };
     row.append(cb,txt,who,x); box.append(row);

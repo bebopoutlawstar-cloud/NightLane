@@ -852,6 +852,7 @@ $("micBtn").onclick=async()=>{
   let stream;
   /* voice-message quality: one clean mono track at full rate. Echo cancellation is for calls, not voice notes,
      and it's what makes voices cut in and out ("choppy"), so it's off. Noise suppression + auto volume stay on. */
+  sfx("recStart"); await new Promise(r=>setTimeout(r,uiSoundOn()?240:0));   // 🎤 the blip finishes before the mic opens, so it never ends up in your voice note
   const VOICE_MIC={channelCount:1,sampleRate:{ideal:48000},echoCancellation:false,noiseSuppression:true,autoGainControl:true};
   audioForCapture(true);
   try{ stream=await navigator.mediaDevices.getUserMedia({audio:VOICE_MIC}); }
@@ -888,6 +889,7 @@ function finishRecording(send){
     }catch(err){ $("status").textContent="Voice message didn't send: "+err.message; }
   };
   try{ r.mr.stop(); }catch(e){ r.stream.getTracks().forEach(t=>t.stop()); }
+  if(send) sfx("recStop");
 }
 $("recSend").onclick=()=>finishRecording(true);
 $("recCancel").onclick=()=>finishRecording(false);

@@ -22,22 +22,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&family=Pixelify+Sans:wght@400;700&family=Silkscreen&family=Jersey+15&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
-<link rel="preload" href="js/00-media.js?v=7d4cf9c94a" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/00-media.js?v=614338ba0c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/02-core.js?v=ab80a54753" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/03-chat.js?v=25ef61b0cb" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/04-lanes.js?v=b30023ef52" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/05-chat-extras.js?v=83fdb9dead" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/03-chat.js?v=fc55ee7222" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/04-lanes.js?v=47ea67d909" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/05-chat-extras.js?v=cc84a07cce" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/07-friends.js?v=e3171c777c" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/07-friends.js?v=4a73d3b311" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/09-install-birthdays.js?v=1d10d65492" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/10-secrets-1.js?v=6150c577b4" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/11-tools.js?v=089379597d" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/12-secrets-2.js?v=0fbb7e84b1" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/13-gifs-search.js?v=7765920cc6" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/10-secrets-1.js?v=52f148818e" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/11-tools.js?v=9c732eb82d" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/12-secrets-2.js?v=3c890dd0a9" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/13-gifs-search.js?v=ce07b73804" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=280123fd8b" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=637d39345c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
@@ -1444,7 +1444,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.20y";
+const APP_VERSION="2026.10.20z";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1469,22 +1469,22 @@ const APP_VERSION="2026.10.20y";
      19-calls        voice/video calls, screen share, group calls */
 (()=>{
   const FILES=[
-  "js/00-media.js?v=7d4cf9c94a",
+  "js/00-media.js?v=614338ba0c",
   "js/01-boards.js?v=82bebb9adc",
   "js/02-core.js?v=ab80a54753",
-  "js/03-chat.js?v=25ef61b0cb",
-  "js/04-lanes.js?v=b30023ef52",
-  "js/05-chat-extras.js?v=83fdb9dead",
+  "js/03-chat.js?v=fc55ee7222",
+  "js/04-lanes.js?v=47ea67d909",
+  "js/05-chat-extras.js?v=cc84a07cce",
   "js/06-effects.js?v=25cefc7232",
-  "js/07-friends.js?v=e3171c777c",
+  "js/07-friends.js?v=4a73d3b311",
   "js/08-games.js?v=3188c36dec",
   "js/09-install-birthdays.js?v=1d10d65492",
-  "js/10-secrets-1.js?v=6150c577b4",
-  "js/11-tools.js?v=089379597d",
-  "js/12-secrets-2.js?v=0fbb7e84b1",
-  "js/13-gifs-search.js?v=7765920cc6",
+  "js/10-secrets-1.js?v=52f148818e",
+  "js/11-tools.js?v=9c732eb82d",
+  "js/12-secrets-2.js?v=3c890dd0a9",
+  "js/13-gifs-search.js?v=ce07b73804",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=280123fd8b",
+  "js/15-bonds-news.js?v=637d39345c",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",

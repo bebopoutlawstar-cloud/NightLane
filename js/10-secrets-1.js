@@ -273,7 +273,7 @@ const countFound=f=>f.filter(id=>SECRET_LIST.some(x=>x.id===id)).length;   // re
 function discoverSecret(id){
   const f=foundSecrets(); if(f.includes(id)) return false;
   f.push(id); try{ LS.set(SECRETS_KEY,JSON.stringify(f)); }catch(e){} progressChanged(true);
-  const s=SECRET_LIST.find(x=>x.id===id); gainXP("secret"); setTimeout(checkUnlocks,900);
+  const s=SECRET_LIST.find(x=>x.id===id); sfx("secret"); gainXP("secret"); setTimeout(checkUnlocks,900);
   const t=el("div","toast mention"); const body=el("span","tbody");
   body.append(el("div","ttitle",`🔓 Secret found (${countFound(f)}/${SECRET_LIST.length})`), el("div","ttext",s?s.name:"???"));
   t.append(el("span","sx-lock","🔓"),body); $("toasts").prepend(t);

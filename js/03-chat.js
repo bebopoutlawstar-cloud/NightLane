@@ -98,7 +98,8 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ if(type
 
 /* ================= UI SOUNDS (Kenney "Interface Sounds", CC0 public domain) ================= */
 /* (moved to js/00-media.js) */
-const UI_VOL={send:.28,receive:.3,notify:.32,mention:.4,toggle:.22,tab:.16,error:.3};
+const UI_VOL={send:.28,receive:.3,notify:.32,mention:.4,toggle:.22,tab:.16,error:.3,
+  turn:.3,recStart:.22,recStop:.22,react:.22,friend:.32,secret:.36,levelup:.36,xp:.22,tick:.2};   // 2026.10.20z sound kit
 /* Message buzzes: short double-taps you can actually feel (the old 25-30ms blips were too faint on most phones).
    Android only: Apple doesn't let web apps vibrate on iPhone. */
 const BUZZ={chat:[70,50,70], message:[90,60,90], mention:[120,70,120,70,120]};
@@ -182,7 +183,7 @@ function owlLeaving(){ if(user&&owlOn()&&myHabits.length) api.owlSchedule(myTime
 function owlBack(){ if(user) api.owlCancel().catch(()=>{}); }
 document.addEventListener("visibilitychange",()=>{ document.hidden?owlLeaving():owlBack(); });
 addEventListener("pagehide",owlLeaving);
-const _sfxBuf={}, _lastSfx={}; let _sfxLoading=null;
+const _sfxBuf={}, _lastSfx={}; let _sfxLoading=null, _lastAnySfx=0;
 const sfxCtx=()=>window.__sxac||(window.__sxac=new (window.AudioContext||window.webkitAudioContext)());
 function loadSfx(){
   if(_sfxLoading) return _sfxLoading;
@@ -194,7 +195,9 @@ function loadSfx(){
 }
 function sfx(name){
   if(!uiSoundOn()||document.hidden) return;
-  const now=Date.now(); if(now-(_lastSfx[name]||0)<(name==="notify"?1000:120)) return;   // the Lane Chime is longer, so give it a second before it plays again _lastSfx[name]=now;   // a burst of messages = one ping, not a machine gun
+  const now=Date.now(); if(now-(_lastSfx[name]||0)<(name==="notify"?1000:120)) return;   // the Lane Chime is longer, so give it a second before it plays again
+  if(name==="xp"&&now-_lastAnySfx<600) return;   // the XP coin stays quiet when a bigger sound (secret, friend, level up) just played
+  _lastSfx[name]=now; _lastAnySfx=now;   // a burst of messages = one ping, not a machine gun
   try{
     const ac=sfxCtx(); if(ac.state==="suspended") ac.resume();
     const buf=_sfxBuf[name]; if(!buf){ loadSfx(); return; }
@@ -463,6 +466,7 @@ async function enterRoom(code,token){
       roomUpdated:r=>{ if(r.icon_url!==undefined){ if(r.icon_url) roomIcons.set(r.code,r.icon_url); else roomIcons.delete(r.code); loadInboxSoon(); } if(r.code!==room) return; if(r.name!==undefined) setRoomName(r.name); else paintRoomIcon(); if(r.background!==undefined) setRoomBackground(r.background); if(r.owner!==undefined) roomOwner=r.owner; if(r.disappear_seconds!==undefined){ disappear=+r.disappear_seconds||0; paintDisappear(); } },
       task:p=>{ if(p.eventType==="DELETE"){ tasks.delete(p.old.id); } else tasks.set(p.new.id,p.new); paintTasks(); },
       game:g=>{ const prev=gamesById.get(g.message_id); gamesById.set(g.message_id,g); refreshMsg(g.message_id); if(openGameId===g.message_id) paintGame(prev);
+        try{ if(prev&&g.status==="active"&&!anyGameStatus(prev).turn&&anyGameStatus(g).turn) setTimeout(()=>sfx("turn"),350); }catch(e){}   // 🎮 it just became your turn (after the move sound)
         const wasPinned=pins.has(g.message_id);
         if(!sb&&g.status==="done"&&pins.get(g.message_id)?.auto){ pins.delete(g.message_id); pinCursor=0; }   // the server does this itself
         if(wasPinned) paintPinBar(); },
@@ -697,7 +701,7 @@ async function syncReaction(m,emoji,k){
   try{
     while(st.want!==st.saved){
       const target=st.want;
-      if(target){ await api.react(m.id,m.room||room,emoji); gainXP("reaction"); } else await api.unreact(m.id,user.id,emoji);
+      if(target){ sfx("react"); await api.react(m.id,m.room||room,emoji); gainXP("reaction"); } else await api.unreact(m.id,user.id,emoji);
       st.saved=target;
     }
     reactSync.delete(k);

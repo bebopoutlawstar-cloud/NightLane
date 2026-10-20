@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.20z", title:"New app sounds 🔊", items:["🔓 Finding a secret now plays a shiny unlock sound.","⬆ New sounds for leveling up, earning XP, your turn in a game, reactions, new friends, poll votes, checking off tasks, and starting and sending voice messages.","🔇 They all follow the Sounds setting, so turning sounds off turns these off too."]},
     {v:"2026.10.20y", title:"Call buttons fit 📱", items:["📱 The call buttons now shrink to fit your screen (and add a row if needed) instead of running off the edges.","🎧 The background-noise filter now works in 1-on-1 calls too: tap FILTER."]},
     {v:"2026.10.20x", title:"16 new secrets 🔓", items:["🔓 16 new secrets to find, from fighter jets and web-slinging to capture orbs, mobile-suit launches and a medieval charge. Some ideas came from GoddessLyra!","🚨 \"Stay frosty\" is now a full action-movie scene. The old caption-style anime lines were retired.","🎟️ Every secret now takes its turn, including the newer scene-style ones."]},
     {v:"2026.10.20w", title:"Easier side chats 🛣️", items:["🛣️ Lots of side chats in a Lane? Arrows show when there are more, and you can swipe the strip on phones, or use the mouse wheel or drag it on computers."]},

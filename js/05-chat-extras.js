@@ -102,7 +102,7 @@ function pollEl(m){
     b.onclick=async e=>{ e.stopPropagation();
       const had=mine; if(!p.multi&&!had) p.options.forEach((_,k)=>p.votes.get(k)?.delete(user.id));
       setVote(p,{option_index:i,user_id:user.id},!had); refreshMsg(m.id);
-      try{ await api.vote(m.id,i); if(!had) gainXP("vote"); }catch(err){ $("status").textContent="Vote didn't save: "+err.message; } };
+      try{ if(!had) sfx("tick"); await api.vote(m.id,i); if(!had) gainXP("vote"); }catch(err){ $("status").textContent="Vote didn't save: "+err.message; } };
     box.append(b);
   });
   box.append(el("div","pollfoot",`${voters.size} ${voters.size===1?"person":"people"} voted${p.multi?" · pick any":""}`));

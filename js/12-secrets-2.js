@@ -561,11 +561,12 @@ function gainXP(kind,mult=1){
   const now=xpLevel(d.xp);
   if(!$("profile").classList.contains("hidden")) paintXP(); paintHomeLevel();
   if(now.lvl>before) whenEffectsQuiet(()=>{   // wait for any easter egg on screen to finish first, so they don't pile up
+    sfx("levelup");
     setTimeout(checkUnlocks,2500); setTimeout(()=>growCelebrate(before,now.lvl),4800); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
     const t=el("div","toast mention"); const body=el("span","tbody"); body.append(el("div","ttitle",`⬆ Level ${now.lvl} · ${LEVEL_TITLES[Math.min(now.lvl-1,LEVEL_TITLES.length-1)]}`), el("div","ttext","Keep going, you're on a roll."));
     { const ic=el("span","sx-lock"); ic.append(pxIcon("goldkey",32,"")); t.append(ic,body); } $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },5000);
     if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
-  }); else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
+  }); else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); sfx("xp"); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
 }
 /* is an easter egg / screen effect playing right now? (the effects layer has something in it, or the confetti canvas is running) */
 function effectsBusy(){
