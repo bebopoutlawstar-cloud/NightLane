@@ -589,7 +589,45 @@ function videoThumb(url){ return new Promise(res=>{
   v.onerror=()=>finish(null); setTimeout(()=>finish(null),2500); v.src=url;
 }); }
 $("pmClear").onclick=()=>clearPending();
-$("pickBtn").onclick=()=>{ closeTray(); $("picker").click(); };
+/* 📷 the camera button takes a photo: phones open their own camera app, computers get an in-app camera.
+   Gallery photos and videos moved to the + tray ("🖼️ Photos"). */
+// the camera button offers both: snap a new photo, or pick from your gallery like before
+function closeCamMenu(){ show($("camMenu"),false); $("pickBtn").setAttribute("aria-expanded","false"); }
+$("pickBtn").onclick=e=>{ e.stopPropagation(); closeTray(); const open=$("camMenu").classList.contains("hidden"); show($("camMenu"),open); $("pickBtn").setAttribute("aria-expanded",String(open)); if(open) $("camTake").focus(); };
+$("camTake").onclick=()=>{ closeCamMenu(); if(BROWSER.ios||BROWSER.android) $("camPicker").click(); else openCam(); };
+$("camChoose").onclick=()=>{ closeCamMenu(); $("picker").click(); };
+document.addEventListener("click",e=>{ if(!$("camMenu").classList.contains("hidden")&&!e.target.closest("#camMenu")) closeCamMenu(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("camMenu").classList.contains("hidden")){ closeCamMenu(); $("pickBtn").focus(); } });
+$("trayPhotos").onclick=()=>{ closeTray(); $("picker").click(); };
+$("camPicker").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) addPicked([f]); };
+let snapStream=null, snapFacing="user";
+async function openCam(){
+  if(!navigator.mediaDevices?.getUserMedia){ $("picker").click(); return; }   // no camera support: fall back to choosing a file
+  show($("camSheet")); $("camMsg").textContent="";
+  await startCam();
+}
+async function startCam(){
+  stopCam();
+  try{ snapStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:snapFacing,width:{ideal:1920},height:{ideal:1080}},audio:false}); }
+  catch(e){ $("camMsg").textContent=e?.name==="NotAllowedError"?"Camera permission was blocked. Allow it in your browser settings to take photos.":"Couldn't open a camera on this device."; return; }
+  $("camVideo").srcObject=snapStream; $("camVideo").classList.toggle("mirror",snapFacing==="user");
+  try{ const cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); show($("camFlip"),cams.length>1); }catch(e){}
+}
+function stopCam(){ if(snapStream){ snapStream.getTracks().forEach(t=>t.stop()); snapStream=null; } $("camVideo").srcObject=null; }
+function closeCam(){ stopCam(); show($("camSheet"),false); }
+$("camCancel").onclick=closeCam;
+$("camFlip").onclick=()=>{ snapFacing=snapFacing==="user"?"environment":"user"; startCam(); };
+$("camSheet").addEventListener("click",e=>{ if(e.target.id==="camSheet") closeCam(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("camSheet").classList.contains("hidden")) closeCam(); });
+$("camSnap").onclick=()=>{
+  const v=$("camVideo"); if(!snapStream||!v.videoWidth) return;
+  const c=document.createElement("canvas"); c.width=v.videoWidth; c.height=v.videoHeight; const x=c.getContext("2d");
+  if(snapFacing==="user"){ x.translate(c.width,0); x.scale(-1,1); }   // selfies come out the way you saw them
+  x.drawImage(v,0,0);
+  const fl=$("camFlash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
+  if(typeof sfx==="function") sfx("toggle");
+  c.toBlob(b=>{ if(!b) return; closeCam(); addPicked([new File([b],`photo-${Date.now()}.jpg`,{type:"image/jpeg"})]); },"image/jpeg",.9);
+};
 /* Re-records a video at 720p / ~2 Mbps so iPhone clips (often 30-100+ MB) fit the 25 MB upload limit.
    It plays the video silently into a hidden canvas and records that, so it takes about as long as the clip.
    Output is MP4 (H.264) where the browser supports it, which plays on every phone. */
@@ -645,8 +683,8 @@ async function shrinkVideo(file,onProgress){
   }
 }
 function videoDuration(file){ return new Promise(res=>{ const v=document.createElement("video"); v.preload="metadata"; v.onloadedmetadata=()=>{ res(v.duration); URL.revokeObjectURL(v.src); }; v.onerror=()=>res(NaN); v.src=URL.createObjectURL(file); }); }
-$("picker").onchange=async e=>{
-  let files=[...e.target.files]; e.target.value="";
+$("picker").onchange=e=>{ const files=[...e.target.files]; e.target.value=""; addPicked(files); };
+async function addPicked(files){
   if(!files.length) return;
   if(files.length===1&&!pendingImages.length&&!pendingVideos.length&&!pendingFile){ takeFile(files[0]); return; }
   if((await Promise.all(files.map(isHeic))).some(Boolean)){

@@ -26,7 +26,7 @@
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/02-core.js?v=ee8dfa80d8" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/03-chat.js?v=fc55ee7222" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/04-lanes.js?v=47ea67d909" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/04-lanes.js?v=4ccdbe61c5" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/05-chat-extras.js?v=cc84a07cce" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=4a73d3b311" as="fetch" crossorigin="anonymous">
@@ -37,13 +37,13 @@
 <link rel="preload" href="js/12-secrets-2.js?v=3c890dd0a9" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=ce07b73804" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=87d2776b02" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=1f1123cbb1" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=89e52f4d8f" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=a10e048e9a">
-<link rel="stylesheet" href="css/2-features.css?v=8ac9fcc022">
+<link rel="stylesheet" href="css/2-features.css?v=21a36333fd">
 <link rel="stylesheet" href="css/3-secrets.css?v=74ae039498">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=714cf8d72e">
 <link rel="stylesheet" href="css/5-games-themes-calls.css?v=c10fa78d42">
@@ -225,6 +225,7 @@
     <div class="mentions hidden" id="mentionList" role="listbox" aria-label="Mention someone"></div>
     <div class="tray hidden" id="tray">
       <div class="tray-tabs">
+        <button type="button" class="ghost" id="trayPhotos">🖼️ Photos</button>
         <button type="button" class="ghost" id="traySticker" aria-pressed="true">Stickers</button>
         <button type="button" class="ghost" id="trayGifs" aria-pressed="false">GIFs</button>
         <button type="button" class="ghost" id="trayGames" aria-pressed="false">Games</button>
@@ -292,16 +293,21 @@
       <button type="button" class="send" id="recSend">Send</button>
     </div>
     <div class="row" id="composeRow">
-      <button type="button" class="clip" id="plusBtn" aria-label="Stickers and polls" aria-expanded="false">
+      <button type="button" class="clip" id="plusBtn" aria-label="Photos, stickers, GIFs, games and more" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 4v16M4 12h16"/></svg>
       </button>
-      <button type="button" class="clip" id="pickBtn" aria-label="Add a photo or video">
+      <button type="button" class="clip" id="pickBtn" aria-label="Take or choose a photo" aria-haspopup="menu" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="14"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>
       </button>
       <button type="button" class="clip" id="micBtn" aria-label="Record a voice message">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
       </button>
       <input type="file" id="picker" accept="image/*,video/*" multiple class="sr">
+      <input type="file" id="camPicker" accept="image/*" capture="environment" class="sr" tabindex="-1" aria-hidden="true">
+      <div class="cammenu hidden" id="camMenu" role="menu">
+        <button type="button" role="menuitem" id="camTake">📷 Take a photo</button>
+        <button type="button" role="menuitem" id="camChoose">🖼️ Choose photos or videos</button>
+      </div>
       <label for="box" class="sr">Message</label>
       <textarea id="box" rows="1" placeholder="Transmit…"></textarea>
       <button class="send" type="submit" id="sendBtn">Send</button>
@@ -507,6 +513,18 @@
 
 <!-- ============ MESSAGE MENU ============ -->
 <div class="reactpop hidden" id="reactPop" role="dialog" aria-label="React to this message"></div>
+<div class="overlay hidden" id="camSheet" role="dialog" aria-modal="true" aria-label="Take a photo">
+  <div class="camsheet">
+    <video id="camVideo" autoplay playsinline muted></video>
+    <div class="camflash" id="camFlash"></div>
+    <div class="cambar">
+      <button type="button" class="ghost" id="camCancel">Cancel</button>
+      <button type="button" class="camsnap" id="camSnap" aria-label="Take the photo"></button>
+      <button type="button" class="ghost" id="camFlip" aria-label="Switch camera">🔄 Flip</button>
+    </div>
+    <p class="note" id="camMsg"></p>
+  </div>
+</div>
 <div class="overlay hidden" id="msgMenu" role="dialog" aria-modal="true" aria-label="Message options">
   <div class="sheet"><div class="sheetbody">
     <div class="menu-preview" id="menuPreview"></div>
@@ -1444,7 +1462,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.21a";
+const APP_VERSION="2026.10.21b";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1473,7 +1491,7 @@ const APP_VERSION="2026.10.21a";
   "js/01-boards.js?v=82bebb9adc",
   "js/02-core.js?v=ee8dfa80d8",
   "js/03-chat.js?v=fc55ee7222",
-  "js/04-lanes.js?v=47ea67d909",
+  "js/04-lanes.js?v=4ccdbe61c5",
   "js/05-chat-extras.js?v=cc84a07cce",
   "js/06-effects.js?v=25cefc7232",
   "js/07-friends.js?v=4a73d3b311",
@@ -1484,7 +1502,7 @@ const APP_VERSION="2026.10.21a";
   "js/12-secrets-2.js?v=3c890dd0a9",
   "js/13-gifs-search.js?v=ce07b73804",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=87d2776b02",
+  "js/15-bonds-news.js?v=1f1123cbb1",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",

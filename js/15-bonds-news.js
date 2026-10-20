@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21b", title:"Snap a photo 📷", items:["📷 The camera button can now take a photo to send right away: tap it, then Take a photo. Phones open your camera; computers get a camera right in the app (with Flip if you have more than one).","🖼️ Choosing from your gallery still works from the camera button, and it's in the + menu too: 🖼️ Photos."]},
     {v:"2026.10.21a", title:"New night skies ⭐", items:["⭐ Starry backgrounds got a glow-up: a deep-blue glow, tiny stars in every size, and bright stars with a cross-shaped sparkle that slowly pulses.","🌌 You'll see them in the Stars, Nebula, Twin Stars and Constellation room backgrounds, on the Galaxy frame, and in the starry secrets."]},
     {v:"2026.10.20z", title:"New app sounds 🔊", items:["🔓 Finding a secret now plays a shiny unlock sound.","⬆ New sounds for leveling up, earning XP, your turn in a game, reactions, new friends, poll votes, checking off tasks, and starting and sending voice messages.","🔇 They all follow the Sounds setting, so turning sounds off turns these off too."]},
     {v:"2026.10.20y", title:"Call buttons fit 📱", items:["📱 The call buttons now shrink to fit your screen (and add a row if needed) instead of running off the edges.","🎧 The background-noise filter now works in 1-on-1 calls too: tap FILTER."]},
