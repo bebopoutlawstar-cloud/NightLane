@@ -521,13 +521,14 @@ async function addMessages(list){
   msgs.sort((a,b)=>a.created_at<b.created_at?-1:a.created_at>b.created_at?1:0);
   if(appendOnly && feed.querySelector(".msg,.empty,.older")) list.forEach(appendEl);
   else {   // a message landed out of order (slow network): redraw, but don't yank someone who's scrolled up reading back to the bottom
-    const stick=!feed.querySelector(".msg,.empty,.older")||feed.scrollHeight-feed.scrollTop-feed.clientHeight<150||list.some(m=>m.user_id===user?.id);
+    const stick=!feed.querySelector(".msg,.empty,.older")||feedPinned||feed.scrollHeight-feed.scrollTop-feed.clientHeight<150||list.some(m=>m.user_id===user?.id);
     renderAll(stick); if(!stick) newPillAdd();
     list.forEach(m=>playFx(m)); }   // first message in an empty chat still gets its effect/secret (playFx skips anything older than 15s)
 }
 
 function visible(m){ return !blocked.has(m.user_id); }
 
+let feedPinned=true;   // see the note under renderAll
 function renderAll(keepBottom=true){
   const prevH=feed.scrollHeight, prevTop=feed.scrollTop;
   feed.innerHTML=""; elById.clear();
@@ -542,17 +543,27 @@ function renderAll(keepBottom=true){
   if(!n && !hasMore) feed.append(el("p","empty","Nobody has said anything here yet. Start it off."));
   paintReceipts();
   feed.scrollTop = keepBottom ? feed.scrollHeight : feed.scrollHeight-prevH+prevTop;
+  if(keepBottom) feedPinned=true;
 }
+/* 📌 "pinned to the bottom" is what YOU did (scrolled down, or never scrolled up), not a distance worked out later.
+   Before, a photo finishing loading, a "Read by" row or a reaction could push the bottom away by itself, so the next
+   message thought you'd scrolled up and showed the "new message" pill over what you were reading. */
+feed.addEventListener("scroll",()=>{ feedPinned=feed.scrollHeight-feed.scrollTop-feed.clientHeight<150; },{passive:true});
+function keepPinned(){ if(feedPinned) feed.scrollTop=feed.scrollHeight; }
+feed.addEventListener("load",keepPinned,true);              // photos / stickers / GIFs finishing loading
+feed.addEventListener("loadedmetadata",keepPinned,true);    // videos and voice notes
+try{ new ResizeObserver(keepPinned).observe(feed); }catch(e){}   // the chat area itself changing size (keyboard, pending bar)
+try{ new MutationObserver(()=>requestAnimationFrame(keepPinned)).observe(feed,{childList:true,subtree:true}); }catch(e){}   // read receipts, reactions, typing rows
 
 function appendEl(m){
   if(!visible(m)) return;
-  const stick=feed.scrollHeight-feed.scrollTop-feed.clientHeight<150||m.user_id===user?.id;   // at the bottom already, or it's your own message
+  const stick=feedPinned||feed.scrollHeight-feed.scrollTop-feed.clientHeight<150||m.user_id===user?.id;   // at the bottom already, or it's your own message
   feed.querySelector(".empty")?.remove();
   const prev=[...elById.keys()].map(id=>byId.get(id)).filter(Boolean).pop();
   if(!prev || dayKey(prev.created_at)!==dayKey(m.created_at)) feed.append(el("div","daybreak",dayLabel(m.created_at)));
   const node=buildMsg(m,elById.size); elById.set(m.id,node); feed.append(node);
   paintReceipts();
-  if(stick) feed.scrollTop=feed.scrollHeight; else newPillAdd();
+  if(stick){ feed.scrollTop=feed.scrollHeight; feedPinned=true; } else newPillAdd();
   if(m.user_id!==user.id&&myLang()) translateMsg(m);
   if(m.expires_at) scheduleExpiry();
   playFx(m);
