@@ -146,6 +146,15 @@ a:hover { color: var(--volt); }
     box-shadow: 6px 6px 0 var(--magenta);
    }
   .big-btn.cyan:hover { box-shadow: 8px 8px 0 var(--magenta); }
+  /* step 2 stays locked until step 1 has been tapped, so nobody skips joining the testers */
+  .big-btn.locked { background-color: #2A2350; color: #8E86C0; box-shadow: 6px 6px 0 #3B2D80; cursor: not-allowed; }
+  .big-btn.locked:hover { color: #8E86C0; transform: skew(-6deg); box-shadow: 6px 6px 0 #3B2D80; }
+  .big-btn.nudge { animation: nudge .45s ease; }
+  @keyframes nudge { 0%,100% { transform: skew(-6deg) translateX(0); } 25% { transform: skew(-6deg) translateX(-8px); } 75% { transform: skew(-6deg) translateX(8px); } }
+  .big-btn.done::after { content: " ✓"; }
+  .warn-box { margin: 0 0 14px; padding: 12px 14px; background: rgba(243,255,58,.1); border: 2px solid var(--volt); color: var(--white, #F4F7FF); font-size: 16px; max-width: 560px; }
+  .step-msg:empty { display: none; }
+  .step-msg { color: var(--volt); font-weight: 700; }
    .devices {
     display: flex;
     flex-wrap: wrap;
@@ -282,9 +291,11 @@ a:hover { color: var(--volt); }
         <p class="guess" id="guess" hidden></p>
 
         <div class="pick" data-device="android">
-          <a class="big-btn" href="https://groups.google.com/g/nightlane-testers">1 · JOIN THE TESTERS</a>
-          <a class="big-btn cyan" href="https://play.google.com/apps/testing/chat.nightlane.app">2 · GET IT ON GOOGLE PLAY</a>
-          <p class="note">We're in testing on Google Play: join the tester group with the Google account on your phone, then tap <b>Become a tester</b> and install.</p>
+          <p class="warn-box"><b>⚠️ Do step 1 first.</b> Google Play only lets testers download NightLane. Skip it and Play says the app isn't available.</p>
+          <a class="big-btn join-link" href="https://groups.google.com/g/nightlane-testers" target="_blank" rel="noopener">1 · JOIN THE TESTERS</a>
+          <a class="big-btn cyan play-link locked" href="https://play.google.com/apps/testing/chat.nightlane.app" aria-disabled="true">🔒 2 · DO STEP 1 FIRST</a>
+          <p class="note step-msg" id="stepMsg" role="status"></p>
+          <p class="note">Join the tester group with the <b>same Google account that's on your phone</b>, come back here, then tap step 2, tap <b>Become a tester</b> and install. <button type="button" class="linkish" id="alreadyJoined">Already joined?</button></p>
           <p class="note install-alt" hidden>No Play Store? <button type="button" class="linkish install-btn">Install it straight from Chrome</button>.</p>
         </div>
 
@@ -320,7 +331,7 @@ a:hover { color: var(--volt); }
         <article class="card on" data-device="android">
           <div class="card-head"><h3>ANDROID</h3><span class="chip">GOOGLE PLAY · TESTING</span></div>
           <ol>
-            <li><a href="https://groups.google.com/g/nightlane-testers"><b>Join the tester group</b></a> with the Google account on your phone.</li>
+            <li><a class="join-link" href="https://groups.google.com/g/nightlane-testers" target="_blank" rel="noopener"><b>Join the tester group</b></a> with the Google account on your phone. <b>Don't skip this</b>: the app won't download until you've joined.</li>
             <li><a href="https://play.google.com/apps/testing/chat.nightlane.app"><b>Open the test page</b></a> and tap <b>Become a tester</b>.</li>
             <li>Tap <b>Download it on Google Play</b>, install, and sign in. Your chats are already there.</li>
           </ol>
@@ -386,6 +397,7 @@ a:hover { color: var(--volt); }
     <section class="section" id="help" aria-labelledby="helpTitle">
       <h2 id="helpTitle">Quick answers</h2>
       <div class="faq">
+        <div><b>Google Play says NightLane isn't available?</b><p>You haven't joined the tester group yet, or you joined with a different Google account than the one on your phone. Join it with your phone's account, wait a minute, then open the Play link again.</p></div>
         <div><b>Is it free?</b><p>Yes. NightLane is free to use.</p></div>
         <div><b>Is the app different from the website?</b><p>No, it's the same NightLane. Your chats, friends and Lanes come with you.</p></div>
         <div><b>No notifications on iPhone?</b><p>iPhones only send them once NightLane is on your Home Screen. Add it, open it from there, and tap Allow.</p></div>
@@ -405,6 +417,29 @@ a:hover { color: var(--volt); }
   </footer>
 
 <script>
+  /* ---- Android: step 2 unlocks once step 1 (join the testers) has been tapped ---- */
+  const JOINED_KEY = "nl-joined-testers";
+  function joinedYet() { try { return localStorage.getItem(JOINED_KEY) === "1"; } catch (e) { return false; } }
+  function paintSteps() {
+    const ok = joinedYet();
+    document.querySelectorAll(".play-link").forEach(a => {
+      a.classList.toggle("locked", !ok);
+      a.setAttribute("aria-disabled", String(!ok));
+      a.textContent = ok ? "2 · GET IT ON GOOGLE PLAY" : "🔒 2 · DO STEP 1 FIRST";
+    });
+    document.querySelectorAll(".big-btn.join-link").forEach(a => a.classList.toggle("done", ok));
+  }
+  function markJoined() { try { localStorage.setItem(JOINED_KEY, "1"); } catch (e) {} document.getElementById("stepMsg").textContent = "Nice! Once you've joined, come back and tap step 2."; paintSteps(); }
+  document.querySelectorAll(".join-link").forEach(a => a.addEventListener("click", markJoined));
+  document.getElementById("alreadyJoined").addEventListener("click", () => { markJoined(); document.getElementById("stepMsg").textContent = "Step 2 is unlocked. Use the same Google account that joined the group."; });
+  document.querySelectorAll(".play-link").forEach(a => a.addEventListener("click", e => {
+    if (!a.classList.contains("locked")) return;
+    e.preventDefault();
+    a.classList.remove("nudge"); void a.offsetWidth; a.classList.add("nudge");
+    document.getElementById("stepMsg").textContent = "Join the tester group first (step 1), otherwise Google Play won't let you download NightLane.";
+  }));
+  paintSteps();
+
   /* ---- switch between Android / iPhone / Computer ---- */
   function showDevice(name) {
     // 1. light up the right device button
