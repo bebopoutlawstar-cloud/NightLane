@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21e", title:"Calls that hang on 📶", items:["📶 Calls recover from dropouts much better, especially iPhone ↔ Android: either phone can now fix the connection (not just the caller), it keeps trying instead of giving up after one go, and it waits 30 seconds before hanging up. You'll see RECONNECTING on the timer while it works.","📱 Coming back to the app mid-call fixes the connection straight away if it dropped while you were away."]},
     {v:"2026.10.21d", title:"Invites that get the app 📲", items:["📲 Your friend invite link (📲 in Friends) now opens the Get the app page. Your friend downloads NightLane or opens it in the browser, signs in, and you're friends automatically."]},
     {v:"2026.10.21c", title:"No more pill in the way 📌", items:["📌 If you're reading at the bottom of a chat, new messages now always scroll into view instead of showing the \"new message\" pill over what you're reading. Photos loading, read receipts and reactions no longer knock you off the bottom."]},
     {v:"2026.10.21b", title:"Snap a photo 📷", items:["📷 The camera button can now take a photo to send right away: tap it, then Take a photo. Phones open your camera; computers get a camera right in the app (with Flip if you have more than one).","🖼️ Choosing from your gallery still works from the camera button, and it's in the + menu too: 🖼️ Photos."]},

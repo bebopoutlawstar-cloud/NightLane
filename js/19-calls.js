@@ -178,6 +178,7 @@ document.addEventListener("visibilitychange",()=>{
     [...(g?g.peers.values():[]),oneNF].forEach(p=>{ if(p.nf&&p.au){ p.au.muted=false; try{ p.nf.out.gain.value=0; }catch(e){} p.nfBypass=true; } });
   } else {
     if(callCtx&&callCtx.state!=="running") callCtx.resume().catch(()=>{});
+    if(pc&&pc.connectionState!=="connected"&&pc.connectionState!=="closed"){ iceTries=0; fixRoute(); }   // iPhones pause in the background: fix the route the moment you're back
     if(micProcessed){ const t=micProcessed; setTimeout(()=>{ if(!callStream||micProcessed!==t) return; micProcessed=null; if(callCtx?.state==="running"&&t.readyState==="live"){ t.enabled=micRaw.enabled; sendMicTrack(t); } },500); }
     [...(g?g.peers.values():[]),oneNF].forEach(p=>{ if(!p.nfBypass||!p.nf) return; p.nfBypass=false; p.nf.ctx.resume().catch(()=>{}).finally(()=>{ if(!p.nf) return; try{ p.nf.out.gain.value=1; }catch(e){} if(p.au) p.au.muted=true; }); });
   }
@@ -381,17 +382,31 @@ async function startPeer(){
   callStream.getTracks().forEach(t=>{ const s=pc.addTrack(t,callStream); if(t.kind==="video") videoSender=s; else audioSender=s; });   // send my camera + mic
   pc.ontrack=e=>{ $("remoteVideo").srcObject=e.streams[0]; const au=$("remoteAudio"); if(au.srcObject!==e.streams[0]){ au.srcObject=e.streams[0]; au.play().catch(()=>{}); if(oneNF.nf){ gFilterOff(oneNF); oneNF.au=au; gFilterOn(oneNF,e.streams[0]); } }
     show($("callFilter"),true); $("callScreen").classList.add("live");   // their video arrived
-    if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); },1000); } };
+    if(!callStartAt){ stopCallTune(); playConnectChime(); sendSignal("cam",{on:myCam}); callStartAt=Date.now(); $("callState").textContent="LIVE 0:00"; callTimer=setInterval(()=>{ $("callState").textContent=(giveUpT?"RECONNECTING ":"LIVE ")+callClock(Date.now()-callStartAt); },1000); } };
   pc.onicecandidate=e=>{ if(e.candidate) sendSignal("ice",{c:e.candidate.toJSON()}); };   // a route to reach me
+  /* 📶 2026.10.21e: drops recover from EITHER phone, as many times as needed.
+     Before, only the caller could fix the route, only once per call, and the other phone hung up 1.5s after a
+     "failed" — so iPhone <-> Android calls (different networks, iOS pausing in the background) kept dropping. */
   pc.onconnectionstatechange=()=>{ const st=pc?.connectionState;
-    if(st==="connected"){ clearTimeout(iceFixT); tunePc(pc); watchCall(); }
-    if(st==="disconnected"){ clearTimeout(iceFixT); iceFixT=setTimeout(()=>restartIce(),2500); callFlash("📶 Signal dropped, reconnecting…",2500); }
-    if(st==="failed"){ if(iAmOfferer&&!iceRetried){ iceRetried=true; restartIce(); return; } $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } };
+    if(st==="connected"){ clearTimeout(iceFixT); clearTimeout(giveUpT); giveUpT=null; iceTries=0; tunePc(pc); watchCall(); if(callStartAt) $("callState").textContent="LIVE "+callClock(Date.now()-callStartAt); }
+    if(st==="disconnected"){ clearTimeout(iceFixT); iceFixT=setTimeout(fixRoute,2000); callFlash("📶 Signal dropped, reconnecting…",2500); armGiveUp(); }
+    if(st==="failed"){ clearTimeout(iceFixT); fixRoute(); armGiveUp(); } };
 }
 async function flushIce(){ for(const c of pendingIce.splice(0)){ try{ await pc.addIceCandidate(c); }catch(e){} } }
-let iAmOfferer=false, iceRetried=false, iceFixT=null;
+let iAmOfferer=false, iceRetried=false, iceFixT=null, iceTries=0, giveUpT=null;
+/* find a new route: the caller makes a fresh offer; the other phone asks the caller to (works whoever dropped) */
+function fixRoute(){
+  if(!pc||pc.connectionState==="connected"||pc.connectionState==="closed") return;
+  if(iceTries>=6) return; iceTries++;
+  if(iAmOfferer) restartIce(); else sendSignal("fixroute");
+  clearTimeout(iceFixT); iceFixT=setTimeout(fixRoute,4000*iceTries);   // keep trying, a bit slower each time
+}
+/* only hang up if nothing has worked for 30 seconds (a phone switching Wi-Fi <-> data, or an iPhone waking up, needs time) */
+function armGiveUp(){ if(giveUpT) return; $("callState").textContent="Reconnecting…";
+  giveUpT=setTimeout(()=>{ giveUpT=null; if(pc&&pc.connectionState!=="connected"){ $("callState").textContent="Connection lost"; setTimeout(endCall,1500); } },30000); }
 async function restartIce(){   // the network changed (wifi <-> data, weak spot): find a new route without hanging up
   if(!pc||!iAmOfferer||pc.connectionState==="connected"||pc.connectionState==="closed") return;
+  if(pc.signalingState!=="stable") return;   // a fix is already in flight; the next retry will try again
   try{ pc.restartIce?.(); const o=await pc.createOffer({iceRestart:true}); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }catch(e){}
 }
 async function sendOffer(){ if(!pc) return; iAmOfferer=true; const o=await pc.createOffer(); await pc.setLocalDescription(o); sendSignal("offer",{sdp:pc.localDescription.toJSON()}); }
@@ -405,7 +420,7 @@ $("callFilter").onclick=e=>{ e.stopPropagation(); oneNF.au=$("remoteAudio");
   if(oneNF.nf) gFilterOff(oneNF);
   else { const st=$("remoteAudio").srcObject; if(!st||!st.getAudioTracks().length){ callFlash("Their sound hasn't connected yet"); return; } gFilterOn(oneNF,st); }
   paintCallFilter(); callFlash(oneNF.nf?"✨ Filtering their background noise (only you hear the change)":"🎧 Filter off",2200); };
-function stopPeer(){ gFilterOff(oneNF); show($("callFilter"),false); paintCallFilter(); iAmOfferer=false; iceRetried=false; clearTimeout(iceFixT); unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("remoteAudio").srcObject=null; $("callScreen").classList.remove("live"); }
+function stopPeer(){ gFilterOff(oneNF); show($("callFilter"),false); paintCallFilter(); iAmOfferer=false; iceRetried=false; iceTries=0; clearTimeout(iceFixT); clearTimeout(giveUpT); giveUpT=null; unwatchCall(); if(pc){ pc.ontrack=pc.onicecandidate=pc.onconnectionstatechange=null; pc.close(); pc=null; } pendingIce=[]; $("remoteVideo").srcObject=null; $("remoteAudio").srcObject=null; $("callScreen").classList.remove("live"); }
 
 function endCall(){
   if(gc) leaveGroup();   // group call: say bye + close every link (and the line), so "end" below goes nowhere
@@ -473,6 +488,7 @@ function onCallSignal(s){
   if(s.type==="offer") onOffer(s.sdp).catch(()=>{});     // video link notes (handled by the helpers above)
   if(s.type==="answer") onAnswer(s.sdp).catch(()=>{});
   if(s.type==="ice") onIce(s.c);
+  if(s.type==="fixroute"&&iAmOfferer) restartIce();   // the other phone lost the route: send a fresh offer
   if(s.type==="cam"){ theirCam=!!s.on; loudPick=null; updateCallLook(); }   // they turned their camera on/off
   if(s.type==="vol"){ loudPick=!!s.loud; updateCallLook(); flashVol(); }     // they tapped 🔊
   if(s.type==="accept"){ stopRinging(); $("callState").textContent="Connecting…"; startPeer().then(sendOffer); }   // they picked up: start the video link
