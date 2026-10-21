@@ -154,6 +154,7 @@ a:hover { color: var(--volt); }
   .big-btn.done::after { content: " ✓"; }
   .warn-box { margin: 0 0 14px; padding: 12px 14px; background: rgba(243,255,58,.1); border: 2px solid var(--volt); color: var(--white, #F4F7FF); font-size: 16px; max-width: 560px; }
   .step-msg:empty { display: none; }
+  .invite-box { margin: 0 0 16px; padding: 12px 14px; background: rgba(0,240,255,.1); border: 2px solid var(--cyan); box-shadow: 5px 5px 0 var(--magenta); font-size: 17px; max-width: 560px; }
   .step-msg { color: var(--volt); font-weight: 700; }
    .devices {
     display: flex;
@@ -279,6 +280,7 @@ a:hover { color: var(--volt); }
   <main>
     <div class="hero-row">
       <section class="hero">
+        <p class="invite-box" id="inviteBox" hidden>🤝 <b>A friend invited you to NightLane.</b> Get the app (or open it in your browser) and sign in. You'll be friends automatically.</p>
         <span class="tag">GET THE APP</span>
         <h1>Take NightLane with you.</h1>
         <p class="lead">Put it on your phone or computer. Same chats, same crew, and notifications that actually show up.</p>
@@ -417,6 +419,18 @@ a:hover { color: var(--volt); }
   </footer>
 
 <script>
+  /* ---- friend invites: nightlane.chat/download.html?friend=CODE ----
+     Save the code where NightLane looks for it ("nl-pending-friend"), so whoever signs in on this phone or
+     computer next becomes friends with the person who shared the link. The Play app (a Trusted Web Activity)
+     uses Chrome's storage for nightlane.chat, so the code carries into it too. The Open links also carry it. */
+  (function () {
+    const tok = new URLSearchParams(location.search).get("friend");
+    if (!tok || !/^[^\s<>"']{4,120}$/.test(tok)) return;
+    try { localStorage.setItem("nl-pending-friend", JSON.stringify({ t: tok, at: Date.now() })); } catch (e) {}
+    document.getElementById("inviteBox").hidden = false;
+    document.querySelectorAll('a[href="https://nightlane.chat"]').forEach(a => { a.href = "https://nightlane.chat/?friend=" + encodeURIComponent(tok); });
+  })();
+
   /* ---- Android: step 2 unlocks once step 1 (join the testers) has been tapped ---- */
   const JOINED_KEY = "nl-joined-testers";
   function joinedYet() { try { return localStorage.getItem(JOINED_KEY) === "1"; } catch (e) { return false; } }

@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21d", title:"Invites that get the app 📲", items:["📲 Your friend invite link (📲 in Friends) now opens the Get the app page. Your friend downloads NightLane or opens it in the browser, signs in, and you're friends automatically."]},
     {v:"2026.10.21c", title:"No more pill in the way 📌", items:["📌 If you're reading at the bottom of a chat, new messages now always scroll into view instead of showing the \"new message\" pill over what you're reading. Photos loading, read receipts and reactions no longer knock you off the bottom."]},
     {v:"2026.10.21b", title:"Snap a photo 📷", items:["📷 The camera button can now take a photo to send right away: tap it, then Take a photo. Phones open your camera; computers get a camera right in the app (with Flip if you have more than one).","🖼️ Choosing from your gallery still works from the camera button, and it's in the + menu too: 🖼️ Photos."]},
     {v:"2026.10.21a", title:"New night skies ⭐", items:["⭐ Starry backgrounds got a glow-up: a deep-blue glow, tiny stars in every size, and bright stars with a cross-shaped sparkle that slowly pulses.","🌌 You'll see them in the Stars, Nebula, Twin Stars and Constellation room backgrounds, on the Galaxy frame, and in the starry secrets."]},

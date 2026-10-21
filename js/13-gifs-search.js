@@ -498,12 +498,12 @@ function attachPreview(bub,m){
 
 /* ================= PERSONAL INVITE LINKS ================= */
 let myInviteTok=null;   // your private friend code: fetched only for you, never stored on your public profile
-async function myInviteUrl(){ if(!myInviteTok){ try{ myInviteTok=await api.myInviteToken(); }catch(e){ return null; } } return myInviteTok?`${location.origin}${location.pathname}?friend=${encodeURIComponent(myInviteTok)}`:null; }
+async function myInviteUrl(){ if(!myInviteTok){ try{ myInviteTok=await api.myInviteToken(); }catch(e){ return null; } } return myInviteTok?`https://nightlane.chat/download.html?friend=${encodeURIComponent(myInviteTok)}`:null; }   // the invite opens the Get the app page, which keeps the friend code for after sign-in
 $("inviteFriendBtn").onclick=async()=>{
   const u=await myInviteUrl(); if(!u){ say("contactMsg","Couldn't get your invite link. Check your connection and try again.",true); return; }
-  const text=`Come chat with me on NightLane 🌙 ${u}`;
+  const text=`Come chat with me on NightLane 🌙 Get the app (or open it in your browser) and we're friends: ${u}`;
   if(navigator.share){ try{ await navigator.share({title:"Join me on NightLane",text,url:u}); return; }catch(e){} }
-  try{ await navigator.clipboard.writeText(u); say("contactMsg","Your invite link is copied. Anyone who opens it becomes your friend."); }catch(e){ say("contactMsg",u); }
+  try{ await navigator.clipboard.writeText(u); say("contactMsg","Your invite link is copied. It opens the Get the app page, and whoever signs in from it becomes your friend."); }catch(e){ say("contactMsg",u); }
 };
 $("resetInviteBtn").onclick=async()=>{
   if(!confirm("Make a new friend link? Your old link stops working right away. Friends you already have stay your friends.")) return;
