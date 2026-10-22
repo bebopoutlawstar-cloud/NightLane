@@ -698,7 +698,7 @@ async function addPicked(files){
   if(imgs.length){
     const room=PENDING_MAX-pendingImages.length;
     if(room<=0) notes.push(`You can send up to ${PENDING_MAX} photos at once.`);
-    else { if(imgs.some(f=>f.size>15e6)) notes.push("Photos over 15 MB were skipped."); pendingImages.push(...imgs.filter(f=>f.size<=15e6).slice(0,room)); }
+    else { if(imgs.some(f=>f.size>15e6)) nlToast("err","photo skipped // over 15 MB"); pendingImages.push(...imgs.filter(f=>f.size<=15e6).slice(0,room)); }
   }
   for(const f of vids){
     if(pendingVideos.length>=VIDEO_MAX){ notes.push(`You can send up to ${VIDEO_MAX} videos at once.`); break; }
@@ -924,7 +924,7 @@ function finishRecording(send){
       $("status").textContent="Sending voice message…";
       const url=await api.upload("chat-media",user.id,blob);
       await sendFields({kind:"audio",media_url:url,media_type:"audio",media_duration:Math.round(seconds*10)/10});
-    }catch(err){ $("status").textContent="Voice message didn't send: "+err.message; }
+    }catch(err){ $("status").textContent=""; nlToast("err","voice message didn't send // "+err.message,5000); }
   };
   try{ r.mr.stop(); }catch(e){ r.stream.getTracks().forEach(t=>t.stop()); }
   if(send) sfx("recStop");
@@ -1047,4 +1047,17 @@ function nlAlert({ kind = "err", title = "", badge = "ERROR", text = "", status 
     box.classList.remove("hidden");
     ($("alBtns").querySelector("button") || $("alClose")).focus();
   });
+}
+
+/* 💬 NightLane toasts: small terminal-style notes at the top that go away on their own.
+   nlToast("err","upload failed // photo over 15 MB")   kinds: err (red) · warn (volt) · sys (cyan) · ok (green) */
+const TOAST_TAG={err:"[ERR]",warn:"[WARN]",sys:"[SYS]",ok:"[OK]"};
+function nlToast(kind="sys",text="",ms=3500){
+  if(!TOAST_TAG[kind]) kind="sys";
+  const t=el("div","tst "+kind); t.setAttribute("role",kind==="err"?"alert":"status");
+  t.append(el("i","",TOAST_TAG[kind]),el("span","",text));
+  $("toasts").append(t);
+  if(kind==="err"&&typeof sfx==="function") sfx("error");
+  setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },ms);
+  return t;
 }

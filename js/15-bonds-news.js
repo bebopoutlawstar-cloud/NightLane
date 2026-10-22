@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21g", title:"Terminal toasts 💬", items:["💬 Small notes now pop up as NightLane terminal toasts: [OK] task added, [SYS] invite link copied, [ERR] photo too big or a voice message that didn't send."]},
     {v:"2026.10.21f", title:"System alerts ⚠️", items:["⚠️ New NightLane alert panels, built by Cole: removing a checklist task now asks in a proper NightLane panel instead of a plain browser box.","🧘 Removing a habit now asks first (it used to vanish with one tap). You still keep the points it earned."]},
     {v:"2026.10.21e", title:"Calls that hang on 📶", items:["📶 Calls recover from dropouts much better, especially iPhone ↔ Android: either phone can now fix the connection (not just the caller), it keeps trying instead of giving up after one go, and it waits 30 seconds before hanging up. You'll see RECONNECTING on the timer while it works.","📱 Coming back to the app mid-call fixes the connection straight away if it dropped while you were away."]},
     {v:"2026.10.21d", title:"Invites that get the app 📲", items:["📲 Your friend invite link (📲 in Friends) now opens the Get the app page. Your friend downloads NightLane or opens it in the browser, signs in, and you're friends automatically."]},

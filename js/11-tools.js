@@ -147,8 +147,8 @@ function paintTasks(){
 }
 async function addTask(text){
   text=(text||"").trim().slice(0,200); if(!text) return;
-  try{ const t=await api.addTask(room,text); tasks.set(t.id,t); paintTasks(); gainXP("task"); $("status").textContent="Added to the room checklist ✅"; }
-  catch(err){ $("status").textContent="Couldn't add task: "+err.message; }
+  try{ const t=await api.addTask(room,text); tasks.set(t.id,t); paintTasks(); gainXP("task"); nlToast("ok","added to the room checklist"); }
+  catch(err){ nlToast("err","couldn't add task // "+err.message,5000); }
 }
 $("taskForm").addEventListener("submit",async e=>{ e.preventDefault(); const v=$("taskInput").value; $("taskInput").value=""; await addTask(v); });
 $("menuTask").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); addTask(previewOf(m)); };

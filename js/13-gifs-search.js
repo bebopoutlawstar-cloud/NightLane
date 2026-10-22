@@ -503,7 +503,7 @@ $("inviteFriendBtn").onclick=async()=>{
   const u=await myInviteUrl(); if(!u){ say("contactMsg","Couldn't get your invite link. Check your connection and try again.",true); return; }
   const text=`Come chat with me on NightLane 🌙 Get the app (or open it in your browser) and we're friends: ${u}`;
   if(navigator.share){ try{ await navigator.share({title:"Join me on NightLane",text,url:u}); return; }catch(e){} }
-  try{ await navigator.clipboard.writeText(u); say("contactMsg","Your invite link is copied. It opens the Get the app page, and whoever signs in from it becomes your friend."); }catch(e){ say("contactMsg",u); }
+  try{ await navigator.clipboard.writeText(u); nlToast("sys","invite link copied // whoever signs in from it becomes your friend",4500); }catch(e){ say("contactMsg",u); }
 };
 $("resetInviteBtn").onclick=async()=>{
   if(!confirm("Make a new friend link? Your old link stops working right away. Friends you already have stay your friends.")) return;

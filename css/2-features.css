@@ -268,3 +268,11 @@ body.desktop .lanebar button.dot::after{width:11px;height:11px}
 .al-btn.pri{background:var(--c);color:var(--night);box-shadow:4px 4px 0 var(--mag)}
 .al-btn.sec{background:transparent;color:var(--white);border:2px solid #3B2D80}
 #nlAlert{z-index:60}   /* alerts always sit on top of every sheet and panel */
+/* 💬 NightLane toasts */
+.tst{--c:var(--cyan);pointer-events:auto;display:flex;align-items:baseline;gap:10px;width:min(100%,420px);box-sizing:border-box;padding:9px 12px;background:var(--night);border:2px solid var(--c);border-left-width:6px;font-family:monospace;font-weight:700;font-size:13px;line-height:1.35;color:var(--white);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);box-shadow:inset 0 0 18px rgba(0,0,0,.5);animation:tstin .35s steps(3,end) both}
+.tst.err{--c:#FF2E55}.tst.warn{--c:var(--volt)}.tst.ok{--c:#39FF9A}
+.tst i{font-style:normal;color:var(--c);font-weight:800;flex:none}
+.tst.out{opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
+@keyframes tstin{0%{opacity:0;transform:translateX(-8px)}50%{opacity:1;transform:translateX(4px)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.tst{animation:none}}
+
