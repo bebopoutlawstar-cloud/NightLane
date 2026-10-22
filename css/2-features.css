@@ -281,4 +281,12 @@ body.desktop .lanebar button.dot::after{width:11px;height:11px}
 .msgline.bad:not(:empty){border-left-color:#FF2E55;background:rgba(255,46,85,.1);color:#FF7A92}
 .msgline.bad:not(:empty)::before{content:"[ERR] ";color:#FF2E55;opacity:1}
 .sheet .msgline:not(:empty){font-family:monospace}
+/* 📁 foldable Lanes (2026.10.21j) */
+.lanehead .ln-fold{flex:none;display:inline-flex;align-items:center;gap:6px;margin:0;padding:6px 10px;min-height:40px;background:rgba(7,4,26,.6);border:2px solid #3b2d80;color:var(--white);font-family:monospace;font-weight:700;font-size:12px;cursor:pointer;position:relative;z-index:1}
+.lanehead .ln-fold:hover,.lanehead .ln-fold:focus-visible{border-color:var(--cyan);color:var(--cyan)}
+.ln-chev{display:inline-block;transition:transform .2s;color:var(--cyan)}
+.lanecard.folded .ln-chev{transform:rotate(-90deg)}
+.ln-unread{background:var(--mag);color:var(--night);padding:1px 6px;font-size:11px;font-weight:800}
+.lanecard.folded{margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){.ln-chev{transition:none}}
 

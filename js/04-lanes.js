@@ -81,6 +81,10 @@ function laneChatRow(r){
   b.onclick=()=>{ if(isOffline()){ offlineNotice(); return; } enterRoom(r.code); };
   return b;
 }
+const LANE_FOLD_KEY="nl-lane-fold";
+function laneFoldMap(){ try{ return JSON.parse(LS.get(LANE_FOLD_KEY)||"{}"); }catch(e){ return {}; } }
+function laneFolded(l){ const m=laneFoldMap(); return l.id in m ? !!m[l.id] : l.rooms.length>4; }   // not chosen yet: fold the big ones
+function setLaneFold(id,on){ const m=laneFoldMap(); m[id]=on; try{ LS.set(LANE_FOLD_KEY,JSON.stringify(m)); }catch(e){} }
 function paintLanes(){
   const box=$("laneList"); if(!box) return; box.replaceChildren();
   show($("laneEmpty"),!myLanesList.length);
@@ -90,8 +94,16 @@ function paintLanes(){
     info.append(el("b","",l.name),el("small","",`${l.members} ${+l.members===1?"person":"people"}${l.my_role!=="member"?" · you're the "+(l.my_role==="owner"?"owner":"helper"):""}`));
     const gear=el("button","ln-gear","⚙️"); gear.type="button"; gear.setAttribute("aria-label","Lane settings for "+l.name); gear.onclick=()=>openLaneSheet(l.id);
     const ic=el("span","laneicon"); ic.append(laneIconEl(l)); laneBanner(head,l.banner);
-    head.append(ic,info,gear); card.append(head);
-    l.rooms.forEach(r=>card.append(laneChatRow(r)));
+    /* 📁 fold a Lane down to just its header (2026.10.21j). Lanes with lots of side chats start folded; your choice is remembered */
+    const unread=l.rooms.reduce((n,r)=>n+(+(inboxRows.find(x=>x.code===r.code)?.unread)||0),0);
+    const folded=laneFolded(l), fold=el("button","ln-fold"); fold.type="button";
+    fold.setAttribute("aria-expanded",String(!folded)); fold.setAttribute("aria-label",(folded?"Show":"Hide")+" the chats in "+l.name);
+    fold.append(el("span","ln-chev","▾"),el("span","ln-count",`${l.rooms.length} chat${l.rooms.length===1?"":"s"}`));
+    if(folded&&unread) fold.append(el("span","ln-unread",unread>99?"99+":String(unread)));
+    fold.onclick=()=>{ setLaneFold(l.id,!folded); paintLanes(); };
+    info.onclick=()=>fold.click(); info.style.cursor="pointer";
+    head.append(ic,info,fold,gear); card.append(head); card.classList.toggle("folded",folded);
+    if(!folded) l.rooms.forEach(r=>card.append(laneChatRow(r)));
     box.append(card);
   });
   if(!$("lanesPane").classList.contains("hidden")||room) setTimeout(loungeWatchAll,0);

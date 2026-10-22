@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21j", title:"Fold your Lanes 📁", items:["📁 Tap a Lane's name (or ▾) in the Lanes tab to fold it down to just its header, so long lists stay tidy. Folded Lanes show how many chats they have and your unread count. Lanes with lots of side chats start folded, and NightLane remembers your choice."]},
     {v:"2026.10.21i", title:"No more plain pop-ups ⚠️", items:["⚠️ Every \"are you sure?\" is now a NightLane alert panel: deleting messages, blocking, removing friends or members, leaving rooms and Lanes, new friend links and recovery codes, backlog items and partner tags. Serious ones are red, the rest yellow."]},
     {v:"2026.10.21h", title:"Terminal messages everywhere 🖥️", items:["🖥️ Messages inside sheets (Room, Profile, Friends and more) now use the terminal look: > for info, [ERR] in red for problems.","💬 If a problem happens somewhere you can't see (the sheet closed, or it's scrolled away), it pops up as a toast so you don't miss it."]},
     {v:"2026.10.21g", title:"Terminal toasts 💬", items:["💬 Small notes now pop up as NightLane terminal toasts: [OK] task added, [SYS] invite link copied, [ERR] photo too big or a voice message that didn't send."]},
