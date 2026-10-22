@@ -1,0 +1,6 @@
+signing.keystore
+signing-key-info.txt
+*.keystore
+*.jks
+.DS_Store
+Thumbs.db
