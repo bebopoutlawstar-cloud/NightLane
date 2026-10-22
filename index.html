@@ -26,24 +26,24 @@
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/02-core.js?v=ee8dfa80d8" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/03-chat.js?v=58cea55b24" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/04-lanes.js?v=4ccdbe61c5" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/04-lanes.js?v=3412caf944" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/05-chat-extras.js?v=cc84a07cce" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=4a73d3b311" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/09-install-birthdays.js?v=1d10d65492" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/10-secrets-1.js?v=57c1e96041" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/11-tools.js?v=9c732eb82d" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/11-tools.js?v=a05e65f23f" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/12-secrets-2.js?v=3c890dd0a9" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=bb0611731f" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=1bdc97591b" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=86b7fac45f" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=1f99954afb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=d4e79c7246" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=a10e048e9a">
-<link rel="stylesheet" href="css/2-features.css?v=21a36333fd">
+<link rel="stylesheet" href="css/2-features.css?v=e680595b77">
 <link rel="stylesheet" href="css/3-secrets.css?v=74ae039498">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=714cf8d72e">
 <link rel="stylesheet" href="css/5-games-themes-calls.css?v=c10fa78d42">
@@ -523,6 +523,24 @@
       <button type="button" class="ghost" id="camFlip" aria-label="Switch camera">🔄 Flip</button>
     </div>
     <p class="note" id="camMsg"></p>
+  </div>
+</div>
+<div class="overlay hidden" id="nlAlert" role="alertdialog" aria-modal="true" aria-labelledby="alTitle" aria-describedby="alText">
+  <div class="al">
+    <div class="al-head">
+      <div class="al-title" id="alTitle"></div>
+      <div class="al-badge" id="alBadge"></div>
+    </div>
+    <div class="al-body">
+      <button type="button" class="al-x" id="alClose" aria-label="Close">✕</button>
+      <p id="alText"></p>
+    </div>
+    <div class="al-barbox" id="alBarBox">
+      <span class="al-bar"></span>
+      <span id="alStatus"></span>
+    </div>
+    <div class="al-meta" id="alMeta"></div>
+    <div class="al-btns" id="alBtns"></div>
   </div>
 </div>
 <div class="overlay hidden" id="msgMenu" role="dialog" aria-modal="true" aria-label="Message options">
@@ -1462,7 +1480,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.21e";
+const APP_VERSION="2026.10.21f";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1491,18 +1509,18 @@ const APP_VERSION="2026.10.21e";
   "js/01-boards.js?v=82bebb9adc",
   "js/02-core.js?v=ee8dfa80d8",
   "js/03-chat.js?v=58cea55b24",
-  "js/04-lanes.js?v=4ccdbe61c5",
+  "js/04-lanes.js?v=3412caf944",
   "js/05-chat-extras.js?v=cc84a07cce",
   "js/06-effects.js?v=25cefc7232",
   "js/07-friends.js?v=4a73d3b311",
   "js/08-games.js?v=3188c36dec",
   "js/09-install-birthdays.js?v=1d10d65492",
   "js/10-secrets-1.js?v=57c1e96041",
-  "js/11-tools.js?v=9c732eb82d",
+  "js/11-tools.js?v=a05e65f23f",
   "js/12-secrets-2.js?v=3c890dd0a9",
   "js/13-gifs-search.js?v=bb0611731f",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=1bdc97591b",
+  "js/15-bonds-news.js?v=86b7fac45f",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=1f99954afb",
   "js/18-app.js?v=e5492f9d9a",

@@ -74,7 +74,7 @@ async function paintHabits(){
     row.append(chk,mid);
     if(n>0){ const minus=el("button","habitminus","−"); minus.type="button"; minus.setAttribute("aria-label","Remove one: "+h.label); minus.onclick=()=>bumpHabitUI(h,-1); row.append(minus); }
     const del=el("button","habitdel","✕"); del.type="button"; del.setAttribute("aria-label","Remove "+h.label);
-    del.onclick=async()=>{ try{ await api.archiveHabit(h.id); myHabits=myHabits.filter(x=>x.id!==h.id); paintHabits(); say("habitMsg",`Removed "${h.label}". You keep the ${STAT_LABEL[h.stat]} points it earned.`); }catch(e){ say("habitMsg","Couldn't remove it. Check your connection and try again.",true); } };
+    del.onclick=async()=>{ if(!await nlAlert({ kind:"warn", title:"Remove habit?", badge:"WARNING", text:`Stop tracking "${h.label}"? You keep the points it already earned.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return; try{ await api.archiveHabit(h.id); myHabits=myHabits.filter(x=>x.id!==h.id); paintHabits(); say("habitMsg",`Removed "${h.label}". You keep the ${STAT_LABEL[h.stat]} points it earned.`); }catch(e){ say("habitMsg","Couldn't remove it. Check your connection and try again.",true); } };
     row.append(del); list.append(row);
   });
 }
@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21f", title:"System alerts ⚠️", items:["⚠️ New NightLane alert panels, built by Cole: removing a checklist task now asks in a proper NightLane panel instead of a plain browser box.","🧘 Removing a habit now asks first (it used to vanish with one tap). You still keep the points it earned."]},
     {v:"2026.10.21e", title:"Calls that hang on 📶", items:["📶 Calls recover from dropouts much better, especially iPhone ↔ Android: either phone can now fix the connection (not just the caller), it keeps trying instead of giving up after one go, and it waits 30 seconds before hanging up. You'll see RECONNECTING on the timer while it works.","📱 Coming back to the app mid-call fixes the connection straight away if it dropped while you were away."]},
     {v:"2026.10.21d", title:"Invites that get the app 📲", items:["📲 Your friend invite link (📲 in Friends) now opens the Get the app page. Your friend downloads NightLane or opens it in the browser, signs in, and you're friends automatically."]},
     {v:"2026.10.21c", title:"No more pill in the way 📌", items:["📌 If you're reading at the bottom of a chat, new messages now always scroll into view instead of showing the \"new message\" pill over what you're reading. Photos loading, read receipts and reactions no longer knock you off the bottom."]},

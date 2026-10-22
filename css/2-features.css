@@ -244,3 +244,27 @@ body.desktop .lanebar button.dot::after{width:11px;height:11px}
 .cammenu button{background:none;border:2px solid #3B2D80;color:var(--white);font:inherit;font-weight:700;font-size:16px;text-align:left;padding:10px 12px;min-height:44px;cursor:pointer}
 .cammenu button:hover,.cammenu button:focus-visible{border-color:var(--cyan);color:var(--cyan)}
 #composeRow{position:relative}
+
+
+/* ⚠️ NightLane alert panels */
+.al{--c:#FF2E55;--bg:#FF2E55;--ink:#FFF2F4;--strong:#07041A;position:relative;width:min(100%,380px);color:var(--white);animation:alin .5s steps(1,end) both}
+.al.warn{--c:#F3FF3A;--bg:#F3FF3A;--ink:#1A1440;--strong:#07041A}
+.al.sys{--c:#00F0FF;--bg:#00F0FF;--ink:#07253A;--strong:#07041A}
+@keyframes alin{0%{transform:translateX(-5px);filter:hue-rotate(40deg)}30%{transform:translateX(4px);filter:none}60%,100%{transform:none}}
+.al-head{display:flex;gap:6px;margin-left:14px}
+.al-title{flex:1;padding:10px 14px;background:var(--night);border:2px solid var(--c);font-family:var(--tech);font-weight:900;font-size:17px;line-height:1.15;letter-spacing:3px;color:var(--c);text-transform:uppercase;clip-path:polygon(14px 0,100% 0,100% 100%,0 100%,0 14px)}
+.al-badge{width:84px;flex:none;display:grid;place-items:center;padding:6px 0;background:var(--night);border:2px solid var(--c);color:var(--c);font-family:var(--tech);font-weight:900;font-size:9px;letter-spacing:2px;clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
+.al-body{position:relative;margin-top:8px;padding:20px 50px 38px 26px;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.35;font-weight:600;clip-path:polygon(0 18px,18px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%)}
+.al-body p{margin:0}
+.al-x{position:absolute;right:12px;top:10px;background:none;border:2px solid currentColor;color:var(--ink);width:30px;height:30px;font-size:16px;cursor:pointer}
+.al-barbox{position:relative;margin:-18px 22px 0 34px;display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--white);color:var(--night);font-family:var(--tech);font-weight:900;font-size:13px;letter-spacing:4px;clip-path:polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);box-shadow:4px 4px 0 var(--night)}
+.al-bar{width:70px;height:14px;flex:none;background:repeating-linear-gradient(-55deg,var(--c) 0 6px,transparent 6px 11px);background-size:200% 100%;animation:albar .7s linear infinite}
+@keyframes albar{to{background-position:-26px 0}}
+.al-meta{margin:12px 0 0 26px;font-family:monospace;font-size:12px;line-height:1.6;color:var(--muted)}
+.al-btns{display:flex;gap:10px;margin:14px 0 0 26px}
+.al-btns:empty,.al-meta:empty{display:none}
+@media (prefers-reduced-motion:reduce){.al,.al-bar{animation:none}}
+.al-btn{padding:9px 16px;font-family:var(--num);font-size:17px;letter-spacing:1px;border:0;transform:skewX(-8deg);cursor:pointer;min-height:44px}
+.al-btn.pri{background:var(--c);color:var(--night);box-shadow:4px 4px 0 var(--mag)}
+.al-btn.sec{background:transparent;color:var(--white);border:2px solid #3B2D80}
+#nlAlert{z-index:60}   /* alerts always sit on top of every sheet and panel */

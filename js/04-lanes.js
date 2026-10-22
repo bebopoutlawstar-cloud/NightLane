@@ -1009,3 +1009,42 @@ $("gameList").querySelectorAll(".gamepick").forEach(bt=>bt.onclick=async()=>{
 $("trayPoll").onclick=()=>{ closeTray(); openPollSheet(); };
 
 $("laneHow")?.addEventListener("toggle",e=>{ const d=e.currentTarget.dataset; if(d.auto){ delete d.auto; return; } d.touched="1"; });   // (the toggle event also fires when the code opens it)
+
+/* ⚠️ NightLane alert panel: nlAlert({...}) shows it and waits for a tap. Returns the tapped button's value (null if closed). */
+function nlAlert({ kind = "err", title = "", badge = "ERROR", text = "", status = "", meta = "", buttons = [] } = {}) {
+  return new Promise(resolve => {
+    const box = $("nlAlert"), panel = box.querySelector(".al");
+
+    // TODO 1: colour. Red is the default; "warn" = yellow, "sys" = cyan
+    panel.classList.remove("warn", "sys");
+    if (kind === "warn" || kind === "sys") panel.classList.add(kind);
+
+    // TODO 2: fill in the words
+    alTitle.textContent = title;
+    alBadge.textContent = badge;
+    alText.textContent = text;
+    alStatus.textContent = status;
+    alMeta.textContent = meta;
+
+    const close = value => { box.classList.add("hidden"); document.removeEventListener("keydown", onKey); resolve(value); };
+    const onKey = e => { if (e.key === "Escape") close(null); };   // Esc closes it too
+
+    // TODO 3: one button per choice; tapping it closes the panel with that button's value
+    $("alBtns").innerHTML = "";
+    buttons.forEach((b, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "al-btn " + (i === 0 ? "pri" : "sec");   // first button is the main (bright) one
+      btn.textContent = b.label;
+      btn.onclick = () => close(b.value);
+      $("alBtns").append(btn);
+    });
+
+    $("alClose").onclick = () => close(null);
+    document.addEventListener("keydown", onKey);
+
+    // TODO 4: show it, and put keyboard focus on the first button (or the ✕)
+    box.classList.remove("hidden");
+    ($("alBtns").querySelector("button") || $("alClose")).focus();
+  });
+}
