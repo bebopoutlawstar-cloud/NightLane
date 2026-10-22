@@ -34,7 +34,10 @@ const THEMES={
 };
 const BUBBLES=["#2A1B4A","#0E3B4A","#4A1330","#123D22","#3D2A08","#1B2A6B","#5A1E5A","#262630","#6A1A1A","#0B4F4F","#3B1F6B","#5C3A0E","#1F4D1A","#6B1F4A","#12305E","#4A4A12"];
 const colorFor = s => COLORS[[...(s||"?")].reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length];
-const say = (id,text,bad) => { $(id).textContent=text; $(id).classList.toggle("bad",!!bad); };
+/* the little message line inside a sheet. Since 2026.10.21h it shows in NightLane's terminal style ([ERR] / >),
+   and if an error's line isn't on screen (sheet closed, or scrolled out of view) it pops up as a toast instead, so it's never missed */
+const say = (id,text,bad) => { const n=$(id); if(!n) return; n.textContent=text; n.classList.toggle("bad",!!bad);
+  if(bad&&text&&typeof nlToast==="function"){ const r=n.getBoundingClientRect(); const seen=n.offsetParent!==null&&r.bottom>0&&r.top<innerHeight; if(!seen) nlToast("err",text,5000); } };
 /* 🕐 always 12-hour time (3:05 PM), in this device's own time zone, even when the computer's language is set to
    English (UK) or another 24-hour language. Covers every time shown in the app, since they all go through these two. */
 (()=>{ const P=Date.prototype, lt=P.toLocaleTimeString, ls=P.toLocaleString;
@@ -1440,7 +1443,7 @@ async function loadReviews(note){
     }
     if(reviewTab==="open"){
       if(g.message_exists!==false){ const del=el("button","ghost danger","🗑️ Delete message"); del.type="button";
-        del.onclick=async()=>{ if(!confirm(`Delete ${g.reported_name||"this person"}'s message for everyone? This can't be undone.`)) return; del.disabled=true;
+        del.onclick=async()=>{ if(!await nlAlert({ kind:"err", title:"Delete message?", badge:"DANGER", text:`Delete ${g.reported_name||"this person"}'s message for everyone? This can't be undone.`, status:"AWAITING INPUT", buttons:[{label:"DELETE", value:true},{label:"KEEP", value:false}] })) return; del.disabled=true;
           try{ await api.adminDeleteMessage(g.message_id); loadReviews("🗑️ Message deleted for everyone, and the report is closed."); }catch(err){ say("reviewMsg",err.message,true); del.disabled=false; } };
         acts.append(del); }
       const done=el("button","ghost","✓ Dismiss"); done.type="button";
@@ -1587,7 +1590,7 @@ async function openRecovery(){
 $("openRecovery").onclick=()=>{ show($("profile"),false); openRecovery(); };
 $("openCredits").onclick=()=>{ show($("profile"),false); show($("creditsSheet")); };
 $("rcMake").onclick=async()=>{
-  if($("rcMake").textContent.startsWith("Make a new")&&!confirm("Make a new recovery code? Your old one will stop working.")) return;
+  if($("rcMake").textContent.startsWith("Make a new")&&!await nlAlert({ kind:"warn", title:"Make new recovery code", badge:"WARNING", text:"Make a new recovery code? Your old one will stop working.", status:"AWAITING INPUT", buttons:[{label:"MAKE NEW", value:true},{label:"CANCEL", value:false}] })) return;
   $("rcMake").disabled=true; say("rcMsg","");
   try{
     const code=await api.createRecoveryCode();
@@ -1741,7 +1744,7 @@ function paintCardPartner(){
   if(REL.partner){
     box.append(relRow(REL.partner,`💞 You and ${relName(REL.partner)}`));
     const rm=el("button","ghost cb-pbtn","Remove partner tag"); rm.type="button";
-    rm.onclick=()=>{ if(confirm(`Remove the partner tag with ${relName(REL.partner)}? It disappears from both profiles.`)) relAct(()=>api.relClear(),"Partner tag removed."); };
+    rm.onclick=async()=>{ if(await nlAlert({ kind:"warn", title:"Remove partner tag?", badge:"WARNING", text:`Remove the partner tag with ${relName(REL.partner)}? It disappears from both profiles.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) relAct(()=>api.relClear(),"Partner tag removed."); };
     box.append(rm); return;
   }
   if(REL.outgoing){

@@ -275,4 +275,10 @@ body.desktop .lanebar button.dot::after{width:11px;height:11px}
 .tst.out{opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
 @keyframes tstin{0%{opacity:0;transform:translateX(-8px)}50%{opacity:1;transform:translateX(4px)}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.tst{animation:none}}
+/* sheet message lines in terminal style (2026.10.21h) */
+.msgline:not(:empty){display:block;padding:6px 10px;border-left:4px solid var(--volt);background:rgba(243,255,58,.07);font-family:monospace;font-weight:700;font-size:13px;line-height:1.4;text-align:left;color:var(--volt)}
+.msgline:not(:empty)::before{content:"> ";opacity:.8}
+.msgline.bad:not(:empty){border-left-color:#FF2E55;background:rgba(255,46,85,.1);color:#FF7A92}
+.msgline.bad:not(:empty)::before{content:"[ERR] ";color:#FF2E55;opacity:1}
+.sheet .msgline:not(:empty){font-family:monospace}
 

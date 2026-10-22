@@ -921,7 +921,7 @@ document.addEventListener("touchend",releaseMenuGuard,true);
 $("msgMenu").addEventListener("click",e=>{ if(menuGuard||Date.now()<menuGuardUntil){ e.stopPropagation(); e.preventDefault(); } },true);
 async function deleteMessageFlow(m){
   const mine=m.user_id===user.id;
-  if(!confirm(mine?"Delete this message for everyone?":`Delete ${nameOf(m.user_id)}'s message for everyone?`)) return;
+  if(!await nlAlert({ kind:"err", title:"Delete message?", badge:"DANGER", text:mine?"Delete this message for everyone?":`Delete ${nameOf(m.user_id)}'s message for everyone?`, status:"AWAITING INPUT", buttons:[{label:"DELETE", value:true},{label:"KEEP", value:false}] })) return;
   try{ await api.deleteMessage(m.id); removeMessage(m.id); $("status").textContent="Message deleted."; }
   catch(err){ $("status").textContent="Couldn't delete: "+err.message; }
 }
@@ -989,7 +989,7 @@ function applyEdit(row){
 }
 $("menuBlock").onclick=async()=>{
   const uid=menuMsg.user_id, name=nameOf(uid);
-  if(!confirm(`Block ${name}? You won't see their messages anywhere. You can unblock them from your profile.`)) return;
+  if(!await nlAlert({ kind:"err", title:"Block user?", badge:"DANGER", text:`Block ${name}? You won't see their messages anywhere. You can unblock them from your profile.`, status:"AWAITING INPUT", buttons:[{label:"BLOCK", value:true},{label:"CANCEL", value:false}] })) return;
   show($("msgMenu"),false);
   try{ await api.block(uid); blocked.add(uid); renderAll(); $("status").textContent=`Blocked ${name}.`; }
   catch(err){ $("status").textContent="Couldn't block: "+err.message; }
@@ -1062,7 +1062,7 @@ async function paintMembers(){
     if(roomOwner===user.id && uid!==user.id && !isDm){
       const b=el("button","","Remove"); b.type="button";
       b.onclick=async()=>{
-        if(!confirm(`Remove ${nameOf(uid)} from # ${room}? The invite link will also reset so they can't rejoin with it.`)) return;
+        if(!await nlAlert({ kind:"err", title:"Remove member?", badge:"DANGER", text:`Remove ${nameOf(uid)} from # ${room}? The invite link will also reset so they can't rejoin with it.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return;
         try{ await api.removeMember(room,uid); members.delete(uid); paintMembers(); paintReceipts();
           const info=await api.roomInfo(room).catch(()=>null); if(info) $("invLink").value=inviteUrl(info.code,info.invite_token);
           say("rsMsg",`Removed ${nameOf(uid)}. New invite link made.`); }
@@ -1087,8 +1087,8 @@ $("invReset").onclick=async()=>{
 };
 $("leaveRoom").onclick=async()=>{
   const owner=roomOwner===user.id;
-  if(isDm){ if(!confirm("Hide this private chat? It comes back if either of you sends a new message.")) return; }
-  else if(!confirm(`Leave ${roomName||"# "+room}?${owner?" You're the owner, so ownership passes to the next member.":""} You'll need a new invite link to come back.`)) return;
+  if(isDm){ if(!await nlAlert({ kind:"warn", title:"Hide chat?", badge:"WARNING", text:"Hide this private chat? It comes back if either of you sends a new message.", status:"AWAITING INPUT", buttons:[{label:"HIDE", value:true},{label:"KEEP", value:false}] })) return; }
+  else if(!await nlAlert({ kind:"warn", title:"Leave room?", badge:"WARNING", text:`Leave ${roomName||"# "+room}?${owner?" You're the owner, so ownership passes to the next member.":""} You'll need a new invite link to come back.`, status:"AWAITING INPUT", buttons:[{label:"LEAVE", value:true},{label:"STAY", value:false}] })) return;
   try{ const code=room; await api.leaveRoom(code); exitRoom(); say("roomMsg",`You left # ${code}.`); }
   catch(err){ say("rsMsg",err.message,true); }
 };

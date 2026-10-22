@@ -506,7 +506,7 @@ $("inviteFriendBtn").onclick=async()=>{
   try{ await navigator.clipboard.writeText(u); nlToast("sys","invite link copied // whoever signs in from it becomes your friend",4500); }catch(e){ say("contactMsg",u); }
 };
 $("resetInviteBtn").onclick=async()=>{
-  if(!confirm("Make a new friend link? Your old link stops working right away. Friends you already have stay your friends.")) return;
+  if(!await nlAlert({ kind:"warn", title:"Reset invite link", badge:"WARNING", text:"Make a new friend link? Your old link stops working right away. Friends you already have stay your friends.", status:"AWAITING INPUT", buttons:[{label:"RESET", value:true},{label:"CANCEL", value:false}] })) return;
   const btn=$("resetInviteBtn"); btn.disabled=true;
   try{
     const r=await api.resetInviteToken();

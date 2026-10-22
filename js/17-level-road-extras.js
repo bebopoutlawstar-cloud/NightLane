@@ -458,7 +458,7 @@ function blCompleted(it){
   if(fxEnabled()) FX.play("confetti");
 }
 async function blDelete(it){
-  if(!confirm(`Remove ${it.title} from your backlog?`)) return;
+  if(!await nlAlert({ kind:"warn", title:"Remove from backlog", badge:"WARNING", text:`Remove ${it.title} from your backlog?`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"CANCEL", value:false}] })) return;
   if(blPeekItem===it) closeBlPeek();
   const i=blItems.indexOf(it); blItems.splice(i,1); paintBlLibrary();
   try{ await api.deleteBacklog(it.id); }catch(err){ blItems.splice(i,0,it); paintBlLibrary(); say("blMsg","Couldn't remove it: "+blFriendlyError(err),true); }

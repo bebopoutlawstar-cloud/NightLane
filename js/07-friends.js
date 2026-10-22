@@ -92,7 +92,7 @@ function contactRow(uid,favs){
     const badge=linkBadge(uid); if(badge){ badge.onclick=e=>{ e.stopPropagation(); openSocialLink(uid); }; badge.style.cursor="pointer"; n.append(badge); }
     const go=el("button","send","Message"); go.type="button"; go.onclick=()=>openDm(uid);
     const rm=el("button","rm","✕"); rm.type="button"; rm.setAttribute("aria-label",`Remove ${p.username} from friends`);
-    rm.onclick=async()=>{ if(!confirm(`Remove ${p.username} from your friends?`)) return; try{ await removeFriend(uid); }catch(err){ say("contactMsg",err.message,true); } };
+    rm.onclick=async()=>{ if(!await nlAlert({ kind:"err", title:"Remove friend?", badge:"DANGER", text:`Remove ${p.username} from your friends? You'll stop showing in each other's friend list.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return; try{ await removeFriend(uid); }catch(err){ say("contactMsg",err.message,true); } };
     const st=el("button","fav"+(favs.has(uid)?" on":""),favs.has(uid)?"★":"☆"); st.type="button";
     st.setAttribute("aria-pressed",String(favs.has(uid))); st.setAttribute("aria-label",(favs.has(uid)?"Unfavorite ":"Favorite ")+p.username);
     st.onclick=()=>toggleFav(uid);
@@ -282,7 +282,7 @@ $("personFriend").onclick=async()=>{
   const uid=personUid, name=cache.get(uid)?.username||"them";
   $("personFriend").disabled=true;
   try{
-    if(isFriend(uid)){ if(!confirm(`Remove ${name} from your friends?`)) return; await removeFriend(uid); say("personMsg",`Removed ${name}.`); }
+    if(isFriend(uid)){ if(!await nlAlert({ kind:"err", title:"Remove friend?", badge:"DANGER", text:`Remove ${name} from your friends? You'll stop showing in each other's friend list.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return; await removeFriend(uid); say("personMsg",`Removed ${name}.`); }
     else { const back=addedMe(uid); await addFriend(uid); say("personMsg",back?`You and ${name} are friends now 🤝`:`Added ${name} as a friend.`); if(navigator.vibrate) navigator.vibrate(20); }
   }catch(err){ say("personMsg",err.message,true); }
   finally{ $("personFriend").disabled=false; }

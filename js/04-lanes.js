@@ -145,7 +145,7 @@ async function openLaneSheet(id){
   l.rooms.forEach(r=>{ const row=el("div","lsrow"); row.append(chatIconEl(r)); row.lastChild.classList.add("rl-glyph"); row.append(el("span","ls-name",r.name||"chat"));
     if(mgr){ const ed=el("button","","✏️"); ed.type="button"; ed.setAttribute("aria-label","Edit "+(r.name||"side chat")); ed.onclick=()=>openLaneForm({mode:"chat-edit",lane:id,code:r.code,name:r.name,label:r.lane_label,chatUrl:roomIcons.get(r.code)||null}); row.append(ed);
       if(l.rooms.length>1){ const rm=el("button","","🗑️"); rm.type="button"; rm.setAttribute("aria-label","Remove "+(r.name||"side chat"));
-        rm.onclick=async()=>{ if(!confirm(`Remove the side chat "${r.name}"? Nobody will be able to open it anymore.`)) return;
+        rm.onclick=async()=>{ if(!await nlAlert({ kind:"warn", title:"Remove side chat?", badge:"WARNING", text:`Remove the side chat "${r.name}"? Nobody will be able to open it anymore.`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return;
           try{ await api.laneRemoveChat(r.code); await loadInbox(); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(rm); } }
     chats.append(row); });
   const ppl=$("lsPeople"); ppl.replaceChildren(); ppl.append(el("p","sub","Loading…")); show($("laneSheet"));
@@ -159,7 +159,7 @@ async function openLaneSheet(id){
       if(l.my_role==="owner"&&m.role!=="owner"){ const hb=el("button","",m.role==="helper"?"Unhelper":"⭐ Helper"); hb.type="button";
         hb.onclick=async()=>{ try{ await api.laneSetRole(id,m.user_id,m.role==="helper"?"member":"helper"); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(hb); }
       if(m.role!=="owner"&&(l.my_role==="owner"||(l.my_role==="helper"&&m.role==="member"))){ const kb=el("button","","Remove"); kb.type="button";
-        kb.onclick=async()=>{ if(!confirm(`Remove ${nameOf(m.user_id)} from ${l.name}?`)) return; try{ await api.laneRemoveMember(id,m.user_id); await loadInbox(); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(kb); } }
+        kb.onclick=async()=>{ if(!await nlAlert({ kind:"err", title:"Remove member?", badge:"DANGER", text:`Remove ${nameOf(m.user_id)} from ${l.name}?`, status:"AWAITING INPUT", buttons:[{label:"REMOVE", value:true},{label:"KEEP", value:false}] })) return; try{ await api.laneRemoveMember(id,m.user_id); await loadInbox(); openLaneSheet(id); }catch(err){ say("lsMsg",err.message,true); } }; row.append(kb); } }
     ppl.append(row); });
 }
 $("lsClose").onclick=()=>{ show($("laneSheet"),false); laneSheetId=null; };
@@ -168,7 +168,7 @@ $("lsAddFriends").onclick=()=>{ const id=laneSheetId; show($("laneSheet"),false)
 $("lsAddChat").onclick=()=>openLaneForm({mode:"chat-new",lane:laneSheetId});
 $("lsRename").onclick=()=>{ const l=laneOf(laneSheetId); if(l) openLaneForm({mode:"lane-edit",lane:l.id,name:l.name,icon:l.icon,iconUrl:l.icon_url||null,banner:l.banner||null}); };
 $("lsLeave").onclick=async()=>{ const l=laneOf(laneSheetId); if(!l) return;
-  if(!confirm(`Leave ${l.name}? You'll leave all its side chats.${l.my_role==="owner"?" You're the owner, so a helper (or the longest member) takes over.":""}`)) return;
+  if(!await nlAlert({ kind:"warn", title:"Leave Lane?", badge:"WARNING", text:`Leave ${l.name}? You'll leave all its side chats.${l.my_role==="owner"?" You're the owner, so a helper (or the longest member) takes over.":""}`, status:"AWAITING INPUT", buttons:[{label:"LEAVE", value:true},{label:"STAY", value:false}] })) return;
   try{ await api.laneLeave(l.id); show($("laneSheet"),false); laneSheetId=null; if(laneByRoom.get(room)?.lane===l.id) exitRoom(); await loadInbox(); toast("🛣️ Lanes",`You left ${l.name}.`); }
   catch(err){ say("lsMsg",err.message,true); } };
 $("laneNewBtn").onclick=()=>openLaneForm({mode:"new"});
