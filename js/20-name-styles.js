@@ -212,15 +212,18 @@ function nsNameFont(node,p){
 /* ---------- profile wraps ---------- */
 function nsWrapLayer(id){ const set=id.startsWith("s-"), w=el("div","nsw nsw-"+id+(set?" nsw-set":"")); w.setAttribute("aria-hidden","true"); w.append(el("div","nsw-in")); if(set&&typeof nsSetWrapSvg==="function"){ const sv=nsSetWrapSvg(id); if(sv) w.append(sv); } return w; }
 function nsApplyWrap(sheet,p){
-  if(!sheet) return; sheet.querySelector(":scope > .nsw")?.remove(); sheet.classList.remove("nsw-on");
-  const id=nsOf(p).wrap; if(!id) return;
+  if(!sheet) return; const id=nsOf(p).wrap, cur=sheet.querySelector(":scope > .nsw");
+  if(cur&&id&&cur.classList.contains("nsw-"+id)) return;   // same wrap: leave it running
+  cur?.remove(); sheet.classList.remove("nsw-on");
+  if(!id) return;
   sheet.classList.add("nsw-on"); sheet.prepend(nsWrapLayer(id));
 }
 /* the nameplate strip under a big profile name (nothing if they haven't picked one) */
 function nsProfStrip(nameNode,p){
   if(!nameNode||typeof nsPlateStrip!=="function") return;
-  const old=nameNode.nextElementSibling; if(old?.classList.contains("nsp-prof")) old.remove();
-  const st=nsPlateStrip(p,"@"+(p?.username||"")); if(st){ st.classList.add("nsp-prof"); nameNode.after(st); }
+  const ns=nsOf(p), key=[ns.plate,ns.font,ns.color,p?.username].join("|");
+  const old=nameNode.nextElementSibling; if(old?.classList.contains("nsp-prof")){ if(old.dataset.key===key) return; old.remove(); }   // unchanged: keep it animating
+  const st=nsPlateStrip(p,"@"+(p?.username||"")); if(st){ st.classList.add("nsp-prof"); st.dataset.key=key; nameNode.after(st); }
 }
 /* my own profile, and other people's profiles */
 const _nsPaintMe=paintMe;
@@ -330,3 +333,15 @@ function nsPaintColor(myNs){
 /* the Name style box folds away so the Look tab stays tidy (remembers open/closed on this device) */
 { const box=$("nsBox"); try{ box.open=LS.get("nl-ns-open")==="1"; }catch(e){}
   box.addEventListener("toggle",()=>{ try{ LS.set("nl-ns-open",box.open?"1":"0"); }catch(e){} }); }
+
+/* ---------- Level road: name style pieces join the Unlockables list and pop an "🎁 Unlocked!" toast ---------- */
+{ const ICON={font:"⌨️",plate:"🪧",wrap:"🖼️",deco:"🌙",fx:"✨"}, KIND={font:"name font",plate:"nameplate",wrap:"profile wrap",deco:"avatar decoration",fx:"profile effect"};
+  Object.entries(NS_CATALOG).forEach(([type,items])=>items.forEach(it=>{ if(it.tier?.level) UNLOCKS.push({id:`ns:${type}:${it.id}`,type:"ns",nsType:type,label:`${ICON[type]} ${it.label} ${KIND[type]}`,by:{level:it.tier.level}}); })); }
+/* the first time this runs for someone who already has progress, quietly mark what they've already reached (no toast flood) */
+const _nsCheckUnlocks=checkUnlocks;
+checkUnlocks=function(){
+  try{ if(!LS.get("nl-ns-unlock-seeded")){ const seen=seenUnlocks();
+    if(seen.length){ const met=UNLOCKS.filter(u=>u.type==="ns"&&unlockMet(u)).map(u=>u.id); LS.set(UNLOCK_KEY,JSON.stringify([...new Set([...seen,...met])])); }
+    LS.set("nl-ns-unlock-seeded","1"); } }catch(e){}
+  return _nsCheckUnlocks.apply(this,arguments);
+};

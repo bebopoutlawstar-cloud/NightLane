@@ -1659,6 +1659,7 @@ function cleanCard(c){   // only trust known values (it comes from other people'
 }
 const cardOf=p=>cleanCard(p?.theme?.card);
 function paintCardBanner(box,card){
+  { const key=JSON.stringify(card||null); if(box.dataset.cardKey===key) return; box.dataset.cardKey=key; }   // same card as last time: leave it alone (repainting made the banner flicker)
   box.innerHTML=""; box.className="pcard-banner"; const hasLook=!!(card&&(card.banner||card.fx||card.stk.length)); show(box,hasLook); if(!hasLook) return;
   if(card.banner==="img"&&card.img){ box.style.background=`#07041A url("${card.img.replace(/"/g,"%22")}") center/cover no-repeat`; }
   else box.style.background=(CARD_BANNERS[card.banner]||CARD_BANNERS.neon).bg;

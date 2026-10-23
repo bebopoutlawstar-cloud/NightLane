@@ -10,6 +10,9 @@
 /* small faces (chat lines, lists) get the calm version and stay inside their row */
 .face:not(.lg)>.nsd{left:-22%;top:-22%;width:144%;height:144%}
 @media (prefers-reduced-motion:reduce){.nsd *{animation:none!important}}
+.face.lg.nsd-host{margin-top:18px;margin-bottom:22px}
+/* picker tiles */
+.ns-tile .ns-dface{width:52px;height:52px;margin:12px auto 8px;align-self:center;font-size:24px}
 @keyframes nd_tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.55)}}
 .nsd .tw0{animation:nd_tw 2.2s ease-in-out infinite}
 .nsd .tw1{animation:nd_tw 3s ease-in-out infinite .7s}
@@ -60,6 +63,3 @@
 .nsd .rain2{animation:nd_rain2 2.4s linear infinite;opacity:.8}
 @keyframes nd_grant2{0%,39%{opacity:0;transform:scale(2) rotate(-6deg)}42%{opacity:1;transform:scale(.95) rotate(0)}44%,60%{opacity:1;transform:scale(1)}63%,100%{opacity:0}}
 .nsd .grant2{opacity:0;transform-origin:96px 178px;animation:nd_grant2 5s cubic-bezier(.2,1.4,.4,1) infinite;filter:drop-shadow(0 0 6px rgba(255,79,216,.6))}
-/* picker tiles */
-.ns-tile .ns-dface{width:52px;height:52px;margin:12px auto 8px;align-self:center;font-size:24px}
-.face.lg.nsd-host{margin-top:18px;margin-bottom:22px}

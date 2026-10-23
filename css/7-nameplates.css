@@ -6,8 +6,16 @@
 .nsp .np-art{position:absolute;right:0;top:50%;height:64px;margin-top:-32px;z-index:1;pointer-events:none}
 .nsp .ecl-sun,.nsp .ecl-moon{top:50%!important;margin-top:-20px}
 .nsp-name:not([class*="nsf-"]){color:var(--nspn,inherit);text-shadow:var(--nspns,0 1px 4px rgba(7,4,26,.85))}
-.nsp-name[class*="nsf-"]:not(.nsf-prism):not(.nsf-prismflow):not(.nsf-fireice){filter:drop-shadow(0 1px 3px rgba(7,4,26,.9))}
+.nsp-name[class*="nsf-"]:not(.nsf-prism):not(.nsf-prismflow):not(.nsf-fireice),.nsp .nm-name[class*="nsf-"]:not(.nsf-prism):not(.nsf-prismflow):not(.nsf-fireice){filter:drop-shadow(0 1px 3px rgba(7,4,26,.9))}
 .nsp-sub{color:var(--nsps,inherit)!important}
+/* on plated rows, buttons and small text keep a solid night fill so bright plates never wash them out */
+.nsp>button,.nsp button{background:var(--night)!important}
+.nsp .lastseen,.nsp .role,.nsp .tagline,.nsp small{background:rgba(7,4,26,.8);padding:0 5px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+/* in member + friend lists the plate is a quiet accent: art fades in from the right, the name side stays plain night, and it holds still */
+.member.nsp>.nsp-bg,.contactrow.nsp>.nsp-bg{-webkit-mask:linear-gradient(90deg,transparent 0 30%,rgba(0,0,0,.35) 55%,rgba(0,0,0,.8) 100%);mask:linear-gradient(90deg,transparent 0 30%,rgba(0,0,0,.35) 55%,rgba(0,0,0,.8) 100%)}
+.member.nsp>.nsp-bg *,.contactrow.nsp>.nsp-bg *,.member.nsp>.nsp-bg,.contactrow.nsp>.nsp-bg{animation-play-state:paused!important}
+.member.nsp .lastseen,.member.nsp .role,.contactrow.nsp .tagline,.contactrow.nsp small{background:none}
+.member.nsp .mname,.contactrow.nsp .cname{--nspn:inherit}
 /* the profile strip under your name */
 .nsp-strip{display:flex;align-items:center;gap:10px;min-height:56px;padding:6px 14px;margin:6px 0 4px;width:100%;align-self:stretch;text-align:left;border:0;overflow:hidden}
 .nsp-strip .nsp-name{font-weight:700;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
