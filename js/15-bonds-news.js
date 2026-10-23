@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.21m", title:"Smarter dates 📅", items:["📅 \"On Sunday … at 6pm\" now counts as Sunday at 6pm, instead of the time getting today's date. A time with no day mentioned shows a little clock instead of a date."]},
     {v:"2026.10.21l", title:"Links got the NightLane look 🔗", items:["🔗 Links in chat now show short and clean (like share.google/2xR7X… ↗), and link cards have an UPLINK header strip with the site name, a scanlined picture and the title."]},
     {v:"2026.10.21k", title:"Goodbye, grey 🖥️", items:["🖥️ Every little message that used to appear as grey text under the chat name (Couldn't pin, Copied, Sending PDF…) is now a NightLane toast: red for problems, green for done, cyan for info. The line under the chat name only shows your connection now.","⌨️ The last plain browser boxes are gone too: nicknames, naming your partner, password reset and deleting your account now use NightLane panels."]},
     {v:"2026.10.21j", title:"Fold your Lanes 📁", items:["📁 Tap a Lane's name (or ▾) in the Lanes tab to fold it down to just its header, so long lists stay tidy. Folded Lanes show how many chats they have and your unread count. Lanes with lots of side chats start folded, and NightLane remembers your choice."]},

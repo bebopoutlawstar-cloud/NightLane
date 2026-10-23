@@ -120,13 +120,19 @@ $("calTask").onclick=async()=>{ const e=calEvent(); show($("calSheet"),false); a
 $("calClose").onclick=()=>show($("calSheet"),false);
 function renderTextWithDates(node,text,mentionIds,m){
   const hits=findDates(text); if(!hits.length){ renderText(node,text,mentionIds); return; }
-  let last=0;
+  let last=0, prevDate=null;
+  const TIME_ONLY=new RegExp(`^at\\s+${TIME_RE}$`,"i");
   for(const h of hits){ const s=el("span"); renderText(s,text.slice(last,h.start),mentionIds); node.append(s);
+    /* "at 6pm" on its own belongs to the day mentioned before it ("on sunday … at 6pm" = Sunday 6pm), not to today (2026.10.21m) */
+    const timeOnly=TIME_ONLY.test(h.text.trim()), phrase=timeOnly&&prevDate?prevDate+" "+h.text:h.text;
+    if(!timeOnly) prevDate=h.text.replace(new RegExp(`\\s+(?:at\\s+)?${TIME_RE}$`,"i"),"");
     // a tiny calendar page with the REAL month/day (the 📅 emoji always shows "JUL 17" on most phones)
-    const when=parseWhen(h.text,m?.created_at?new Date(m.created_at):new Date()).date;
+    const when=parseWhen(phrase,m?.created_at?new Date(m.created_at):new Date()).date;
     const chip=el("button","datechip"); chip.type="button"; chip.title=`${when.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})} · tap to add it to your calendar`;
-    const ico=el("span","calico"); ico.setAttribute("aria-hidden","true"); ico.append(el("b","",when.toLocaleDateString("en-US",{month:"short"}).toUpperCase()),el("i","",String(when.getDate())));
-    chip.append(ico,document.createTextNode(h.text)); chip.setAttribute("aria-label",`${h.text}, ${when.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}. Add to calendar`); chip.onclick=e=>{ e.stopPropagation(); openCalendar(h.text,m); }; node.append(chip); last=h.end; }
+    const ico=el("span","calico"+(timeOnly&&!prevDate?" clock":"")); ico.setAttribute("aria-hidden","true");
+    if(timeOnly&&!prevDate) ico.append(el("b","","TIME"),el("i","",when.toLocaleTimeString("en-US",{hour:"numeric"}).replace(/\s?(AM|PM)/,(x,a)=>a[0].toLowerCase())));   // just a time, no day said: show a clock face, not today's date
+    else ico.append(el("b","",when.toLocaleDateString("en-US",{month:"short"}).toUpperCase()),el("i","",String(when.getDate())));
+    chip.append(ico,document.createTextNode(h.text)); chip.setAttribute("aria-label",`${h.text}, ${when.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})} ${when.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}. Add to calendar`); chip.onclick=e=>{ e.stopPropagation(); openCalendar(phrase,m); }; node.append(chip); last=h.end; }
   const s=el("span"); renderText(s,text.slice(last),mentionIds); node.append(s);
 }
 
