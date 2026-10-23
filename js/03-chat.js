@@ -384,7 +384,7 @@ $("avatarPicker").onchange=async e=>{
 };
 $("logout").onclick=async()=>{ $("logout").disabled=true; await pushOff().catch(()=>{}); await api.signOut(); $("logout").disabled=false; };
 $("deleteAccount").onclick=async()=>{
-  const typed=prompt("This permanently deletes your account, profile, and every message you've sent. Type DELETE to confirm.");
+  const typed=await nlPrompt({ kind:"err", title:"Delete account?", badge:"DANGER", text:"This permanently deletes your account, profile, and every message you've sent. Type DELETE to confirm.", status:"POINT OF NO RETURN", placeholder:"DELETE", ok:"DELETE FOREVER", cancel:"KEEP MY ACCOUNT" });
   if(typed!=="DELETE") return say("profMsg","Account not deleted.");
   say("profMsg","Deleting…");
   try{ await pushOff().catch(()=>{}); await api.deleteAccount(); }
@@ -1049,7 +1049,7 @@ async function paintMembers(){
     if(uid===roomOwner) n.append(el("span","role","OWNER"));
     const nb=el("button","unblock","Nickname"); nb.type="button";
     nb.onclick=async()=>{
-      const v=prompt(`Nickname for ${uname} in this room (leave empty to clear):`, nick||""); if(v===null) return;
+      const v=await nlPrompt({ title:"Set nickname", badge:"ROOM", text:`Nickname for ${uname} in this room. Leave it empty to clear it.`, value:nick||"", placeholder:uname, maxLength:30, ok:"SAVE" }); if(v===null) return;
       const clean=v.trim().replace(/\s+/g," ").slice(0,30);
       try{ await api.setNickname(room,uid,clean); setMember({user_id:uid,nickname:clean||null}); say("rsMsg",clean?`${uname} is now “${clean}” here.`:`Cleared ${uname}'s nickname.`); }
       catch(err){ say("rsMsg","Couldn't set nickname: "+err.message,true); }

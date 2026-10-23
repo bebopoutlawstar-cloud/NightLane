@@ -1073,3 +1073,35 @@ function nlToast(kind="sys",text="",ms=3500){
   setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },ms);
   return t;
 }
+
+/* 📡 the little line under the chat name only shows the connection now (Live · Connecting… · Reconnecting… · Offline).
+   Everything else the app used to write there ("Couldn't pin", "Copied.", "Sending PDF…") pops up as a NightLane toast instead.
+   One place routes them all, so every old message got the new look at once (2026.10.21k). */
+(function(){
+  const st=$("status"); if(!st) return;
+  const real=Object.getOwnPropertyDescriptor(Node.prototype,"textContent");
+  const STATE=/^(Live|Demo mode|Connecting…|Reconnecting…|Offline · will reconnect)$/;
+  const ERR=/couldn.t|didn.t|can.t|cannot|blocked|isn.t|aren.t|not supported|too (short|far|big)|over \d+ ?MB|offline|fail|error|only photos|up to \d|already|unlocks/i;
+  const OK=/^(copied|pinned|unpinned|message (deleted|edited)|blocked |shared|added |you and .* friends|🔔|🙌|💞)/i;
+  let state="", last="", lastAt=0;
+  Object.defineProperty(st,"textContent",{configurable:true,
+    get(){ return real.get.call(st); },
+    set(v){ v=String(v??"").trim();
+      if(!v){ real.set.call(st,state); return; }                       // cleared: back to the connection state
+      if(STATE.test(v)){ state=v; real.set.call(st,v); return; }        // a connection state stays in the header
+      if(v===last&&Date.now()-lastAt<1500) return; last=v; lastAt=Date.now();
+      const kind=/…$/.test(v)&&!ERR.test(v)?"sys":ERR.test(v)?(/already|unlocks|up to \d|only photos/i.test(v)?"warn":"err"):OK.test(v)?"ok":"sys";
+      nlToast(kind,v.replace(/\.$/,""),kind==="err"?5000:3500);
+      real.set.call(st,state); } });
+})();
+
+/* ⌨️ nlPrompt: the alert panel with a text box. Resolves with what they typed, or null if they cancel.
+   await nlPrompt({ title:"Nickname?", text:"...", value:"old", placeholder:"...", ok:"SAVE" }) */
+function nlPrompt({ kind="sys", title="", badge="INPUT", text="", status="AWAITING INPUT", value="", placeholder="", maxLength=200, ok="OK", cancel="CANCEL" }={}){
+  const inp=$("alInput"); inp.value=value; inp.placeholder=placeholder; inp.maxLength=maxLength; show(inp,true);
+  const p=nlAlert({ kind, title, badge, text, status, buttons:[{label:ok,value:"__ok__"},{label:cancel,value:null}] });
+  const enter=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("alBtns").querySelector(".pri")?.click(); } };
+  inp.addEventListener("keydown",enter); setTimeout(()=>{ inp.focus(); inp.select(); },30);
+  return p.then(v=>{ inp.removeEventListener("keydown",enter); show(inp,false); return v==="__ok__"?inp.value:null; });
+}
+

@@ -1375,7 +1375,7 @@ $("fpHint").onclick=async()=>{
 };
 $("fpEmail").onclick=async()=>{
   const typed=$("email").value.trim();
-  const email=typed.includes("@")?typed:prompt("Type the email your account uses:","");
+  const email=typed.includes("@")?typed:await nlPrompt({ title:"Reset password", badge:"ACCOUNT", text:"Type the email your account uses and we'll send a reset link.", placeholder:"you@example.com", ok:"SEND LINK" });
   if(!email) return; if(!/^\S+@\S+\.\S+$/.test(email.trim())) return say("fpMsg","That doesn't look like an email.",true);
   $("fpEmail").disabled=true; say("fpMsg","Sending reset link…");
   try{ await api.resetPassword(email.trim()); say("fpMsg","If that email has an account, a reset link is on its way. Check spam too."); }

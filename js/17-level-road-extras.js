@@ -686,7 +686,7 @@ function paintPartner(){
 }
 async function renamePartner(){
   const cur=myPartner?.nickname||"";
-  const n=prompt("Name your partner (up to 16 letters). Leave it empty to use its species name.",cur); if(n===null) return;
+  const n=await nlPrompt({ title:"Name your partner", badge:"PARTNER", text:"Up to 16 letters. Leave it empty to use its species name.", value:cur, maxLength:16, ok:"NAME IT" }); if(n===null) return;
   try{ const saved=await api.setPartnerName(n); myPartner={...(myPartner||{}),nickname:saved}; if(partnerView?.mine) partnerView.p={...partnerView.p,nickname:saved}; paintPartner(); paintPartnerButton(); }
   catch(err){ toast("Couldn't rename it",err.message); }
 }
