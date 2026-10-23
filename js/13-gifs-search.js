@@ -483,11 +483,16 @@ async function fetchPreview(url){
   }catch(e){ p=null; }
   previewCache.set(url,p); return p;
 }
+/* 🔗 link card, NightLane style (2026.10.21l): a terminal header strip ("UPLINK // site ↗"), then the picture and title */
 function previewCard(url,p){
   const a=el("a","lpcard"); a.href=url; a.target="_blank"; a.rel="noopener noreferrer";
-  if(p.image){ const i=document.createElement("img"); i.src=p.image; i.alt=""; i.loading="lazy"; i.onerror=()=>i.remove(); a.append(i); }
-  const t=el("span","lptext"); t.append(el("b","",p.title||url)); if(p.description) t.append(el("span","lpdesc",p.description.slice(0,120))); t.append(el("small","",(p.site||new URL(url).hostname.replace(/^www\./,""))+(p.by?" · "+p.by:"")));
-  a.append(t); a.onclick=e=>e.stopPropagation(); return a;
+  const host=(()=>{ try{ return new URL(url).hostname.replace(/^www\./,""); }catch(e){ return ""; } })();
+  const head=el("span","lphead"); head.append(el("i","","UPLINK"),el("span","lphost","// "+(p.site&&p.site.length<28?p.site:host)),el("span","lpgo","↗")); a.append(head);
+  const body=el("span","lpbody");
+  if(p.image){ const f=el("span","lpimg"); const i=document.createElement("img"); i.src=p.image; i.alt=""; i.loading="lazy"; i.onerror=()=>f.remove(); f.append(i); body.append(f); }
+  const t=el("span","lptext"); t.append(el("b","",p.title||url)); if(p.description) t.append(el("span","lpdesc",p.description.slice(0,120))); if(p.by) t.append(el("small","",p.by));
+  body.append(t); a.append(body);
+  a.setAttribute("aria-label",`${p.title||host} on ${host}, opens in a new tab`); a.onclick=e=>e.stopPropagation(); return a;
 }
 function attachPreview(bub,m){
   if(m.kind!=="text"||!m.text) return; const url=firstUrl(m.text); if(!url) return;

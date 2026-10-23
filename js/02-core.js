@@ -208,7 +208,10 @@ function linkify(el,text){
   while((m=re.exec(text))){
     el.append(text.slice(last,m.index));
     const a=document.createElement("a"); a.href=m[0].startsWith("www.")?"https://"+m[0]:m[0];
-    a.textContent=m[0]; a.target="_blank"; a.rel="noopener noreferrer";
+    a.target="_blank"; a.rel="noopener noreferrer"; a.className="lnk"; a.title=m[0];
+    /* 🔗 show links short and clean: host + the start of the path (the full link is still what opens, and shows on hover) */
+    try{ const u=new URL(a.href), rest=(u.pathname+u.search).replace(/\/$/,""), host=u.hostname.replace(/^www\./,"");
+      a.textContent=host+(rest?(rest.length>18?rest.slice(0,18)+"…":rest):""); }catch(e){ a.textContent=m[0]; }
     el.append(a); last=m.index+m[0].length;
   }
   el.append(text.slice(last));
