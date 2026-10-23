@@ -102,7 +102,7 @@ function pollEl(m){
     b.onclick=async e=>{ e.stopPropagation();
       const had=mine; if(!p.multi&&!had) p.options.forEach((_,k)=>p.votes.get(k)?.delete(user.id));
       setVote(p,{option_index:i,user_id:user.id},!had); refreshMsg(m.id);
-      try{ await api.vote(m.id,i); if(!had) gainXP("vote"); }catch(err){ $("status").textContent="Vote didn't save: "+err.message; } };
+      try{ if(!had) sfx("tick"); await api.vote(m.id,i); if(!had) gainXP("vote"); }catch(err){ $("status").textContent="Vote didn't save: "+err.message; } };
     box.append(b);
   });
   box.append(el("div","pollfoot",`${voters.size} ${voters.size===1?"person":"people"} voted${p.multi?" · pick any":""}`));
@@ -175,7 +175,7 @@ $("themeClose").onclick=()=>{ applyTheme(themeAtOpen||meProfile?.theme||savedThe
 $("themeSave").onclick=async()=>{
   $("themeSave").disabled=true;
   try{
-    const style={theme:{...draftTheme,...(meProfile?.theme?.card?{card:meProfile.theme.card}:{}),...(meProfile?.theme?.dice?{dice:meProfile.theme.dice}:{})},bubble_color:draftBubble};   // keep the profile card and dice look
+    const style={theme:{...draftTheme,...(meProfile?.theme?.card?{card:meProfile.theme.card}:{}),...(meProfile?.theme?.dice?{dice:meProfile.theme.dice}:{}),...(meProfile?.theme?.ns?{ns:meProfile.theme.ns}:{})},bubble_color:draftBubble};   // keep the profile card, dice look and name style
     await api.saveStyle(user.id,style);
     meProfile={...meProfile,...style}; cache.set(user.id,meProfile); applyTheme(draftTheme); gainXP("theme"); paintMe(); if(room) repaintFaces(user.id);
     if(room) renderAll(false);

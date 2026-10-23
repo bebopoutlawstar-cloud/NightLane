@@ -21,13 +21,14 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=IM+Fell+English:ital@0;1&family=Bangers&family=Comic+Neue:wght@700&family=Pixelify+Sans:wght@400;700&family=Silkscreen&family=Jersey+15&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Audiowide&family=Bungee&family=Permanent+Marker&family=Pacifico&family=Creepster&family=Righteous&family=Russo+One&family=Metal+Mania&family=Monoton&family=Rubik+Glitch&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.min.js"></script>
 <link rel="preload" href="js/00-media.js?v=614338ba0c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/02-core.js?v=b5b692a501" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/03-chat.js?v=3e10868aa5" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/02-core.js?v=25e60c665e" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/03-chat.js?v=67e93dd18c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/04-lanes.js?v=3d4dd2ba78" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/05-chat-extras.js?v=cc84a07cce" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/05-chat-extras.js?v=a89e0ebdcc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/07-friends.js?v=7e24d3071a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/08-games.js?v=3188c36dec" as="fetch" crossorigin="anonymous">
@@ -37,16 +38,18 @@
 <link rel="preload" href="js/12-secrets-2.js?v=3c890dd0a9" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=1c7c28481b" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=853c47862a" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=a2bc7872e5" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=7a5ba8c6b2" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=d4e79c7246" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/20-name-styles.js?v=3181e1e8ff" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=a10e048e9a">
 <link rel="stylesheet" href="css/2-features.css?v=ce2db60d52">
 <link rel="stylesheet" href="css/3-secrets.css?v=32fddd495c">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=714cf8d72e">
 <link rel="stylesheet" href="css/5-games-themes-calls.css?v=c10fa78d42">
+<link rel="stylesheet" href="css/6-name-styles.css?v=9881e22af3">
 </head>
 <body>
 <div id="splash" aria-hidden="true">
@@ -374,6 +377,9 @@
 
     <div class="profpane" data-pane="look" role="tabpanel">
     <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
+    <h3>Name style</h3>
+    <div class="ns-types" id="nsTypes" role="tablist" aria-label="Name style"></div>
+    <div class="ns-grid" id="nsGrid"></div>
     <h3>Accessibility ♿</h3>
     <div class="a11yrow">
       <span class="sub left" id="tsLabel">Text size</span>
@@ -1481,7 +1487,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.21m";
+const APP_VERSION="2026.10.22b";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1503,15 +1509,16 @@ const APP_VERSION="2026.10.21m";
      16-music        lofi radio and My Music
      17-level-road-extras  level road, Night Signal, Media Backlog, Partners, e-cards
      18-app          staying connected, back button, desktop mode, offline
-     19-calls        voice/video calls, screen share, group calls */
+     19-calls        voice/video calls, screen share, group calls
+     20-name-styles  name fonts, nameplates, wraps, decorations, effects, creator tag */
 (()=>{
   const FILES=[
   "js/00-media.js?v=614338ba0c",
   "js/01-boards.js?v=82bebb9adc",
-  "js/02-core.js?v=b5b692a501",
-  "js/03-chat.js?v=3e10868aa5",
+  "js/02-core.js?v=25e60c665e",
+  "js/03-chat.js?v=67e93dd18c",
   "js/04-lanes.js?v=3d4dd2ba78",
-  "js/05-chat-extras.js?v=cc84a07cce",
+  "js/05-chat-extras.js?v=a89e0ebdcc",
   "js/06-effects.js?v=25cefc7232",
   "js/07-friends.js?v=7e24d3071a",
   "js/08-games.js?v=3188c36dec",
@@ -1521,11 +1528,12 @@ const APP_VERSION="2026.10.21m";
   "js/12-secrets-2.js?v=3c890dd0a9",
   "js/13-gifs-search.js?v=1c7c28481b",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=853c47862a",
+  "js/15-bonds-news.js?v=a2bc7872e5",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=7a5ba8c6b2",
   "js/18-app.js?v=e5492f9d9a",
-  "js/19-calls.js?v=d4e79c7246"
+  "js/19-calls.js?v=d4e79c7246",
+  "js/20-name-styles.js?v=3181e1e8ff"
   ];
   const failed=()=>{ const s=document.getElementById("splash"); if(!s) return;
     s.classList.remove("gone"); s.setAttribute("aria-hidden","false");

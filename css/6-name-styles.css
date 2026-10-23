@@ -1,0 +1,68 @@
+/* ===== Name Styles (2026.10.22a) ===== */
+
+/* >_ CREATOR tag: terminal line with the glitch flicker */
+.nl-creator{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:8px;
+  font-family:var(--tech);font-weight:700;font-size:10px;letter-spacing:2px;line-height:1.3;white-space:nowrap;
+  color:var(--cyan);background:rgba(0,240,255,.08);border-left:3px solid var(--cyan);padding:3px 8px}
+.nl-creator .cr-w{color:var(--volt);position:relative}
+.nl-creator .cr-w::before,.nl-creator .cr-w::after{content:attr(data-t);position:absolute;inset:0;opacity:0;pointer-events:none}
+.nl-creator .cr-w::before{color:var(--mag);animation:crGlitch 3.2s steps(1) infinite}
+.nl-creator .cr-w::after{color:var(--cyan);animation:crGlitch 3.2s steps(1) infinite .08s}
+.nl-creator .cr-cur{display:inline-block;width:6px;height:10px;background:var(--cyan);animation:crBlink 1s steps(1) infinite}
+.nl-creator.s{font-size:7px;letter-spacing:1.5px;padding:1px 5px;margin-left:6px;border-left-width:2px;gap:3px}
+.nl-creator.s .cr-cur{width:4px;height:7px}
+/* on a chat line the name tag is already a tilted box, so sit flat inside it */
+.tag .nl-creator{margin:0 2px 0 6px;transform:none}
+/* profile titles are big, so the tag drops onto its own line under the name */
+#personName .nl-creator,#profName .nl-creator{display:flex;width:max-content;margin:6px 0 0}
+#personName,#profName{overflow:visible}
+@keyframes crGlitch{0%,90%,100%{opacity:0;transform:none}91%{opacity:.9;transform:translate(-2px,0)}93%{opacity:.9;transform:translate(2px,-1px)}95%{opacity:0}}
+@keyframes crBlink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.nl-creator .cr-w::before,.nl-creator .cr-w::after,.nl-creator .cr-cur{animation:none}}
+/* Look tab: Name style picker */
+.ns-types{width:100%;align-self:stretch;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.ns-types::-webkit-scrollbar{display:none}
+.ns-tab{flex:none;font-family:var(--tech);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);background:var(--night);border:2px solid var(--plum);padding:7px 12px;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.ns-tab.on{color:var(--night);background:var(--cyan);border-color:var(--cyan)}
+
+.ns-grid{width:100%;align-self:stretch;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:4px 0 14px}
+.ns-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:56px;
+  padding:10px;text-align:left;color:var(--white);background:rgba(20,10,58,.75);border:2px solid var(--plum)}
+.ns-tile.on{border-color:var(--volt);box-shadow:0 0 0 1px var(--volt),0 0 14px rgba(243,255,58,.25)}
+.ns-tile.on::after{content:"✓ ON";position:absolute;top:6px;right:8px;font-family:var(--tech);font-size:8px;letter-spacing:1px;color:var(--volt)}
+.ns-name{font-weight:700;font-size:15px;line-height:1.1}
+.ns-lock{font-family:var(--tech);font-size:8px;letter-spacing:1.5px;color:var(--cyan);border-left:2px solid var(--cyan);padding:1px 5px;background:rgba(0,240,255,.08)}
+/* Name fonts: one class per font, used in the picker now and on names later */
+.ns-pv{font-size:22px;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 0}
+.nsf-default{font-family:var(--body);font-weight:700;color:var(--white)}
+.nsf-arcade{font-family:"Press Start 2P",monospace;font-size:.62em;color:#F3FF3A}
+.nsf-terminal{font-family:VT323,monospace;font-size:1.2em;color:#39FF9A;text-shadow:0 0 6px rgba(57,255,154,.5)}
+.nsf-racer{font-family:Audiowide,sans-serif;font-style:italic;color:#00F0FF}
+.nsf-comic{font-family:"Comic Neue",cursive;font-weight:700;color:#FFE66D}
+.nsf-billboard{font-family:Bungee,sans-serif;color:#FF8A3D}
+.nsf-marker{font-family:"Permanent Marker",cursive;color:#F4F7FF}
+.nsf-script{font-family:Pacifico,cursive;color:#FF7AD9}
+.nsf-creep{font-family:Creepster,cursive;letter-spacing:1px;color:#9DFF4A}
+.nsf-prism,.nsf-prismflow{font-family:Righteous,sans-serif;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px rgba(0,240,255,.35));
+  background-image:linear-gradient(100deg,#FF4FD8 0%,#FF8A3D 20%,#F3FF3A 38%,#39FF9A 56%,#00F0FF 74%,#7A5CFF 100%)}
+.nsf-prismflow{background-image:linear-gradient(100deg,#FF4FD8,#FF8A3D,#F3FF3A,#39FF9A,#00F0FF,#7A5CFF,#FF4FD8);background-size:200% 100%;animation:nsPrism 3s linear infinite}
+.nsf-headbang{display:inline-block;font-family:"Metal Mania",cursive;color:#E8E8F0;text-shadow:0 0 2px #FF3B3B,2px 2px 0 #5A0000;transform-origin:20% 90%;animation:nsBang 1.1s ease-in-out infinite}
+.nsf-fireice{font-family:"Russo One",sans-serif;-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% 100%;animation:nsClash 3.4s ease-in-out infinite;
+  background-image:linear-gradient(90deg,#FFE14D 0%,#FF8A00 14%,#FF3B1F 30%,#FF6A00 42%,#FFFFFF 49%,#BFF6FF 51%,#4FD8FF 60%,#1A7BFF 78%,#BFF6FF 100%)}
+.nsf-neontube{font-family:Monoton,cursive;font-size:.85em;color:#FF4FD8;text-shadow:0 0 6px #FF4FD8,0 0 18px #FF4FD8;animation:nsFlicker 3.2s infinite}
+.nsf-glitch{display:inline-block;font-family:"Rubik Glitch",sans-serif;color:#F4F7FF;text-shadow:3px 0 #FF2E88,-3px 0 #00F0FF;animation:nsGlitch 2.4s steps(1,end) infinite}
+@keyframes nsPrism{to{background-position:200% 50%}}
+@keyframes nsBang{0%,40%,80%,100%{transform:none}20%,60%{transform:rotate(-7deg) translateY(4px)}}
+@keyframes nsClash{0%,100%{background-position:18% 50%}22%{background-position:62% 50%}30%{background-position:55% 50%}52%{background-position:84% 50%}60%{background-position:76% 50%}78%{background-position:30% 50%}}
+@keyframes nsFlicker{0%,46%,50%,74%,100%{opacity:1}48%{opacity:.55}72%{opacity:.8}}
+@keyframes nsGlitch{0%,12%,49%,81%,100%{transform:none;clip-path:none;text-shadow:3px 0 #FF2E88,-3px 0 #00F0FF}
+  8%{transform:translate(-3px,1px) skewX(-8deg);text-shadow:-5px 0 #FF2E88,5px 0 #00F0FF}
+  10%{transform:translate(4px,-1px);clip-path:polygon(0 12%,100% 12%,100% 60%,0 60%)}
+  47%{transform:translate(-6px,0);clip-path:polygon(0 55%,100% 55%,100% 85%,0 85%)}
+  79%{transform:scaleX(1.08);text-shadow:8px 0 #FF2E88,-8px 0 #00F0FF}}
+@media (prefers-reduced-motion:reduce){[class*="nsf-"]{animation:none!important}}
+/* locked tiles: the label fades, but the preview stays bright enough to show off */
+.ns-tile.locked .ns-pv{opacity:.6}
+.ns-tile.locked .ns-name{color:var(--muted)}

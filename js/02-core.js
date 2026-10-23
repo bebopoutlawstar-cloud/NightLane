@@ -280,6 +280,8 @@ const live = {
   async updatePassword(pw){ must(await sb.auth.updateUser({password:pw})); },
   async deleteAccount(){ must(await sb.rpc("delete_my_account")); await sb.auth.signOut(); },
   async profiles(ids){   // (falls back without status / tz until the new SQL has been run)
+    const pk=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at,status_until,plus,badge").in("id",ids);
+    if(!pk.error) return pk.data||[];   // (name-styles.sql not run yet? fall back below)
     const su=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at,status_until").in("id",ids);
     if(!su.error) return su.data||[];
     const st=await sb.from("profiles").select("id,username,avatar_url,theme,bubble_color,birthday,last_seen,arcana,tz,status_emoji,status_text,status_at").in("id",ids);
@@ -863,7 +865,7 @@ const demo = (()=>{ // in-memory stand-in so the preview works without a server
   return {
     async session(){ return user; },
     onAuth(cb){ listeners.push(cb); },
-    async signUp(username,email){ user={id:"me",email,user_metadata:{username},created_at:new Date().toISOString()}; people.me={id:"me",username,avatar_url:null,invite_token:"demo-me"}; people.rook.last_seen=new Date(Date.now()-7*60000).toISOString(); listeners.forEach(f=>f(user,"SIGNED_IN")); return "in"; },
+    async signUp(username,email){ user={id:"me",email,user_metadata:{username},created_at:new Date().toISOString()}; people.me={id:"me",username,avatar_url:null,invite_token:"demo-me",...(String(username).toLowerCase()==="bebop"?{plus:true,badge:"creator"}:{})}; people.rook.last_seen=new Date(Date.now()-7*60000).toISOString(); listeners.forEach(f=>f(user,"SIGNED_IN")); return "in"; },
     async signIn(email){ const n=email.includes("@")?(email.split("@")[0]||"you"):email; user={id:"me",email,user_metadata:{username:n}}; people.me=people.me||{id:"me",username:n,avatar_url:null}; listeners.forEach(f=>f(user,"SIGNED_IN")); },
     async signOut(){ user=null; listeners.forEach(f=>f(null,"SIGNED_OUT")); },
     async resetPassword(){}, async updatePassword(){},
