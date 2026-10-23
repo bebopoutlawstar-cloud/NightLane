@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.23j", title:"Message button fix 🔧", items:["🔧 The Message button on friends with a nameplate is bright cyan again (it had turned invisible)."]},
     {v:"2026.10.23i", title:"Smoother profiles 🛠️", items:["🛠️ Profile banners, decorations and nameplates no longer flicker or restart while you look at someone's profile.","💻 Neon Breach's code rain now stops just under your name instead of running into the rest of your profile.","🔘 Nameplates in member and friend lists are calmer: the art fades in from the right and holds still, buttons keep their dark fill."]},
     {v:"2026.10.23g", title:"Name Styles: finishing touches 🎁", items:["🎁 Level up into a new font, nameplate, wrap, decoration or effect and you get an Unlocked! pop-up that takes you straight to it.","📋 Name style pieces are in your Unlockables list now, so you can see what's coming on the Level road.","⌨️ Name fonts show in room member lists and friend lists too."]},
     {v:"2026.10.23f", title:"Matching sets 🎁", items:["🎁 Name style → Sets: 9 themed sets, each with a decoration, a profile wrap and a name font (plus the matching effect for five of them). Wear the whole set in one tap, or mix and match.","🆓 Soul Fire and Starfall sets are free; their pieces open up as you climb the Level road.","✒️ 9 new set fonts and 9 new set wraps also show up in the Font and Wrap tabs."]},
