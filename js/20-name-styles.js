@@ -22,6 +22,16 @@ const NS_CATALOG={
     {id:"fireice",   label:"Fire & Ice",  tier:"plus"},
     {id:"neontube",  label:"Neon Tube",   tier:"plus"},
     {id:"glitch",    label:"Glitch",      tier:"plus"},
+    // set fonts (from the matching sets)
+    {id:"soulpixel",  label:"Ghost-fire",  tier:"free", set:"soulfire"},
+    {id:"starlight",  label:"Starlight",   tier:"free", set:"starfall"},
+    {id:"cinzel",     label:"Arcana",      tier:"plus", set:"tarot"},
+    {id:"vt323",      label:"Breach Term", tier:"plus", set:"breach"},
+    {id:"frost",      label:"Frost",       tier:"plus", set:"snowfox"},
+    {id:"bloomscript",label:"Bloom",       tier:"plus", set:"nightbloom"},
+    {id:"sunset",     label:"Sunset Chrome",tier:"plus", set:"synthrise"},
+    {id:"bubblegum",  label:"Bubblegum",   tier:"plus", set:"heartchain"},
+    {id:"corona",     label:"Corona",      tier:"plus", set:"eclipse"},
   ],
   plate:[
     {id:"none",       label:"None",             tier:"free"},
@@ -46,6 +56,16 @@ const NS_CATALOG={
     {id:"neonpulse", label:"Neon Pulse",   tier:{level:10}},
     {id:"starfield", label:"Starfield",    tier:"plus"},
     {id:"electric",  label:"Electric",     tier:"plus"},
+    // set wraps (from the matching sets)
+    {id:"s-soulfire",  label:"Soul Fire",       tier:"free", set:"soulfire"},
+    {id:"s-starfall",  label:"Starfall",        tier:"free", set:"starfall"},
+    {id:"s-tarot",     label:"Celestial Tarot", tier:"plus", set:"tarot"},
+    {id:"s-breach",    label:"Neon Breach",     tier:"plus", set:"breach"},
+    {id:"s-snowfox",   label:"Snow Fox",        tier:"plus", set:"snowfox"},
+    {id:"s-nightbloom",label:"Night Bloom",     tier:"plus", set:"nightbloom"},
+    {id:"s-synthrise", label:"Synth Rise",      tier:"plus", set:"synthrise"},
+    {id:"s-heartchain",label:"Heart Chain",     tier:"plus", set:"heartchain"},
+    {id:"s-eclipse",   label:"Eclipse",         tier:"plus", set:"eclipse"},
   ],
   deco:[
     {id:"none",          label:"None",            tier:"free"},
@@ -69,6 +89,28 @@ const NS_CATALOG={
     {id:"synthrise", label:"Synth Rise",      tier:"plus"},
   ],
 };
+/* matching sets: one tap puts on every piece you can wear */
+const NS_SETS=[
+  {id:"soulfire",  label:"Soul Fire",       tier:"free", deco:"soulfire",     wrap:"s-soulfire",  font:"soulpixel",  fx:"soulcrown"},
+  {id:"starfall",  label:"Starfall",        tier:"free", deco:"constellation",wrap:"s-starfall",  font:"starlight",  fx:"starfall"},
+  {id:"tarot",     label:"Celestial Tarot", tier:"plus", deco:"tarot",        wrap:"s-tarot",     font:"cinzel",     fx:"tarot"},
+  {id:"breach",    label:"Neon Breach",     tier:"plus", deco:"breach",       wrap:"s-breach",    font:"vt323",      fx:"breach"},
+  {id:"snowfox",   label:"Snow Fox",        tier:"plus", deco:"snowfox",      wrap:"s-snowfox",   font:"frost"},
+  {id:"nightbloom",label:"Night Bloom",     tier:"plus", deco:"nightbloom",   wrap:"s-nightbloom",font:"bloomscript"},
+  {id:"synthrise", label:"Synth Rise",      tier:"plus", deco:"planet",       wrap:"s-synthrise", font:"sunset",     fx:"synthrise"},
+  {id:"heartchain",label:"Heart Chain",     tier:"plus", deco:"heartchain",   wrap:"s-heartchain",font:"bubblegum"},
+  {id:"eclipse",   label:"Eclipse",         tier:"plus", deco:"eclipse",      wrap:"s-eclipse",   font:"corona"},
+];
+const NS_SET_PARTS=["deco","wrap","font","fx"];
+const nsSetOn=set=>{ const n=nsOf(meProfile); return NS_SET_PARTS.every(k=>!set[k]||n[k]===set[k]); };
+async function nsWearSet(set){
+  if(set.tier==="plus"&&!hasPlus(meProfile)){ nlToast("warn","That set is NightLane+."); return; }
+  const change={}, later=[];
+  if(!set.fx) change.fx="none";   // a set without an effect clears the old one so nothing clashes
+  NS_SET_PARTS.forEach(k=>{ if(!set[k]) return; if(nsCanWear(k,set[k])) change[k]=set[k]; else later.push(nsLockLabel(k,set[k])); });
+  try{ await nsSave(change); paintNsPicker(); nlToast("ok",later.length?`Set on! ${later.length} piece${later.length>1?"s":""} unlock${later.length>1?"":"s"} later (${later.join(", ")}).`:"Set on! 🎉"); }
+  catch(err){ nlToast("err",err.message); }
+}
 const NS_BLEND=["blend","deco"];   // frame + decoration: Blend (default) or Decoration only
 
 const nsItem=(type,id)=>(NS_CATALOG[type]||[]).find(x=>x.id===id)||null;
@@ -168,7 +210,7 @@ function nsNameFont(node,p){
   node.classList.toggle("ns-hasfont",!!(f||ns.color));
 }
 /* ---------- profile wraps ---------- */
-function nsWrapLayer(id){ const w=el("div","nsw nsw-"+id); w.setAttribute("aria-hidden","true"); w.append(el("div","nsw-in")); return w; }
+function nsWrapLayer(id){ const set=id.startsWith("s-"), w=el("div","nsw nsw-"+id+(set?" nsw-set":"")); w.setAttribute("aria-hidden","true"); w.append(el("div","nsw-in")); if(set&&typeof nsSetWrapSvg==="function"){ const sv=nsSetWrapSvg(id); if(sv) w.append(sv); } return w; }
 function nsApplyWrap(sheet,p){
   if(!sheet) return; sheet.querySelector(":scope > .nsw")?.remove(); sheet.classList.remove("nsw-on");
   const id=nsOf(p).wrap; if(!id) return;
@@ -189,9 +231,9 @@ const _nsProfTab=profTab;
 profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 
 /* ---------- Look tab: the Name style picker ---------- */
-const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
+const NS_TYPES=[["set","Sets"],["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
-const NS_BUILT=["font","plate","wrap","deco","fx"];   // tabs whose looks are live in the app (add each one as it ships)
+const NS_BUILT=["set","font","plate","wrap","deco","fx"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -206,6 +248,8 @@ function paintNsPicker(){
   const grid=$("nsGrid"); grid.innerHTML="";
   grid.classList.toggle("wide",nsTab==="plate");
   if(!NS_BUILT.includes(nsTab)) grid.append(el("p","ns-soon",`🚧 ${NS_TYPES.find(t=>t[0]===nsTab)[1]}s are still being built. You can pick one now and it'll show up as soon as they land.`));
+  grid.classList.toggle("sets",nsTab==="set");
+  if(nsTab==="set"){ nsPaintSets(grid,myNs); nsPaintColor(myNs); nsPaintBlend(myNs); return; }
   const cur=nsOf(meProfile)[nsTab]||NS_CATALOG[nsTab][0].id;
   NS_CATALOG[nsTab].forEach(it=>{
     const lock=nsLockLabel(nsTab,it.id);
@@ -227,6 +271,23 @@ function paintNsPicker(){
   });
   nsPaintColor(myNs);
   nsPaintBlend(myNs);
+}
+/* the Sets tab: each set shows your picture in its decoration and your name in its font */
+function nsPaintSets(grid,myNs){
+  grid.append(el("p","ns-soon","Wear a whole set in one tap, or mix and match pieces from the other tabs."));
+  NS_SETS.forEach(set=>{
+    const lock=set.tier==="plus"&&!hasPlus(meProfile)?"NL+":"", on=nsSetOn(set);
+    const b=el("button","ns-tile"+(on?" on":"")+(lock?" locked":"")); b.type="button";
+    const row=el("div","ns-set"), f=el("span","face");
+    paintFace(f,{...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{deco:set.deco,blend:myNs.blend}}}); nsApplyDeco(f,{plus:true,theme:{ns:{deco:set.deco,blend:myNs.blend}}},false);
+    row.append(f,nsFontText(el("span","ns-pv"),meProfile?.username||"you",set.font));
+    const parts=["decoration","wrap","font"].concat(set.fx?["effect"]:[]);
+    row.append(el("span","ns-parts",parts.join(" · ")));
+    b.append(row,el("span","ns-name",set.label+" set"));
+    if(lock) b.append(el("span","ns-lock",lock));
+    b.onclick=()=>nsWearSet(set);
+    grid.append(b);
+  });
 }
 /* Frame + decoration: Blend (frame slims to a thin edge) or Decoration only (frame steps aside) */
 function nsPaintBlend(myNs){
