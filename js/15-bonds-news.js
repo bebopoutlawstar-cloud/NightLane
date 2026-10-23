@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.23a", title:"Smoother colour picking 🎨", items:["🎨 Dragging around the custom colour wheel now just previews the colour on your name. Nothing saves until you tap SAVE COLOUR (thanks for the report!).","🚧 Nameplate, Wrap, Decoration and Effect tabs now say they're still being built. Picks you make there will show up as soon as they land."]},
     {v:"2026.10.22e", title:"Font colours + the real Fire & Ice 🎨", items:["🔥🧊 Fire & Ice is now the proper one: lava rock on one side, ice crystal on the other, with a white-hot seam pushing back and forth.","🎨 Pick a colour for your name font: 8 NightLane swatches or any colour you like. Colours too dark to read get brightened a little.","💬 Chat name tags are shorter again: the creator tag on messages is now just >_ so long names and the time still fit."]},
     {v:"2026.10.22d", title:"Tidier Look tab 🗂️", items:["🗂️ Name style now folds away into one row (with your current font showing). Tap it to open the picker."]},
     {v:"2026.10.22c", title:"Your font, everywhere ⌨️", items:["⌨️ Your name font now shows on your chat messages and on your profile, for everyone.","🪧 With a font picked, your profile name sits on a dark plate so every colour reads."]},

@@ -119,3 +119,11 @@
 .ns-sw.any{position:relative;background:conic-gradient(#FF4FD8,#FF8A3D,#F3FF3A,#39FF9A,#00F0FF,#7A5CFF,#FF4FD8);overflow:hidden}
 .ns-sw.any input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .ns-cnote{width:100%;font-size:13px;color:var(--muted)}
+/* custom colour: preview first, then save */
+.ns-cdraft{display:flex;align-items:center;gap:8px;flex-basis:100%}
+.ns-cchip{width:22px;height:22px;border:2px solid var(--white)}
+.ns-csave,.ns-cundo{font-family:var(--tech);font-size:10px;letter-spacing:1.5px;padding:7px 12px;border:2px solid var(--cyan);clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.ns-csave{background:var(--cyan);color:var(--night)}
+.ns-cundo{background:var(--night);color:var(--muted);border-color:var(--plum)}
+/* tabs that aren't built yet */
+.ns-soon{grid-column:1/-1;margin:0;padding:10px 12px;font-size:14px;color:var(--muted);border-left:3px solid var(--volt);background:rgba(243,255,58,.06)}

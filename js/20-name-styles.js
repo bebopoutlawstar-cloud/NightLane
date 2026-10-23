@@ -151,6 +151,7 @@ function tagName(node,p,small){
 /* write a name into node in a font. Most fonts are just a class; Fire & Ice needs 3 layers (fire, ice, seam) */
 function nsFontText(node,text,font,color){
   if(font) node.classList.add("nsf-"+font);
+  node.dataset.nsf=font||"";
   if(color&&NS_COLORFUL.includes(font||"default")){ node.style.setProperty("--nsc",color); if(!font) node.style.color=color; }   // no font picked: just colour the normal name
   if(font!=="fireice"){ node.append(text); return node; }
   const fire=el("span","fi-fire"), ice=el("span","fi-ice"), seam=el("span","fi-seam");
@@ -177,6 +178,7 @@ profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 /* ---------- Look tab: the Name style picker ---------- */
 const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
+const NS_BUILT=["font"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -189,6 +191,7 @@ function paintNsPicker(){
   const myNs=nsOf(meProfile);
   { const cf=myNs.font||"default", c=$("nsCur"); c.innerHTML=""; c.append(nsFontText(el("span"),meProfile?.username||"you",cf,myNs.color)); }   // the closed box still shows your current font
   const grid=$("nsGrid"); grid.innerHTML="";
+  if(!NS_BUILT.includes(nsTab)) grid.append(el("p","ns-soon",`🚧 ${NS_TYPES.find(t=>t[0]===nsTab)[1]}s are still being built. You can pick one now and it'll show up as soon as they land.`));
   const cur=nsOf(meProfile)[nsTab]||NS_CATALOG[nsTab][0].id;
   NS_CATALOG[nsTab].forEach(it=>{
     const lock=nsLockLabel(nsTab,it.id);
@@ -206,16 +209,30 @@ function paintNsPicker(){
   nsPaintColor(myNs);
 }
 /* the colour row under the font tiles */
+let nsColorDraft=null;   // a custom colour you're still dragging around (not saved yet)
+function nsPreviewColor(c){   // recolour every preview in the box without saving
+  const rc=nsReadable(c);
+  $("nsBox").querySelectorAll("[data-nsf]").forEach(n=>{ if(NS_COLORFUL.includes(n.dataset.nsf||"default")) n.style.setProperty("--nsc",rc); });
+}
 function nsPaintColor(myNs){
   let row=$("nsColor"); if(!row){ row=el("div","ns-color"); row.id="nsColor"; $("nsGrid").after(row); }
-  row.innerHTML=""; show(row,nsTab==="font"); if(nsTab!=="font") return;
+  show(row,nsTab==="font"); if(nsTab!=="font") return;
+  if(nsColorDraft){ nsPreviewColor(nsColorDraft); return; }   // mid-pick: don't rebuild the colour wheel under your finger
+  row.innerHTML="";
   const raw=meProfile?.theme?.ns?.color||null, font=myNs.font||"default";
   row.append(el("span","lbl","Colour"));
-  const pick=async c=>{ try{ await nsSave({color:c}); paintNsPicker(); nlToast("ok","Saved."); }catch(err){ nlToast("err",err.message); } };
+  const pick=async c=>{ nsColorDraft=null; try{ await nsSave({color:c}); paintNsPicker(); nlToast("ok","Saved."); }catch(err){ paintNsPicker(); nlToast("err",err.message); } };
   const def=el("button","ns-sw def"+(raw?"":" on"),"✕"); def.type="button"; def.title="Font's own colour"; def.setAttribute("aria-label","Font's own colour"); def.onclick=()=>pick(null); row.append(def);
   NS_SWATCHES.forEach(c=>{ const b=el("button","ns-sw"+(raw===c?" on":"")); b.type="button"; b.style.setProperty("--c",c); b.setAttribute("aria-label","Colour "+c); b.onclick=()=>pick(c); row.append(b); });
+  /* any colour: dragging only previews; nothing saves until you tap SAVE COLOUR */
   const any=el("label","ns-sw any"+(raw&&!NS_SWATCHES.includes(raw)?" on":"")); any.title="Any colour"; const inp=document.createElement("input"); inp.type="color"; inp.value=raw||"#00f0ff"; inp.setAttribute("aria-label","Any colour");
-  inp.onchange=()=>pick(inp.value.toLowerCase()); any.append(inp); row.append(any);
+  const bar=el("div","ns-cdraft hidden"), chip=el("i","ns-cchip"), save=el("button","ns-csave","SAVE COLOUR"), undo=el("button","ns-cundo","CANCEL");
+  save.type="button"; undo.type="button"; bar.append(chip,save,undo);
+  const preview=()=>{ nsColorDraft=inp.value.toLowerCase(); chip.style.background=nsReadable(nsColorDraft); show(bar,true); nsPreviewColor(nsColorDraft); };
+  inp.addEventListener("input",preview); inp.addEventListener("change",preview);
+  save.onclick=()=>pick(nsColorDraft);
+  undo.onclick=()=>{ nsColorDraft=null; paintNsPicker(); };
+  any.append(inp); row.append(any,bar);
   if(!NS_COLORFUL.includes(font)) row.append(el("span","ns-cnote",`${nsItem("font",font)?.label} keeps its own colours. Your colour shows on the other fonts.`));
   else if(raw&&nsReadable(raw)!==raw.toLowerCase()) row.append(el("span","ns-cnote","That colour is too dark to read here, so NightLane brightens it a little."));
 }
