@@ -191,7 +191,7 @@ profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 /* ---------- Look tab: the Name style picker ---------- */
 const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
-const NS_BUILT=["font","plate","wrap"];   // tabs whose looks are live in the app (add each one as it ships)
+const NS_BUILT=["font","plate","wrap","deco"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -211,6 +211,7 @@ function paintNsPicker(){
     const lock=nsLockLabel(nsTab,it.id);
     const b=el("button","ns-tile"+(it.id===cur?" on":"")+(lock?" locked":"")); b.type="button";
     if(nsTab==="font") b.append(nsFontText(el("span","ns-pv"),meProfile?.username||"you",it.id,myNs.color));
+    if(nsTab==="deco"){ const f=el("span","face ns-dface"); paintFace(f,{...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),deco:it.id}}}); if(typeof nsApplyDeco==="function") nsApplyDeco(f,{plus:true,theme:{ns:{deco:it.id,blend:myNs.blend}}},false); b.append(f); }
     if(nsTab==="wrap"){ const mini=el("div","nsw-mini"+(it.id==="none"?" none":"")); mini.append(el("i","mini-face")); if(it.id!=="none") mini.prepend(nsWrapLayer(it.id)); b.append(mini); }
     if(nsTab==="plate"){ const fake={...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),plate:it.id}}};
       b.append(nsPlateStrip(fake,"online")||nsFontText(el("div","nsp-strip"),meProfile?.username||"you",myNs.font,myNs.color)); }
@@ -224,6 +225,16 @@ function paintNsPicker(){
     grid.append(b);
   });
   nsPaintColor(myNs);
+  nsPaintBlend(myNs);
+}
+/* Frame + decoration: Blend (frame slims to a thin edge) or Decoration only (frame steps aside) */
+function nsPaintBlend(myNs){
+  let row=$("nsBlend"); if(!row){ row=el("div","ns-color ns-blend"); row.id="nsBlend"; $("nsGrid").after(row); }
+  row.innerHTML=""; show(row,nsTab==="deco"); if(nsTab!=="deco") return;
+  row.append(el("span","lbl","Frame + decoration"));
+  [["blend","Blend"],["deco","Decoration only"]].forEach(([v,label])=>{ const b=el("button","ns-tab"+(myNs.blend===v?" on":""),label); b.type="button"; b.setAttribute("aria-pressed",String(myNs.blend===v));
+    b.onclick=async()=>{ try{ await nsSave({blend:v}); paintNsPicker(); nlToast("ok","Saved."); }catch(err){ nlToast("err",err.message); } }; row.append(b); });
+  row.append(el("span","ns-cnote",myNs.blend==="deco"?"Your avatar frame hides while a decoration is on.":"Your avatar frame slims to a thin edge so the decoration fits around it."));
 }
 /* the colour row under the font tiles */
 let nsColorDraft=null;   // a custom colour you're still dragging around (not saved yet)

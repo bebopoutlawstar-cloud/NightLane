@@ -1,0 +1,65 @@
+/* ===== Avatar decorations (2026.10.23d): ported from the Name Styles canvas. Everything scoped under .nsd ===== */
+/* the art is drawn on a 200x200 board around a 132px tile, so it hangs ~26% past each side of the picture */
+.face.nsd-host{isolation:isolate;overflow:visible!important}
+.face>.nsd{position:absolute;left:-26%;top:-26%;right:auto;bottom:auto;width:152%;height:152%;margin:0;padding:0;background:none;border:0;transform:none;pointer-events:none;display:block}
+.nsd svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.nsd.nsd-b{z-index:-1}.nsd.nsd-f{z-index:3}
+/* Blend (default): your frame slims to a thin edge so the decoration has room. Decoration only: the frame steps aside */
+.face.nsd-host.nsd-blend[class*="frame-"]::before{inset:calc(-1 * max(1.5px,3%))}
+.face.nsd-host.nsd-only[class*="frame-"]::before,.face.nsd-host.nsd-only>.frx{display:none}
+/* small faces (chat lines, lists) get the calm version and stay inside their row */
+.face:not(.lg)>.nsd{left:-22%;top:-22%;width:144%;height:144%}
+@media (prefers-reduced-motion:reduce){.nsd *{animation:none!important}}
+@keyframes nd_tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.55)}}
+.nsd .tw0{animation:nd_tw 2.2s ease-in-out infinite}
+.nsd .tw1{animation:nd_tw 3s ease-in-out infinite .7s}
+.nsd .tw2{animation:nd_tw 2.6s ease-in-out infinite 1.4s}
+@keyframes nd_drift{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
+.nsd .drift{animation:nd_drift 6s ease-in-out infinite}
+.nsd .drift2{animation:nd_drift 7.5s ease-in-out infinite reverse}
+@keyframes nd_flk{0%,100%{transform:scaleY(1) skewX(0)}30%{transform:scaleY(1.25) skewX(-5deg)}65%{transform:scaleY(.85) skewX(4deg)}}
+.nsd .flk{transform-box:fill-box;transform-origin:50% 100%;animation:nd_flk .8s ease-in-out infinite}
+@keyframes nd_glowp{0%,100%{opacity:.75}50%{opacity:1}}
+.nsd .glowp{animation:nd_glowp 2.4s ease-in-out infinite}
+@keyframes nd_spin{to{transform:rotate(360deg)}}
+.nsd .spin{transform-origin:100px 100px;animation:nd_spin 5s linear infinite}
+@keyframes nd_hb{0%,100%{transform:scale(1);opacity:.7}15%{transform:scale(1.35);opacity:1}30%{transform:scale(1);opacity:.8}}
+.nsd .hb{transform-box:fill-box;transform-origin:50% 50%;animation:nd_hb 2.4s ease-in-out infinite}
+@keyframes nd_tail{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+.nsd .tail{transform-origin:130px 170px;animation:nd_tail 2.6s ease-in-out infinite}
+@keyframes nd_ear{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-9deg)}94%{transform:rotate(3deg)}}
+.nsd .ear{transform-box:fill-box;transform-origin:50% 100%;animation:nd_ear 4s ease-in-out infinite}
+@keyframes nd_draw{0%{stroke-dashoffset:600}45%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.nsd .draw{stroke-dasharray:600;animation:nd_draw 6s ease-in-out infinite}
+@keyframes nd_corona{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+.nsd .corona{transform-origin:100px 100px;animation:nd_corona 3.2s ease-in-out infinite}
+@keyframes nd_rise{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+.nsd .rise{animation:nd_rise 3s linear infinite}
+@keyframes nd_ringshine{to{transform:rotate(360deg)}}
+@keyframes nd_bloomp{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.nsd .bloomp{animation:nd_bloomp 3s ease-in-out infinite}
+@keyframes nd_gf4{0%,24.9%{opacity:1}25%,100%{opacity:0}}
+.nsd .gf4{opacity:0;animation:nd_gf4 .48s linear infinite}
+@keyframes nd_orbit{to{transform:rotate(360deg)}}
+.nsd .orbit{transform-origin:100px 100px;animation:nd_orbit 6s linear infinite}
+@keyframes nd_fall2{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(200px);opacity:0}}
+.nsd .fall2{animation:nd_fall2 4s linear infinite}
+.nsd.quiet *{animation-play-state:paused!important}
+.nsd.quiet .gsl2,.nsd.quiet .ringshine,.nsd.quiet .glowp,.nsd.quiet .tw0,.nsd.quiet .pflk,.nsd.quiet .flk,.nsd.quiet .gf4{animation-play-state:running!important}
+.nsd.quiet .rain2,.nsd.quiet .grant2,.nsd.quiet .rise,.nsd.quiet .fall2,.nsd.quiet .scanbar{display:none}
+.nsd .ringshine{transform-origin:100px 100px;animation:nd_ringshine 4s linear infinite}
+@keyframes nd_sunspin{0%,100%{filter:drop-shadow(0 0 3px rgba(243,255,58,.6))}50%{filter:drop-shadow(0 0 8px rgba(243,255,58,.95))}}
+.nsd .sunspin{animation:nd_sunspin 3s ease-in-out infinite}
+@keyframes nd_gsl2{0%,14%{opacity:0;transform:translateX(0)}15%{opacity:1;transform:translateX(-10px)}17%{transform:translateX(8px)}19%{transform:translateX(-4px)}21%{opacity:1;transform:translateX(9px)}22%,64%{opacity:0;transform:translateX(0)}65%{opacity:1;transform:translateX(7px)}67%{transform:translateX(-9px)}69%{opacity:1;transform:translateX(3px)}70%,100%{opacity:0}}
+.nsd .gsl2{opacity:0;animation:nd_gsl2 5s steps(1,end) infinite}
+@keyframes nd_scanbar{0%{transform:translateY(0)}100%{transform:translateY(120px)}}
+.nsd .scanbar{animation:nd_scanbar 2.2s linear infinite}
+@keyframes nd_lock{0%,20%{transform:scale(1.5);opacity:0}28%{transform:scale(.9);opacity:1}32%,90%{transform:scale(1);opacity:1}100%{opacity:.4}}
+.nsd .lock{animation:nd_lock 5s cubic-bezier(.2,1.4,.4,1) infinite}
+@keyframes nd_rain2{0%{transform:translateY(0)}100%{transform:translateY(400px)}}
+.nsd .rain2{animation:nd_rain2 2.4s linear infinite;opacity:.8}
+@keyframes nd_grant2{0%,39%{opacity:0;transform:scale(2) rotate(-6deg)}42%{opacity:1;transform:scale(.95) rotate(0)}44%,60%{opacity:1;transform:scale(1)}63%,100%{opacity:0}}
+.nsd .grant2{opacity:0;transform-origin:96px 178px;animation:nd_grant2 5s cubic-bezier(.2,1.4,.4,1) infinite;filter:drop-shadow(0 0 6px rgba(255,79,216,.6))}
+/* picker tiles */
+.ns-tile .ns-dface{width:52px;height:52px;margin:12px auto 8px;align-self:center;font-size:24px}
+.face.lg.nsd-host{margin-top:18px;margin-bottom:22px}
