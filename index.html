@@ -26,7 +26,7 @@
 <link rel="preload" href="js/00-media.js?v=614338ba0c" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/01-boards.js?v=82bebb9adc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/02-core.js?v=25e60c665e" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/03-chat.js?v=67e93dd18c" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/03-chat.js?v=4cb5a5b5fd" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/04-lanes.js?v=3d4dd2ba78" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/05-chat-extras.js?v=a89e0ebdcc" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/06-effects.js?v=25cefc7232" as="fetch" crossorigin="anonymous">
@@ -38,18 +38,18 @@
 <link rel="preload" href="js/12-secrets-2.js?v=3c890dd0a9" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/13-gifs-search.js?v=1c7c28481b" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/14-secrets-3.js?v=9f08adc739" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/15-bonds-news.js?v=a2bc7872e5" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/15-bonds-news.js?v=3d789ed31f" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/16-music.js?v=6ba46d86bb" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/17-level-road-extras.js?v=7a5ba8c6b2" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/18-app.js?v=e5492f9d9a" as="fetch" crossorigin="anonymous">
 <link rel="preload" href="js/19-calls.js?v=d4e79c7246" as="fetch" crossorigin="anonymous">
-<link rel="preload" href="js/20-name-styles.js?v=3181e1e8ff" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="js/20-name-styles.js?v=6ae01fa776" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="css/1-core.css?v=a10e048e9a">
 <link rel="stylesheet" href="css/2-features.css?v=ce2db60d52">
 <link rel="stylesheet" href="css/3-secrets.css?v=32fddd495c">
 <link rel="stylesheet" href="css/4-desktop-more.css?v=714cf8d72e">
 <link rel="stylesheet" href="css/5-games-themes-calls.css?v=c10fa78d42">
-<link rel="stylesheet" href="css/6-name-styles.css?v=9881e22af3">
+<link rel="stylesheet" href="css/6-name-styles.css?v=eecaee0e15">
 </head>
 <body>
 <div id="splash" aria-hidden="true">
@@ -377,9 +377,11 @@
 
     <div class="profpane" data-pane="look" role="tabpanel">
     <button class="ghost" type="button" id="openTheme">Theme &amp; colors 🎨</button>
-    <h3>Name style</h3>
-    <div class="ns-types" id="nsTypes" role="tablist" aria-label="Name style"></div>
-    <div class="ns-grid" id="nsGrid"></div>
+    <details class="ns-box" id="nsBox">
+      <summary><span class="ns-sum-t">Name style ⌨️</span><span class="ns-sum-cur" id="nsCur"></span></summary>
+      <div class="ns-types" id="nsTypes" role="tablist" aria-label="Name style"></div>
+      <div class="ns-grid" id="nsGrid"></div>
+    </details>
     <h3>Accessibility ♿</h3>
     <div class="a11yrow">
       <span class="sub left" id="tsLabel">Text size</span>
@@ -1487,7 +1489,7 @@ const TERMS_VERSION = "2026-09-30";   // bump when terms.html / privacy.html cha
 const AI_ENABLED = false;   // set to true once the "ai" function + ANTHROPIC_API_KEY are set up in Supabase (summaries + translation)   // from `npx web-push generate-vapid-keys` (the PUBLIC one only)
 const GIPHY_API_KEY="j48mHG8NqdGXnaItJSnY5P9VHFalsXqo";   // same key as GIFHUNT
 const KLIPY_API_KEY="FEDMzS8AwK0EMQxzdDzpijFquuGVNkaArkUAdqnMo9L435x48ooSYw996aj9OLNZ";   // 🔑 paste your free app key from partner.klipy.com between the quotes; empty = GIPHY only
-const APP_VERSION="2026.10.22b";
+const APP_VERSION="2026.10.22d";
 </script>
 <script>
 /* ===== NightLane's code lives in js/ (and its styles in css/) =====
@@ -1516,7 +1518,7 @@ const APP_VERSION="2026.10.22b";
   "js/00-media.js?v=614338ba0c",
   "js/01-boards.js?v=82bebb9adc",
   "js/02-core.js?v=25e60c665e",
-  "js/03-chat.js?v=67e93dd18c",
+  "js/03-chat.js?v=4cb5a5b5fd",
   "js/04-lanes.js?v=3d4dd2ba78",
   "js/05-chat-extras.js?v=a89e0ebdcc",
   "js/06-effects.js?v=25cefc7232",
@@ -1528,12 +1530,12 @@ const APP_VERSION="2026.10.22b";
   "js/12-secrets-2.js?v=3c890dd0a9",
   "js/13-gifs-search.js?v=1c7c28481b",
   "js/14-secrets-3.js?v=9f08adc739",
-  "js/15-bonds-news.js?v=a2bc7872e5",
+  "js/15-bonds-news.js?v=3d789ed31f",
   "js/16-music.js?v=6ba46d86bb",
   "js/17-level-road-extras.js?v=7a5ba8c6b2",
   "js/18-app.js?v=e5492f9d9a",
   "js/19-calls.js?v=d4e79c7246",
-  "js/20-name-styles.js?v=3181e1e8ff"
+  "js/20-name-styles.js?v=6ae01fa776"
   ];
   const failed=()=>{ const s=document.getElementById("splash"); if(!s) return;
     s.classList.remove("gone"); s.setAttribute("aria-hidden","false");

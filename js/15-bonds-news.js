@@ -561,6 +561,8 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.22d", title:"Tidier Look tab 🗂️", items:["🗂️ Name style now folds away into one row (with your current font showing). Tap it to open the picker."]},
+    {v:"2026.10.22c", title:"Your font, everywhere ⌨️", items:["⌨️ Your name font now shows on your chat messages and on your profile, for everyone.","🪧 With a font picked, your profile name sits on a dark plate so every colour reads."]},
     {v:"2026.10.22b", title:"Name Styles: pick your font ⌨️", items:["⌨️ Profile → Look → Name style: see your name in 15 fonts and pick one. New fonts unlock as you level up, and a few are NightLane+.","🔒 Locked fonts show what level they open at."]},
     {v:"2026.10.22a", title:"Name Styles: groundwork ⌨️", items:["⌨️ Getting ready for Name Styles: name fonts, nameplates, profile wraps, avatar decorations and profile effects are on the way.","👑 The person who built NightLane now has a >_ CREATOR tag next to his name. Spot it in chat."]},
     {v:"2026.10.21m", title:"Smarter dates 📅", items:["📅 \"On Sunday … at 6pm\" now counts as Sunday at 6pm, instead of the time getting today's date. A time with no day mentioned shows a little clock instead of a date."]},

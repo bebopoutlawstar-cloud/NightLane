@@ -112,7 +112,7 @@ async function nsSave(change){
   meProfile={...meProfile,theme}; cache.set(user.id,meProfile);
   try{ await api.saveStyle(user.id,{theme}); }
   catch(err){ meProfile={...meProfile,theme:before}; cache.set(user.id,meProfile); throw err; }
-  paintMe(); if(room) repaintFaces(user.id);
+  paintMe(); if(room){ repaintFaces(user.id); renderAll(false); }
   return ns;
 }
 
@@ -129,11 +129,19 @@ function tagName(node,p,small){
   if(isCreator(p)&&(small||frameOf(p)!=="creator")) node.append(creatorTag(small));
 }
 
+/* put someone's name font on a big profile name */
+function nsNameFont(node,p){
+  if(!node) return;
+  const s=el("span","ns-nm"); while(node.firstChild&&!node.firstChild.classList?.contains("nl-creator")) s.append(node.firstChild);
+  node.querySelector(":scope > .ns-nm")?.remove(); node.prepend(s);
+  const f=nsOf(p).font; if(f) s.classList.add("nsf-"+f);
+  node.classList.toggle("ns-hasfont",!!f);
+}
 /* my own profile, and other people's profiles */
 const _nsPaintMe=paintMe;
-paintMe=function(){ _nsPaintMe(); tagName($("profName"),meProfile); paintNsPicker(); };
+paintMe=function(){ _nsPaintMe(); nsNameFont($("profName"),meProfile); tagName($("profName"),meProfile); paintNsPicker(); };
 const _nsPaintPerson=paintPerson;
-paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); tagName($("personName"),cache.get(personUid)); return r; };
+paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); return r; };
 const _nsProfTab=profTab;
 profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 
@@ -149,6 +157,7 @@ function paintNsPicker(){
     b.onclick=()=>{ nsTab=type; paintNsPicker(); };
     types.append(b);
   });
+  { const cf=nsOf(meProfile).font||"default", c=$("nsCur"); c.innerHTML=""; c.append(el("span","nsf-"+cf,meProfile?.username||"you")); }   // the closed box still shows your current font
   const grid=$("nsGrid"); grid.innerHTML="";
   const cur=nsOf(meProfile)[nsTab]||NS_CATALOG[nsTab][0].id;
   NS_CATALOG[nsTab].forEach(it=>{
@@ -165,3 +174,7 @@ function paintNsPicker(){
     grid.append(b);
   });
 }
+
+/* the Name style box folds away so the Look tab stays tidy (remembers open/closed on this device) */
+{ const box=$("nsBox"); try{ box.open=LS.get("nl-ns-open")==="1"; }catch(e){}
+  box.addEventListener("toggle",()=>{ try{ LS.set("nl-ns-open",box.open?"1":"0"); }catch(e){} }); }

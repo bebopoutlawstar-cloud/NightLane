@@ -20,22 +20,25 @@
 @keyframes crBlink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.nl-creator .cr-w::before,.nl-creator .cr-w::after,.nl-creator .cr-cur{animation:none}}
 /* Look tab: Name style picker */
-.ns-types{width:100%;align-self:stretch;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.ns-types{width:100%;min-width:0;max-width:100%;align-self:stretch;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
 .ns-types::-webkit-scrollbar{display:none}
 .ns-tab{flex:none;font-family:var(--tech);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
   color:var(--muted);background:var(--night);border:2px solid var(--plum);padding:7px 12px;
   clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
 .ns-tab.on{color:var(--night);background:var(--cyan);border-color:var(--cyan)}
 
-.ns-grid{width:100%;align-self:stretch;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:4px 0 14px}
+.ns-grid{width:100%;align-self:stretch;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:4px 0 14px}
 .ns-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:56px;
   padding:10px;text-align:left;color:var(--white);background:rgba(20,10,58,.75);border:2px solid var(--plum)}
 .ns-tile.on{border-color:var(--volt);box-shadow:0 0 0 1px var(--volt),0 0 14px rgba(243,255,58,.25)}
 .ns-tile.on::after{content:"✓ ON";position:absolute;top:6px;right:8px;font-family:var(--tech);font-size:8px;letter-spacing:1px;color:var(--volt)}
 .ns-name{font-weight:700;font-size:15px;line-height:1.1}
 .ns-lock{font-family:var(--tech);font-size:8px;letter-spacing:1.5px;color:var(--cyan);border-left:2px solid var(--cyan);padding:1px 5px;background:rgba(0,240,255,.08)}
+.ns-tile.locked{opacity:.55}
+.ns-tile.locked .ns-name{color:var(--muted)}
+
 /* Name fonts: one class per font, used in the picker now and on names later */
-.ns-pv{font-size:22px;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 0}
+.ns-pv{font-size:19px;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 0}
 .nsf-default{font-family:var(--body);font-weight:700;color:var(--white)}
 .nsf-arcade{font-family:"Press Start 2P",monospace;font-size:.62em;color:#F3FF3A}
 .nsf-terminal{font-family:VT323,monospace;font-size:1.2em;color:#39FF9A;text-shadow:0 0 6px rgba(57,255,154,.5)}
@@ -64,5 +67,24 @@
   79%{transform:scaleX(1.08);text-shadow:8px 0 #FF2E88,-8px 0 #00F0FF}}
 @media (prefers-reduced-motion:reduce){[class*="nsf-"]{animation:none!important}}
 /* locked tiles: the label fades, but the preview stays bright enough to show off */
+.ns-tile.locked{opacity:1}
 .ns-tile.locked .ns-pv{opacity:.6}
 .ns-tile.locked .ns-name{color:var(--muted)}
+/* fonts on chat names: a touch bigger than the time, and Arcade/Neon Tube sized to fit the tag */
+.tag .nm-name[class*="nsf-"]{font-size:1.15em;line-height:1}
+.tag .nm-name.nsf-arcade{font-size:.8em}
+.tag .nm-name.nsf-neontube{font-size:1em}
+/* fonts on big profile names: the white title plate turns dark so every font colour reads */
+#personName.ns-hasfont{background:var(--night);box-shadow:6px 6px 0 var(--mag),inset 0 0 0 2px var(--plum);text-transform:none;padding:6px 16px 2px}
+#personName .nl-creator{background:var(--night)}
+#profName .ns-nm[class*="nsf-"]{font-size:1.5em}
+/* the Name style box: closed it's one tidy row, open it shows the picker */
+.ns-box{width:100%;max-width:100%;min-width:0;overflow:hidden;align-self:stretch;text-align:left;margin:6px 0 4px;border:2px solid var(--plum);background:rgba(7,4,26,.6);padding:0 8px}
+.ns-box[open]{padding-bottom:4px;border-color:var(--cyan)}
+.ns-box>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 2px;cursor:pointer}
+.ns-box>summary::-webkit-details-marker{display:none}
+.ns-box>summary::after{content:"▸";flex:none;color:var(--cyan);font-size:14px;transition:transform .2s}
+.ns-box[open]>summary::after{transform:rotate(90deg)}
+.ns-sum-t{flex:none;white-space:nowrap;font-family:var(--tech);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--volt)}
+.ns-sum-cur{flex:1;min-width:0;text-align:right;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ns-sum-cur .nsf-arcade{font-size:.6em}
