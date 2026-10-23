@@ -87,6 +87,23 @@ function nsCanWear(type,id){
 /* what to show on the lock: "", "LV 8" or "NL+" */
 const nsLockLabel=(type,id)=>{ if(nsCanWear(type,id)) return ""; const t=nsItem(type,id)?.tier; return t==="plus"?"NL+":t?.level?"LV "+t.level:""; };
 
+/* ---------- font colour ---------- */
+const NS_COLORFUL=["default","arcade","terminal","racer","comic","billboard","marker","script","creep","headbang","neontube","glitch"];   // gradient fonts (Prism, Fire & Ice) keep their own colours
+const NS_SWATCHES=["#00F0FF","#FF4FD8","#F3FF3A","#39FF9A","#FF8A3D","#FF3B3B","#9B7BFF","#F4F7FF"];
+/* too dark to read on NightLane's night sky? brighten it a little (mix toward white until it reads) */
+function nsLum(h){ const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4); return .2126*c[0]+.7152*c[1]+.0722*c[2]; }
+function nsReadable(hex){
+  const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255), mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  let h=0, l=(mx+mn)/2; const sat=d?d/(1-Math.abs(2*l-1)):0;
+  if(d) h=mx===r?((g-b)/d+6)%6:mx===g?(b-r)/d+2:(r-g)/d+4;
+  const toHex=L=>{ const c=(1-Math.abs(2*L-1))*sat, x=c*(1-Math.abs(h%2-1)), m=L-c/2;
+    const [R,G,B]=h<1?[c,x,0]:h<2?[x,c,0]:h<3?[0,c,x]:h<4?[0,x,c]:h<5?[x,0,c]:[c,0,x];
+    return "#"+[R,G,B].map(v=>Math.round((v+m)*255).toString(16).padStart(2,"0")).join(""); };
+  let out=hex.toLowerCase();
+  while((nsLum(out)+.05)/(.0025+.05)<4.5&&l<.95){ l+=.03; out=toHex(l); }   // keep the hue, just raise the lightness until it reads on the night sky
+  return out;
+}
+
 /* someone's name style, cleaned up (unknown ids are dropped; NL+ only shows if they have it) */
 function nsOf(p){
   const raw=p?.theme?.ns; if(!raw||typeof raw!=="object") return {};
@@ -97,6 +114,7 @@ function nsOf(p){
     out[type]=it.id;
   }
   out.blend=NS_BLEND.includes(raw.blend)?raw.blend:"blend";
+  if(/^#[0-9a-f]{6}$/i.test(raw.color||"")) out.color=nsReadable(raw.color);
   return out;
 }
 
@@ -106,6 +124,7 @@ async function nsSave(change){
   const ns={...(before.ns||{}),...change};
   for(const [type,id] of Object.entries(change)){
     if(type==="blend"){ if(!NS_BLEND.includes(id)) throw new Error("Unknown option."); continue; }
+    if(type==="color"){ if(id!==null&&!/^#[0-9a-f]{6}$/i.test(id)) throw new Error("That colour didn't work."); continue; }
     if(!nsCanWear(type,id)) throw new Error(nsLockLabel(type,id)==="NL+"?"That one is NightLane+.":"Keep levelling up to unlock that one.");
   }
   const theme={...before,ns};
@@ -129,13 +148,23 @@ function tagName(node,p,small){
   if(isCreator(p)&&(small||frameOf(p)!=="creator")) node.append(creatorTag(small));
 }
 
+/* write a name into node in a font. Most fonts are just a class; Fire & Ice needs 3 layers (fire, ice, seam) */
+function nsFontText(node,text,font,color){
+  if(font) node.classList.add("nsf-"+font);
+  if(color&&NS_COLORFUL.includes(font||"default")){ node.style.setProperty("--nsc",color); if(!font) node.style.color=color; }   // no font picked: just colour the normal name
+  if(font!=="fireice"){ node.append(text); return node; }
+  const fire=el("span","fi-fire"), ice=el("span","fi-ice"), seam=el("span","fi-seam");
+  [fire,ice].forEach(l=>l.append(el("span","fi-g",text),el("span","fi-t",text)));   // fi-g = the glow behind, fi-t = the rock / crystal texture
+  ice.setAttribute("aria-hidden","true"); seam.setAttribute("aria-hidden","true");
+  node.append(fire,ice,seam); return node;
+}
 /* put someone's name font on a big profile name */
 function nsNameFont(node,p){
   if(!node) return;
-  const s=el("span","ns-nm"); while(node.firstChild&&!node.firstChild.classList?.contains("nl-creator")) s.append(node.firstChild);
-  node.querySelector(":scope > .ns-nm")?.remove(); node.prepend(s);
-  const f=nsOf(p).font; if(f) s.classList.add("nsf-"+f);
-  node.classList.toggle("ns-hasfont",!!f);
+  node.querySelector(":scope > .ns-nm")?.remove();
+  let text=""; while(node.firstChild&&!node.firstChild.classList?.contains("nl-creator")){ text+=node.firstChild.textContent; node.firstChild.remove(); }
+  const ns=nsOf(p), f=ns.font; node.prepend(nsFontText(el("span","ns-nm"),text,f,ns.color));
+  node.classList.toggle("ns-hasfont",!!(f||ns.color));
 }
 /* my own profile, and other people's profiles */
 const _nsPaintMe=paintMe;
@@ -157,13 +186,14 @@ function paintNsPicker(){
     b.onclick=()=>{ nsTab=type; paintNsPicker(); };
     types.append(b);
   });
-  { const cf=nsOf(meProfile).font||"default", c=$("nsCur"); c.innerHTML=""; c.append(el("span","nsf-"+cf,meProfile?.username||"you")); }   // the closed box still shows your current font
+  const myNs=nsOf(meProfile);
+  { const cf=myNs.font||"default", c=$("nsCur"); c.innerHTML=""; c.append(nsFontText(el("span"),meProfile?.username||"you",cf,myNs.color)); }   // the closed box still shows your current font
   const grid=$("nsGrid"); grid.innerHTML="";
   const cur=nsOf(meProfile)[nsTab]||NS_CATALOG[nsTab][0].id;
   NS_CATALOG[nsTab].forEach(it=>{
     const lock=nsLockLabel(nsTab,it.id);
     const b=el("button","ns-tile"+(it.id===cur?" on":"")+(lock?" locked":"")); b.type="button";
-    if(nsTab==="font") b.append(el("span","ns-pv nsf-"+it.id,meProfile?.username||"you"));
+    if(nsTab==="font") b.append(nsFontText(el("span","ns-pv"),meProfile?.username||"you",it.id,myNs.color));
     b.append(el("span","ns-name",it.label));
     if(lock) b.append(el("span","ns-lock",lock));
     b.onclick=async()=>{
@@ -173,6 +203,21 @@ function paintNsPicker(){
     };
     grid.append(b);
   });
+  nsPaintColor(myNs);
+}
+/* the colour row under the font tiles */
+function nsPaintColor(myNs){
+  let row=$("nsColor"); if(!row){ row=el("div","ns-color"); row.id="nsColor"; $("nsGrid").after(row); }
+  row.innerHTML=""; show(row,nsTab==="font"); if(nsTab!=="font") return;
+  const raw=meProfile?.theme?.ns?.color||null, font=myNs.font||"default";
+  row.append(el("span","lbl","Colour"));
+  const pick=async c=>{ try{ await nsSave({color:c}); paintNsPicker(); nlToast("ok","Saved."); }catch(err){ nlToast("err",err.message); } };
+  const def=el("button","ns-sw def"+(raw?"":" on"),"✕"); def.type="button"; def.title="Font's own colour"; def.setAttribute("aria-label","Font's own colour"); def.onclick=()=>pick(null); row.append(def);
+  NS_SWATCHES.forEach(c=>{ const b=el("button","ns-sw"+(raw===c?" on":"")); b.type="button"; b.style.setProperty("--c",c); b.setAttribute("aria-label","Colour "+c); b.onclick=()=>pick(c); row.append(b); });
+  const any=el("label","ns-sw any"+(raw&&!NS_SWATCHES.includes(raw)?" on":"")); any.title="Any colour"; const inp=document.createElement("input"); inp.type="color"; inp.value=raw||"#00f0ff"; inp.setAttribute("aria-label","Any colour");
+  inp.onchange=()=>pick(inp.value.toLowerCase()); any.append(inp); row.append(any);
+  if(!NS_COLORFUL.includes(font)) row.append(el("span","ns-cnote",`${nsItem("font",font)?.label} keeps its own colours. Your colour shows on the other fonts.`));
+  else if(raw&&nsReadable(raw)!==raw.toLowerCase()) row.append(el("span","ns-cnote","That colour is too dark to read here, so NightLane brightens it a little."));
 }
 
 /* the Name style box folds away so the Look tab stays tidy (remembers open/closed on this device) */

@@ -39,39 +39,57 @@
 
 /* Name fonts: one class per font, used in the picker now and on names later */
 .ns-pv{font-size:19px;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 0}
-.nsf-default{font-family:var(--body);font-weight:700;color:var(--white)}
-.nsf-arcade{font-family:"Press Start 2P",monospace;font-size:.62em;color:#F3FF3A}
-.nsf-terminal{font-family:VT323,monospace;font-size:1.2em;color:#39FF9A;text-shadow:0 0 6px rgba(57,255,154,.5)}
-.nsf-racer{font-family:Audiowide,sans-serif;font-style:italic;color:#00F0FF}
-.nsf-comic{font-family:"Comic Neue",cursive;font-weight:700;color:#FFE66D}
-.nsf-billboard{font-family:Bungee,sans-serif;color:#FF8A3D}
-.nsf-marker{font-family:"Permanent Marker",cursive;color:#F4F7FF}
-.nsf-script{font-family:Pacifico,cursive;color:#FF7AD9}
-.nsf-creep{font-family:Creepster,cursive;letter-spacing:1px;color:#9DFF4A}
+.nsf-default{font-family:var(--body);font-weight:700;color:var(--nsc,var(--white))}
+.nsf-arcade{font-family:"Press Start 2P",monospace;font-size:.62em;color:var(--nsc,#F3FF3A)}
+.nsf-terminal{font-family:VT323,monospace;font-size:1.2em;color:var(--nsc,#39FF9A);text-shadow:0 0 6px color-mix(in srgb,var(--nsc,#39FF9A) 50%,transparent)}
+.nsf-racer{font-family:Audiowide,sans-serif;font-style:italic;color:var(--nsc,#00F0FF)}
+.nsf-comic{font-family:"Comic Neue",cursive;font-weight:700;color:var(--nsc,#FFE66D)}
+.nsf-billboard{font-family:Bungee,sans-serif;color:var(--nsc,#FF8A3D)}
+.nsf-marker{font-family:"Permanent Marker",cursive;color:var(--nsc,#F4F7FF)}
+.nsf-script{font-family:Pacifico,cursive;color:var(--nsc,#FF7AD9)}
+.nsf-creep{font-family:Creepster,cursive;letter-spacing:1px;color:var(--nsc,#9DFF4A)}
 .nsf-prism,.nsf-prismflow{font-family:Righteous,sans-serif;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px rgba(0,240,255,.35));
   background-image:linear-gradient(100deg,#FF4FD8 0%,#FF8A3D 20%,#F3FF3A 38%,#39FF9A 56%,#00F0FF 74%,#7A5CFF 100%)}
 .nsf-prismflow{background-image:linear-gradient(100deg,#FF4FD8,#FF8A3D,#F3FF3A,#39FF9A,#00F0FF,#7A5CFF,#FF4FD8);background-size:200% 100%;animation:nsPrism 3s linear infinite}
-.nsf-headbang{display:inline-block;font-family:"Metal Mania",cursive;color:#E8E8F0;text-shadow:0 0 2px #FF3B3B,2px 2px 0 #5A0000;transform-origin:20% 90%;animation:nsBang 1.1s ease-in-out infinite}
-.nsf-fireice{font-family:"Russo One",sans-serif;-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% 100%;animation:nsClash 3.4s ease-in-out infinite;
-  background-image:linear-gradient(90deg,#FFE14D 0%,#FF8A00 14%,#FF3B1F 30%,#FF6A00 42%,#FFFFFF 49%,#BFF6FF 51%,#4FD8FF 60%,#1A7BFF 78%,#BFF6FF 100%)}
-.nsf-neontube{font-family:Monoton,cursive;font-size:.85em;color:#FF4FD8;text-shadow:0 0 6px #FF4FD8,0 0 18px #FF4FD8;animation:nsFlicker 3.2s infinite}
-.nsf-glitch{display:inline-block;font-family:"Rubik Glitch",sans-serif;color:#F4F7FF;text-shadow:3px 0 #FF2E88,-3px 0 #00F0FF;animation:nsGlitch 2.4s steps(1,end) infinite}
+.nsf-headbang{display:inline-block;font-family:"Metal Mania",cursive;color:var(--nsc,#E8E8F0);text-shadow:0 0 2px #FF3B3B,2px 2px 0 #5A0000;transform-origin:20% 90%;animation:nsBang 1.1s ease-in-out infinite}
+.nsf-fireice{position:relative;display:inline-block;font-family:"Russo One",sans-serif;letter-spacing:1px;line-height:1.1;vertical-align:bottom}
+/* Fire & Ice: lava rock on one side, ice crystal on the other, a white-hot seam fighting back and forth */
+.nsf-fireice .fi-fire{position:relative;display:block;animation:nsFiFire 3.4s ease-in-out infinite}
+.nsf-fireice .fi-ice{position:absolute;inset:0;animation:nsFiIce 3.4s ease-in-out infinite}
+/* the glow is its own layer: a glow filter on the textured text would light up a whole box on phones */
+.nsf-fireice .fi-g{position:absolute;inset:0;color:transparent;pointer-events:none}
+.nsf-fireice .fi-fire .fi-g{text-shadow:0 0 4px rgba(255,90,0,.9),0 0 10px rgba(255,60,0,.45);animation:nsEmber 1.4s ease-in-out infinite}
+.nsf-fireice .fi-ice .fi-g{text-shadow:0 0 5px rgba(80,210,255,.85)}
+.nsf-fireice .fi-t{position:relative;color:transparent;-webkit-background-clip:text;background-clip:text}
+.nsf-fireice .fi-fire .fi-t{-webkit-text-stroke:1px #FF5A00;
+  background:repeating-linear-gradient(62deg,transparent 0 6px,#FF4A00 6px 7.5px,transparent 7.5px 15px),repeating-linear-gradient(-38deg,transparent 0 8px,#FFB000 8px 9px,transparent 9px 18px),radial-gradient(circle at 30% 40%,#4A3B36,#1C1513 70%);
+  -webkit-background-clip:text;background-clip:text;animation:nsLava 4s linear infinite}
+.nsf-fireice .fi-ice .fi-t{-webkit-text-stroke:1px #CFF7FF;
+  background:linear-gradient(135deg,#F2FEFF 0 16%,#9BE8FF 16% 31%,#FFFFFF 31% 37%,#45BDFF 37% 55%,#D6F8FF 55% 63%,#1F7BFF 63% 80%,#EAFDFF 80%) 0 0/22px 34px,linear-gradient(45deg,rgba(255,255,255,.55) 0 30%,transparent 30% 70%,rgba(255,255,255,.35) 70%) 0 0/14px 20px;
+  -webkit-background-clip:text;background-clip:text}
+.nsf-fireice .fi-seam{position:absolute;top:-6%;bottom:-6%;width:2px;margin-left:-1px;background:linear-gradient(180deg,transparent,#FFFFFF 20%,#FFFFFF 80%,transparent);box-shadow:0 0 8px #FFFFFF,-4px 0 10px #FF6A00,4px 0 10px #4FD8FF;animation:nsFiSeam 3.4s ease-in-out infinite}
+@keyframes nsFiFire{0%,100%{clip-path:inset(-20% 62% -20% -20%)}22%{clip-path:inset(-20% 38% -20% -20%)}30%{clip-path:inset(-20% 44% -20% -20%)}52%{clip-path:inset(-20% 22% -20% -20%)}60%{clip-path:inset(-20% 30% -20% -20%)}78%{clip-path:inset(-20% 70% -20% -20%)}}
+@keyframes nsFiIce{0%,100%{clip-path:inset(-20% -20% -20% 38%)}22%{clip-path:inset(-20% -20% -20% 62%)}30%{clip-path:inset(-20% -20% -20% 56%)}52%{clip-path:inset(-20% -20% -20% 78%)}60%{clip-path:inset(-20% -20% -20% 70%)}78%{clip-path:inset(-20% -20% -20% 30%)}}
+@keyframes nsFiSeam{0%,100%{left:38%}22%{left:62%}30%{left:56%}52%{left:78%}60%{left:70%}78%{left:30%}}
+@keyframes nsEmber{0%,100%{text-shadow:0 0 4px rgba(255,90,0,.9),0 0 10px rgba(255,60,0,.45)}50%{text-shadow:0 0 7px rgba(255,140,0,1),0 0 16px rgba(255,60,0,.7)}}
+@keyframes nsLava{to{background-position:30px 12px,-24px 18px,0 0}}
+.nsf-neontube{font-family:Monoton,cursive;font-size:.85em;color:var(--nsc,#FF4FD8);text-shadow:0 0 6px var(--nsc,#FF4FD8),0 0 18px var(--nsc,#FF4FD8);animation:nsFlicker 3.2s infinite}
+.nsf-glitch{display:inline-block;font-family:"Rubik Glitch",sans-serif;color:var(--nsc,#F4F7FF);text-shadow:3px 0 #FF2E88,-3px 0 #00F0FF;animation:nsGlitch 2.4s steps(1,end) infinite}
 @keyframes nsPrism{to{background-position:200% 50%}}
 @keyframes nsBang{0%,40%,80%,100%{transform:none}20%,60%{transform:rotate(-7deg) translateY(4px)}}
-@keyframes nsClash{0%,100%{background-position:18% 50%}22%{background-position:62% 50%}30%{background-position:55% 50%}52%{background-position:84% 50%}60%{background-position:76% 50%}78%{background-position:30% 50%}}
 @keyframes nsFlicker{0%,46%,50%,74%,100%{opacity:1}48%{opacity:.55}72%{opacity:.8}}
 @keyframes nsGlitch{0%,12%,49%,81%,100%{transform:none;clip-path:none;text-shadow:3px 0 #FF2E88,-3px 0 #00F0FF}
   8%{transform:translate(-3px,1px) skewX(-8deg);text-shadow:-5px 0 #FF2E88,5px 0 #00F0FF}
   10%{transform:translate(4px,-1px);clip-path:polygon(0 12%,100% 12%,100% 60%,0 60%)}
   47%{transform:translate(-6px,0);clip-path:polygon(0 55%,100% 55%,100% 85%,0 85%)}
   79%{transform:scaleX(1.08);text-shadow:8px 0 #FF2E88,-8px 0 #00F0FF}}
-@media (prefers-reduced-motion:reduce){[class*="nsf-"]{animation:none!important}}
+@media (prefers-reduced-motion:reduce){[class*="nsf-"],[class*="nsf-"] *{animation:none!important}}
 /* locked tiles: the label fades, but the preview stays bright enough to show off */
 .ns-tile.locked{opacity:1}
 .ns-tile.locked .ns-pv{opacity:.6}
 .ns-tile.locked .ns-name{color:var(--muted)}
 /* fonts on chat names: a touch bigger than the time, and Arcade/Neon Tube sized to fit the tag */
-.tag .nm-name[class*="nsf-"]{font-size:1.15em;line-height:1}
+.tag .nm-name[class*="nsf-"]{font-size:1.05em;line-height:1}
 .tag .nm-name.nsf-arcade{font-size:.8em}
 .tag .nm-name.nsf-neontube{font-size:1em}
 /* fonts on big profile names: the white title plate turns dark so every font colour reads */
@@ -88,3 +106,16 @@
 .ns-sum-t{flex:none;white-space:nowrap;font-family:var(--tech);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--volt)}
 .ns-sum-cur{flex:1;min-width:0;text-align:right;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ns-sum-cur .nsf-arcade{font-size:.6em}
+/* on chat lines space is tight: the creator tag shrinks to just >_▮ (the full CREATOR shows on profiles and member lists) */
+.tag .nl-creator .cr-w{display:none}
+.tag .nl-creator{padding:1px 5px 1px 4px;gap:2px}
+
+/* font colour: swatches + any colour */
+.ns-color{width:100%;align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.ns-color .lbl{font-family:var(--tech);font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-right:2px}
+.ns-sw{width:30px;height:30px;padding:0;border:2px solid var(--plum);background:var(--c);clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%)}
+.ns-sw.on{border-color:var(--white);box-shadow:inset 0 0 0 2px var(--night)}
+.ns-sw.def{background:conic-gradient(from 45deg,var(--night) 0 25%,var(--plum) 0 50%,var(--night) 0 75%,var(--plum) 0);display:grid;place-items:center;color:var(--white);font-size:11px;font-weight:700}
+.ns-sw.any{position:relative;background:conic-gradient(#FF4FD8,#FF8A3D,#F3FF3A,#39FF9A,#00F0FF,#7A5CFF,#FF4FD8);overflow:hidden}
+.ns-sw.any input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.ns-cnote{width:100%;font-size:13px;color:var(--muted)}

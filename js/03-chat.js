@@ -461,7 +461,7 @@ async function enterRoom(code,token){
       msg:m=>{ stopTyping(m.user_id); m._live=Date.now(); addMessages([m]).then(()=>{ if(m.user_id!==user.id) markReadSoon(); }); },
       msgGone:removeMessage,
       msgEdited:applyEdit,
-      profile:p=>{ const old=cache.get(p.id); cache.set(p.id,p); repaintFaces(p.id); if(personUid===p.id&&!$("personSheet").classList.contains("hidden")) paintPerson(); if(p.id===user.id){meProfile=p;paintMe();} if(old?.bubble_color!==p.bubble_color||old?.theme?.ns?.font!==p.theme?.ns?.font) renderAll(false); paintReceipts(); },
+      profile:p=>{ const old=cache.get(p.id); cache.set(p.id,p); repaintFaces(p.id); if(personUid===p.id&&!$("personSheet").classList.contains("hidden")) paintPerson(); if(p.id===user.id){meProfile=p;paintMe();} if(old?.bubble_color!==p.bubble_color||old?.theme?.ns?.font!==p.theme?.ns?.font||old?.theme?.ns?.color!==p.theme?.ns?.color) renderAll(false); paintReceipts(); },
       member:setMember,
       roomUpdated:r=>{ if(r.icon_url!==undefined){ if(r.icon_url) roomIcons.set(r.code,r.icon_url); else roomIcons.delete(r.code); loadInboxSoon(); } if(r.code!==room) return; if(r.name!==undefined) setRoomName(r.name); else paintRoomIcon(); if(r.background!==undefined) setRoomBackground(r.background); if(r.owner!==undefined) roomOwner=r.owner; if(r.disappear_seconds!==undefined){ disappear=+r.disappear_seconds||0; paintDisappear(); } },
       task:p=>{ if(p.eventType==="DELETE"){ tasks.delete(p.old.id); } else tasks.set(p.new.id,p.new); paintTasks(); },
@@ -618,7 +618,7 @@ function buildMsg(m,index,noAnim){
   const tag=el("div","tag");
   if(fresh&&!noAnim) tag.append(el("b","","NEW"));
   if(pins.has(m.id)) tag.append("📌 ");
-  { const nm=el("span","nm-name",nameOf(m.user_id)); nm.dataset.uid=m.user_id; const nf=nsOf(p).font; if(nf) nm.classList.add("nsf-"+nf); tag.append(nm); if(typeof isCreator==="function"&&isCreator(p)) tag.append(creatorTag(true)); tag.append(` · ${timeOf(at)}`); } if(m.edited_at&&m.kind!=="call"){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
+  { const pns=nsOf(p), nm=nsFontText(el("span","nm-name"),nameOf(m.user_id),pns.font,pns.color); nm.dataset.uid=m.user_id; tag.append(nm); if(typeof isCreator==="function"&&isCreator(p)) tag.append(creatorTag(true)); tag.append(` · ${timeOf(at)}`); } if(m.edited_at&&m.kind!=="call"){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
   const exp=expiryTag(m); if(exp) tag.append(exp);
   const bub=el("div","bubble"); bub.tabIndex=0; bub.setAttribute("role","button"); bub.setAttribute("aria-label",`Message from ${nameOf(m.user_id)}. Open options`);
   if(m.reply_to){
