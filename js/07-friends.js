@@ -97,7 +97,7 @@ function contactRow(uid,favs){
     st.setAttribute("aria-pressed",String(favs.has(uid))); st.setAttribute("aria-label",(favs.has(uid)?"Unfavorite ":"Favorite ")+p.username);
     st.onclick=()=>toggleFav(uid);
     if(!statusOf(uid)) row.classList.add("offline");
-    row.append(st,f,n,go,rm); return row;
+    row.append(st,f,n,go,rm); if(typeof nsApplyPlate==="function") nsApplyPlate(row,p,n); return row;
   }
 }
 $("contactAdd").onclick=async()=>{

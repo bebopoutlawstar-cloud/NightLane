@@ -167,18 +167,24 @@ function nsNameFont(node,p){
   const ns=nsOf(p), f=ns.font; node.prepend(nsFontText(el("span","ns-nm"),text,f,ns.color));
   node.classList.toggle("ns-hasfont",!!(f||ns.color));
 }
+/* the nameplate strip under a big profile name (nothing if they haven't picked one) */
+function nsProfStrip(nameNode,p){
+  if(!nameNode||typeof nsPlateStrip!=="function") return;
+  const old=nameNode.nextElementSibling; if(old?.classList.contains("nsp-prof")) old.remove();
+  const st=nsPlateStrip(p,"@"+(p?.username||"")); if(st){ st.classList.add("nsp-prof"); nameNode.after(st); }
+}
 /* my own profile, and other people's profiles */
 const _nsPaintMe=paintMe;
-paintMe=function(){ _nsPaintMe(); nsNameFont($("profName"),meProfile); tagName($("profName"),meProfile); paintNsPicker(); };
+paintMe=function(){ _nsPaintMe(); nsNameFont($("profName"),meProfile); tagName($("profName"),meProfile); nsProfStrip($("profName"),meProfile); paintNsPicker(); };
 const _nsPaintPerson=paintPerson;
-paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); return r; };
+paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); nsProfStrip($("personName"),cache.get(personUid)); return r; };
 const _nsProfTab=profTab;
 profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 
 /* ---------- Look tab: the Name style picker ---------- */
 const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
-const NS_BUILT=["font"];   // tabs whose looks are live in the app (add each one as it ships)
+const NS_BUILT=["font","plate"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -191,12 +197,15 @@ function paintNsPicker(){
   const myNs=nsOf(meProfile);
   { const cf=myNs.font||"default", c=$("nsCur"); c.innerHTML=""; c.append(nsFontText(el("span"),meProfile?.username||"you",cf,myNs.color)); }   // the closed box still shows your current font
   const grid=$("nsGrid"); grid.innerHTML="";
+  grid.classList.toggle("wide",nsTab==="plate");
   if(!NS_BUILT.includes(nsTab)) grid.append(el("p","ns-soon",`🚧 ${NS_TYPES.find(t=>t[0]===nsTab)[1]}s are still being built. You can pick one now and it'll show up as soon as they land.`));
   const cur=nsOf(meProfile)[nsTab]||NS_CATALOG[nsTab][0].id;
   NS_CATALOG[nsTab].forEach(it=>{
     const lock=nsLockLabel(nsTab,it.id);
     const b=el("button","ns-tile"+(it.id===cur?" on":"")+(lock?" locked":"")); b.type="button";
     if(nsTab==="font") b.append(nsFontText(el("span","ns-pv"),meProfile?.username||"you",it.id,myNs.color));
+    if(nsTab==="plate"){ const fake={...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),plate:it.id}}};
+      b.append(nsPlateStrip(fake,"online")||nsFontText(el("div","nsp-strip"),meProfile?.username||"you",myNs.font,myNs.color)); }
     b.append(el("span","ns-name",it.label));
     if(lock) b.append(el("span","ns-lock",lock));
     b.onclick=async()=>{

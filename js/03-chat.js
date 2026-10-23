@@ -618,7 +618,7 @@ function buildMsg(m,index,noAnim){
   const tag=el("div","tag");
   if(fresh&&!noAnim) tag.append(el("b","","NEW"));
   if(pins.has(m.id)) tag.append("📌 ");
-  { const pns=nsOf(p), nm=nsFontText(el("span","nm-name"),nameOf(m.user_id),pns.font,pns.color); nm.dataset.uid=m.user_id; tag.append(nm); if(typeof isCreator==="function"&&isCreator(p)) tag.append(creatorTag(true)); tag.append(` · ${timeOf(at)}`); } if(m.edited_at&&m.kind!=="call"){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
+  { const pns=nsOf(p), nm=nsFontText(el("span","nm-name"),nameOf(m.user_id),pns.font,pns.color); nm.dataset.uid=m.user_id; tag.append(nm); if(typeof isCreator==="function"&&isCreator(p)) tag.append(creatorTag(true)); tag.append(el("span","tm",` · ${timeOf(at)}`)); } if(m.edited_at&&m.kind!=="call"){ const ed=el("span","edited"," · edited"); ed.title="Edited "+new Date(m.edited_at).toLocaleString(); tag.append(ed); }
   const exp=expiryTag(m); if(exp) tag.append(exp);
   const bub=el("div","bubble"); bub.tabIndex=0; bub.setAttribute("role","button"); bub.setAttribute("aria-label",`Message from ${nameOf(m.user_id)}. Open options`);
   if(m.reply_to){
@@ -1046,7 +1046,7 @@ async function paintMembers(){
     const nick=members.get(uid)?.nick, uname=cache.get(uid)?.username||"";
     const n=el("span","mname",nameOf(uid)+(uid===user.id?" (you)":"")); if(uid!==user.id){ const ls=el("span","lastseen",presenceLine(uid)); ls.dataset.presence=uid; n.append(ls); }
     if(nick&&nick!==uname) n.append(el("span","role",uname));
-    if(uid===roomOwner) n.append(el("span","role","OWNER")); if(typeof isCreator==="function"&&isCreator(cache.get(uid))) n.append(creatorTag(true));
+    if(uid===roomOwner) n.append(el("span","role","OWNER")); if(typeof nsApplyPlate==="function") nsApplyPlate(row,cache.get(uid),n); if(typeof isCreator==="function"&&isCreator(cache.get(uid))) n.append(creatorTag(true));
     const nb=el("button","unblock","Nickname"); nb.type="button";
     nb.onclick=async()=>{
       const v=await nlPrompt({ title:"Set nickname", badge:"ROOM", text:`Nickname for ${uname} in this room. Leave it empty to clear it.`, value:nick||"", placeholder:uname, maxLength:30, ok:"SAVE" }); if(v===null) return;
