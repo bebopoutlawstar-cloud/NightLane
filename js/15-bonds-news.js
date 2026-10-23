@@ -561,7 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
-        {v:"2026.10.22b", title:"Name Styles: pick your font ⌨️", items:["⌨️ Profile → Look → Name style: see your name in 15 fonts and pick one. New fonts unlock as you level up, and a few are NightLane+.","🔒 Locked fonts show what level they open at."]},
+    {v:"2026.10.22b", title:"Name Styles: pick your font ⌨️", items:["⌨️ Profile → Look → Name style: see your name in 15 fonts and pick one. New fonts unlock as you level up, and a few are NightLane+.","🔒 Locked fonts show what level they open at."]},
     {v:"2026.10.22a", title:"Name Styles: groundwork ⌨️", items:["⌨️ Getting ready for Name Styles: name fonts, nameplates, profile wraps, avatar decorations and profile effects are on the way.","👑 The person who built NightLane now has a >_ CREATOR tag next to his name. Spot it in chat."]},
     {v:"2026.10.21m", title:"Smarter dates 📅", items:["📅 \"On Sunday … at 6pm\" now counts as Sunday at 6pm, instead of the time getting today's date. A time with no day mentioned shows a little clock instead of a date."]},
     {v:"2026.10.21l", title:"Links got the NightLane look 🔗", items:["🔗 Links in chat now show short and clean (like share.google/2xR7X… ↗), and link cards have an UPLINK header strip with the site name, a scanlined picture and the title."]},
