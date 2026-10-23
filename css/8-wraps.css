@@ -1,0 +1,43 @@
+/* ===== Profile wraps (2026.10.23c): a border around your whole profile card when someone opens it =====
+   .nsw is a layer behind the card's content: the wrap art fills it, and .nsw-in is the card's own dark panel inset by the wrap's width. */
+.sheet.nsw-on::after{display:none}
+.nsw{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.nsw-in{position:absolute;inset:var(--wi,8px);background:var(--night)}
+/* Circuit Edge: traces and solder dots on the corners */
+.nsw-circuit{--wi:10px;background:
+  linear-gradient(#00F0FF,#00F0FF) 3px 20px/3px 120px no-repeat,linear-gradient(#00F0FF,#00F0FF) 20px 3px/120px 3px no-repeat,
+  linear-gradient(#00F0FF,#00F0FF) calc(100% - 3px) calc(100% - 20px)/3px 120px no-repeat,linear-gradient(#00F0FF,#00F0FF) calc(100% - 20px) calc(100% - 3px)/120px 3px no-repeat,
+  radial-gradient(circle,#00F0FF 0 3px,transparent 4px) 140px 0/10px 10px no-repeat,radial-gradient(circle,#00F0FF 0 3px,transparent 4px) 0 140px/10px 10px no-repeat,
+  radial-gradient(circle,#00F0FF 0 3px,transparent 4px) calc(100% - 140px) 100%/10px 10px no-repeat,radial-gradient(circle,#00F0FF 0 3px,transparent 4px) 100% calc(100% - 140px)/10px 10px no-repeat,
+  repeating-linear-gradient(90deg,rgba(0,240,255,.0) 0 14px,rgba(0,240,255,.18) 14px 15px),#0A0A2A;box-shadow:inset 0 0 0 1px rgba(0,240,255,.45)}
+.nsw-circuit .nsw-in{box-shadow:0 0 0 1px rgba(0,240,255,.5)}
+/* Hazard Tape */
+.nsw-hazard{--wi:12px;background:repeating-linear-gradient(45deg,#F3FF3A 0 12px,#07041A 12px 24px)}
+/* Neon Pulse: a magenta tube that breathes */
+.nsw-neonpulse{--wi:7px;background:#FF4FD8;animation:nswPulse 2.2s ease-in-out infinite}
+.nsw-neonpulse .nsw-in{box-shadow:inset 0 0 10px rgba(255,79,216,.35);animation:nswPulseIn 2.2s ease-in-out infinite}
+@keyframes nswPulse{0%,100%{filter:brightness(.7)}50%{filter:brightness(1.25)}}
+@keyframes nswPulseIn{0%,100%{box-shadow:inset 0 0 8px rgba(255,79,216,.3)}50%{box-shadow:inset 0 0 22px rgba(255,79,216,.6)}}
+/* Starfield: the house night sky all round the card */
+.nsw-starfield{--wi:16px;background:
+  radial-gradient(1.4px 1.4px at 18% 22%,#fff 60%,transparent 70%) 0 0/46px 58px,
+  radial-gradient(1px 1px at 62% 70%,#DCEBFF 60%,transparent 70%) 0 0/38px 44px,
+  radial-gradient(1.8px 1.8px at 40% 45%,#fff 60%,transparent 70%) 0 0/90px 110px,
+  radial-gradient(1px 1px at 80% 15%,#BFE0FF 60%,transparent 70%) 0 0/27px 33px,
+  var(--nightsky) center/cover,
+  radial-gradient(ellipse 70% 40% at 70% 20%,rgba(79,168,255,.55),transparent 70%),radial-gradient(ellipse 60% 35% at 25% 80%,rgba(62,111,224,.45),transparent 70%),
+  linear-gradient(180deg,#0E3570,#071A3E 60%,#020714);animation:nswDrift 30s linear infinite,nswTwinkle 3.2s ease-in-out infinite}
+.nsw-starfield .nsw-in{background:rgba(10,14,46,.94);box-shadow:0 0 0 1px rgba(127,208,255,.45),0 0 18px rgba(79,168,255,.35)}
+@keyframes nswDrift{to{background-position:0 -58px,0 -44px,0 -110px,0 -33px,center,0 0,0 0,0 0}}
+@keyframes nswTwinkle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+/* Electric: current runs round the edge */
+.nsw-electric{--wi:6px;background:linear-gradient(90deg,#00F0FF,#FFFFFF 12%,#7A5CFF 24%,#00F0FF 36%,#FFFFFF 48%,#7A5CFF 60%,#00F0FF 72%);background-size:300% 100%;animation:nswElec 1.6s linear infinite}
+@keyframes nswElec{to{background-position:300% 50%}}
+/* picker tiles: a mini card */
+.nsw-mini{position:relative;width:100%;height:64px;isolation:isolate;display:grid;place-items:center;margin-bottom:2px}
+.nsw-mini .nsw{z-index:-1}
+.nsw-mini .nsw-in{inset:calc(var(--wi,8px)*.6)}
+.nsw-mini .mini-face{width:22px;height:22px;background:var(--mag);transform:rotate(-4deg)}
+.nsw-mini.none{border:2px solid var(--plum)}
+@media (prefers-reduced-motion:reduce){.nsw,.nsw *{animation:none!important}}
+.nsw-electric .nsw-in{box-shadow:0 0 14px rgba(0,240,255,.55)}

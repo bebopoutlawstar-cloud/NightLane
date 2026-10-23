@@ -167,6 +167,13 @@ function nsNameFont(node,p){
   const ns=nsOf(p), f=ns.font; node.prepend(nsFontText(el("span","ns-nm"),text,f,ns.color));
   node.classList.toggle("ns-hasfont",!!(f||ns.color));
 }
+/* ---------- profile wraps ---------- */
+function nsWrapLayer(id){ const w=el("div","nsw nsw-"+id); w.setAttribute("aria-hidden","true"); w.append(el("div","nsw-in")); return w; }
+function nsApplyWrap(sheet,p){
+  if(!sheet) return; sheet.querySelector(":scope > .nsw")?.remove(); sheet.classList.remove("nsw-on");
+  const id=nsOf(p).wrap; if(!id) return;
+  sheet.classList.add("nsw-on"); sheet.prepend(nsWrapLayer(id));
+}
 /* the nameplate strip under a big profile name (nothing if they haven't picked one) */
 function nsProfStrip(nameNode,p){
   if(!nameNode||typeof nsPlateStrip!=="function") return;
@@ -177,14 +184,14 @@ function nsProfStrip(nameNode,p){
 const _nsPaintMe=paintMe;
 paintMe=function(){ _nsPaintMe(); nsNameFont($("profName"),meProfile); tagName($("profName"),meProfile); nsProfStrip($("profName"),meProfile); paintNsPicker(); };
 const _nsPaintPerson=paintPerson;
-paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); nsProfStrip($("personName"),cache.get(personUid)); return r; };
+paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); nsProfStrip($("personName"),cache.get(personUid)); nsApplyWrap($("personSheet").querySelector(".sheet"),cache.get(personUid)); return r; };
 const _nsProfTab=profTab;
 profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 
 /* ---------- Look tab: the Name style picker ---------- */
 const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
-const NS_BUILT=["font","plate"];   // tabs whose looks are live in the app (add each one as it ships)
+const NS_BUILT=["font","plate","wrap"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -204,6 +211,7 @@ function paintNsPicker(){
     const lock=nsLockLabel(nsTab,it.id);
     const b=el("button","ns-tile"+(it.id===cur?" on":"")+(lock?" locked":"")); b.type="button";
     if(nsTab==="font") b.append(nsFontText(el("span","ns-pv"),meProfile?.username||"you",it.id,myNs.color));
+    if(nsTab==="wrap"){ const mini=el("div","nsw-mini"+(it.id==="none"?" none":"")); mini.append(el("i","mini-face")); if(it.id!=="none") mini.prepend(nsWrapLayer(it.id)); b.append(mini); }
     if(nsTab==="plate"){ const fake={...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),plate:it.id}}};
       b.append(nsPlateStrip(fake,"online")||nsFontText(el("div","nsp-strip"),meProfile?.username||"you",myNs.font,myNs.color)); }
     b.append(el("span","ns-name",it.label));

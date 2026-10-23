@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.23c", title:"Profile wraps 🖼️", items:["🖼️ Name style → Wrap: a border around your whole profile card when someone opens it. Circuit Edge, Hazard Tape and Neon Pulse unlock on the Level road; Starfield and Electric are NightLane+.","✨ Wraps stack with your avatar frame and nameplate."]},
     {v:"2026.10.23b", title:"Nameplates are here 🪧", items:["🪧 Profile → Look → Name style → Nameplate: 13 strips of art behind your name, from Neon Strip and Night Rain to the animated Burning City, Northern Lights, Snow Fox and Eclipse.","👀 Your plate shows behind your name in member lists, friend lists and under your name on your profile."]},
     {v:"2026.10.23a", title:"Smoother colour picking 🎨", items:["🎨 Dragging around the custom colour wheel now just previews the colour on your name. Nothing saves until you tap SAVE COLOUR (thanks for the report!).","🚧 Nameplate, Wrap, Decoration and Effect tabs now say they're still being built. Picks you make there will show up as soon as they land."]},
     {v:"2026.10.22e", title:"Font colours + the real Fire & Ice 🎨", items:["🔥🧊 Fire & Ice is now the proper one: lava rock on one side, ice crystal on the other, with a white-hot seam pushing back and forth.","🎨 Pick a colour for your name font: 8 NightLane swatches or any colour you like. Colours too dark to read get brightened a little.","💬 Chat name tags are shorter again: the creator tag on messages is now just >_ so long names and the time still fit."]},
