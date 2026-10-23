@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.23e", title:"Profile effects ✨", items:["✨ Name style → Effect: animation that plays over your whole profile card when someone opens it. Starfall unlocks at level 7 and Soul Fire Crown at level 9; Celestial Tarot, Neon Breach and Synth Rise are NightLane+."]},
     {v:"2026.10.23d", title:"Avatar decorations 🌙", items:["🌙 Name style → Decoration: animated pixel art around your picture. Moon Cloud and Constellation are free, Soul Fire unlocks at level 5, and Night Bloom, Planet, Heart Chain, Snow Fox, Eclipse, Celestial Tarot and Neon Breach are NightLane+.","💬 In chat and lists your decoration plays a calm version so it never gets in the way; the full show is on your profile.","🖼️ Pick Blend (your frame slims to a thin edge) or Decoration only (the frame steps aside)."]},
     {v:"2026.10.23c", title:"Profile wraps 🖼️", items:["🖼️ Name style → Wrap: a border around your whole profile card when someone opens it. Circuit Edge, Hazard Tape and Neon Pulse unlock on the Level road; Starfield and Electric are NightLane+.","✨ Wraps stack with your avatar frame and nameplate."]},
     {v:"2026.10.23b", title:"Nameplates are here 🪧", items:["🪧 Profile → Look → Name style → Nameplate: 13 strips of art behind your name, from Neon Strip and Night Rain to the animated Burning City, Northern Lights, Snow Fox and Eclipse.","👀 Your plate shows behind your name in member lists, friend lists and under your name on your profile."]},

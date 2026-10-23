@@ -184,14 +184,14 @@ function nsProfStrip(nameNode,p){
 const _nsPaintMe=paintMe;
 paintMe=function(){ _nsPaintMe(); nsNameFont($("profName"),meProfile); tagName($("profName"),meProfile); nsProfStrip($("profName"),meProfile); paintNsPicker(); };
 const _nsPaintPerson=paintPerson;
-paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); nsProfStrip($("personName"),cache.get(personUid)); nsApplyWrap($("personSheet").querySelector(".sheet"),cache.get(personUid)); return r; };
+paintPerson=function(){ const r=_nsPaintPerson.apply(this,arguments); nsNameFont($("personName"),cache.get(personUid)); tagName($("personName"),cache.get(personUid)); nsProfStrip($("personName"),cache.get(personUid)); nsApplyWrap($("personSheet").querySelector(".sheet"),cache.get(personUid)); if(typeof nsApplyFx==="function") nsApplyFx(cache.get(personUid)); return r; };
 const _nsProfTab=profTab;
 profTab=function(name){ _nsProfTab(name); if(name==="look") paintNsPicker(); };
 
 /* ---------- Look tab: the Name style picker ---------- */
 const NS_TYPES=[["font","Font"],["plate","Nameplate"],["wrap","Wrap"],["deco","Decoration"],["fx","Effect"]];
 let nsTab="font";
-const NS_BUILT=["font","plate","wrap","deco"];   // tabs whose looks are live in the app (add each one as it ships)
+const NS_BUILT=["font","plate","wrap","deco","fx"];   // tabs whose looks are live in the app (add each one as it ships)
 
 function paintNsPicker(){
   const types=$("nsTypes"); types.innerHTML="";
@@ -212,6 +212,7 @@ function paintNsPicker(){
     const b=el("button","ns-tile"+(it.id===cur?" on":"")+(lock?" locked":"")); b.type="button";
     if(nsTab==="font") b.append(nsFontText(el("span","ns-pv"),meProfile?.username||"you",it.id,myNs.color));
     if(nsTab==="deco"){ const f=el("span","face ns-dface"); paintFace(f,{...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),deco:it.id}}}); if(typeof nsApplyDeco==="function") nsApplyDeco(f,{plus:true,theme:{ns:{deco:it.id,blend:myNs.blend}}},false); b.append(f); }
+    if(nsTab==="fx"){ const m=el("div","nse-mini"); if(it.id!=="none"&&typeof nsFxEl==="function"){ const fx=nsFxEl(it.id); if(fx) m.append(fx); } b.append(m); }
     if(nsTab==="wrap"){ const mini=el("div","nsw-mini"+(it.id==="none"?" none":"")); mini.append(el("i","mini-face")); if(it.id!=="none") mini.prepend(nsWrapLayer(it.id)); b.append(mini); }
     if(nsTab==="plate"){ const fake={...meProfile,plus:true,theme:{...(meProfile?.theme||{}),ns:{...(meProfile?.theme?.ns||{}),plate:it.id}}};
       b.append(nsPlateStrip(fake,"online")||nsFontText(el("div","nsp-strip"),meProfile?.username||"you",myNs.font,myNs.color)); }

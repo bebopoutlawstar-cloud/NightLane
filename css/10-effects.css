@@ -1,0 +1,73 @@
+/* ===== Profile effects (2026.10.23e): ported from the Name Styles canvas. Everything scoped under .nse =====
+   The effect is drawn on a 240x380 card (with room around it) and stretched over the profile card, which sits still while you scroll. */
+.nse{position:absolute;pointer-events:none;z-index:5}
+.nse.nse-done{opacity:0;transition:opacity .9s ease}
+.nse svg{position:absolute;left:-4%;top:-6%;width:108%;height:112%;overflow:visible}
+.nse-mini{position:relative;width:60px;height:95px;margin:4px auto 6px;background:#140A3A;border:1px solid var(--plum)}
+.nse-mini .nse{inset:0}
+@media (prefers-reduced-motion:reduce){.nse *{animation:none!important}}
+@keyframes nx_tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.55)}}
+.nse .tw0{animation:nx_tw 2.2s ease-in-out infinite}
+.nse .tw1{animation:nx_tw 3s ease-in-out infinite .7s}
+.nse .tw2{animation:nx_tw 2.6s ease-in-out infinite 1.4s}
+@keyframes nx_drift{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
+.nse .drift{animation:nx_drift 6s ease-in-out infinite}
+.nse .drift2{animation:nx_drift 7.5s ease-in-out infinite reverse}
+@keyframes nx_flk{0%,100%{transform:scaleY(1) skewX(0)}30%{transform:scaleY(1.25) skewX(-5deg)}65%{transform:scaleY(.85) skewX(4deg)}}
+.nse .flk{transform-box:fill-box;transform-origin:50% 100%;animation:nx_flk .8s ease-in-out infinite}
+@keyframes nx_glowp{0%,100%{opacity:.75}50%{opacity:1}}
+.nse .glowp{animation:nx_glowp 2.4s ease-in-out infinite}
+@keyframes nx_spin{to{transform:rotate(360deg)}}
+.nse .spin{transform-origin:100px 100px;animation:nx_spin 5s linear infinite}
+@keyframes nx_hb{0%,100%{transform:scale(1);opacity:.7}15%{transform:scale(1.35);opacity:1}30%{transform:scale(1);opacity:.8}}
+.nse .hb{transform-box:fill-box;transform-origin:50% 50%;animation:nx_hb 2.4s ease-in-out infinite}
+@keyframes nx_tail{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+.nse .tail{transform-origin:130px 170px;animation:nx_tail 2.6s ease-in-out infinite}
+@keyframes nx_ear{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-9deg)}94%{transform:rotate(3deg)}}
+.nse .ear{transform-box:fill-box;transform-origin:50% 100%;animation:nx_ear 4s ease-in-out infinite}
+@keyframes nx_draw{0%{stroke-dashoffset:600}45%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.nse .draw{stroke-dasharray:600;animation:nx_draw 6s ease-in-out infinite}
+@keyframes nx_corona{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+.nse .corona{transform-origin:100px 100px;animation:nx_corona 3.2s ease-in-out infinite}
+@keyframes nx_rise{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+.nse .rise{animation:nx_rise 3s linear infinite}
+@keyframes nx_gsl{0%,9%{opacity:0;transform:translateX(0)}10%{opacity:1;transform:translateX(-14px)}12%{transform:translateX(10px)}14%{transform:translateX(-5px)}16%{transform:translateX(13px)}18%{opacity:1;transform:translateX(0)}19%,74%{opacity:0}75%{opacity:1;transform:translateX(15px)}77%{transform:translateX(-11px)}79%{transform:translateX(6px)}81%{opacity:1;transform:translateX(-3px)}82%,100%{opacity:0;transform:translateX(0)}}
+.nse .gsl{opacity:0;animation:nx_gsl 8s steps(1,end) infinite}
+@keyframes nx_hackph{0%,17%{opacity:0}21%,72%{opacity:1}78%,100%{opacity:0}}
+.nse .hackph{opacity:0;animation:nx_hackph 8s linear infinite}
+@keyframes nx_termph{0%,24%{opacity:0;transform:scale(.9)}26%,70%{opacity:1;transform:scale(1)}73%,100%{opacity:0}}
+.nse .termph{opacity:0;transform-origin:120px 164px;animation:nx_termph 8s steps(4,end) infinite}
+@keyframes nx_typ{0%,27%{transform:scaleX(0)}34%,100%{transform:scaleX(1)}}
+.nse .typ{transform-origin:20px 0;transform:scaleX(0);animation:nx_typ 8s steps(16,end) infinite}
+@keyframes nx_rainc{0%{transform:translateY(0)}100%{transform:translateY(760px)}}
+.nse .rainc{animation:nx_rainc 2s linear infinite}
+@keyframes nx_grant{0%,49%{opacity:0;transform:scale(2.4) rotate(-6deg)}52%{opacity:1;transform:scale(.95) rotate(0)}54%,68%{opacity:1;transform:scale(1)}71%,100%{opacity:0;transform:scale(1)}}
+.nse .grant{opacity:0;transform-origin:120px 250px;animation:nx_grant 8s cubic-bezier(.2,1.4,.4,1) infinite;filter:drop-shadow(0 0 8px rgba(255,79,216,.6))}
+@keyframes nx_flashbars{0%,9%,19%,74%,83%,100%{opacity:0}10%,13%,16%,75%,78%,81%{opacity:1}11%,14%,17%,76%,79%,82%{opacity:0}}
+.nse .flashbars{opacity:0;animation:nx_flashbars 8s steps(1,end) infinite}
+@keyframes nx_burnmove{0%,6%{transform:translateY(392px)}38%,100%{transform:translateY(-14px)}}
+.nse .burnmove{animation:nx_burnmove 8s cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes nx_burnedge{0%,4%{opacity:0}8%,36%{opacity:1}42%,100%{opacity:0}}
+.nse .burnedge{animation:nx_burnmove 8s cubic-bezier(.45,.05,.55,.95) infinite,nx_burnedge 8s linear infinite}
+@keyframes nx_burnscene{0%,72%{opacity:1}88%,100%{opacity:0}}
+.nse .burnscene{animation:nx_burnscene 8s ease-in-out infinite}
+@keyframes nx_gf{0%,24.9%{opacity:1}25%,100%{opacity:0}}
+.nse .gf{opacity:0;animation:nx_gf .6s linear infinite}
+@keyframes nx_gfloat{0%{transform:translateY(40px);opacity:0}15%{opacity:1}50%{transform:translateY(-10px) translateX(4px)}85%{opacity:1}100%{transform:translateY(-70px);opacity:0}}
+.nse .gfloat{animation:nx_gfloat 6s ease-in-out infinite}
+@keyframes nx_pflk{0%{transform:scaleY(1)}33%{transform:scaleY(1.3)}66%{transform:scaleY(.8)}100%{transform:scaleY(1)}}
+.nse .pflk{animation:nx_pflk .6s steps(3) infinite}
+@keyframes nx_shoot{0%,45%{transform:translate(-30px,40px);opacity:0}50%{opacity:1}75%,100%{transform:translate(300px,180px);opacity:0}}
+.nse .shoot{animation:nx_shoot 5s ease-in infinite}
+@keyframes nx_gridmove{0%{transform:translateY(0)}100%{transform:translateY(8px)}}
+.nse .gridmove{animation:nx_gridmove 1s linear infinite}
+@keyframes nx_sweep{0%,50%{transform:skewX(-20deg) translateX(0)}100%{transform:skewX(-20deg) translateX(560px)}}
+.nse .sweep{animation:nx_sweep 4s ease-in-out infinite}
+@keyframes nx_sunspin{0%,100%{filter:drop-shadow(0 0 4px rgba(243,255,58,.6))}50%{filter:drop-shadow(0 0 10px rgba(243,255,58,.95))}}
+.nse .sunspin{animation:nx_sunspin 3s ease-in-out infinite}
+@keyframes nx_fall{0%{transform:translateY(0)}100%{transform:translateY(380px)}}
+.nse .fall{animation:nx_fall 14s linear infinite}
+@keyframes nx_flarefly{0%,40%{transform:translate(-40px,60px) scale(.4);opacity:0}55%{opacity:1;transform:translate(110px,150px) scale(1.2)}70%,100%{transform:translate(280px,240px) scale(.5);opacity:0}}
+.nse .flarefly{animation:nx_flarefly 6s ease-in-out infinite}
+@keyframes nx_prise{0%{transform:translateY(80px)}50%{transform:translateY(-130px)}100%{transform:translateY(80px)}}
+.nse .prise{animation:nx_prise 10s ease-in-out infinite}
