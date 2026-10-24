@@ -133,3 +133,15 @@
 .msg .tag>*{flex:none}
 .msg .tag>.nm-name{flex:0 1 auto;min-width:2.5em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .msg .tag>.nm-name.nsf-fireice{overflow:visible}
+
+/* fonts in member + friend lists */
+.mname .nm-name,.cname .nm-name{font-size:1.05em;line-height:1.1}
+.mname .nm-name.nsf-arcade,.cname .nm-name.nsf-arcade{font-size:.7em}
+.mname .nm-name.nsf-neontube,.cname .nm-name.nsf-neontube{font-size:.9em}
+/* "Theme & colors" was styled like a big header; make it a row button that matches the Name style box */
+.sheet #openTheme{width:100%;align-self:stretch;justify-self:stretch;display:flex;align-items:center;gap:10px;text-align:left;margin:6px 0 2px;padding:14px 10px!important;
+  border:2px solid var(--plum)!important;background:rgba(7,4,26,.6)!important;transform:none!important;box-shadow:none!important;clip-path:none!important;
+  font-family:var(--tech)!important;font-size:11px!important;font-weight:700;letter-spacing:1.5px;color:var(--volt)!important;text-transform:uppercase;text-shadow:none}
+.sheet #openTheme::before{display:none}
+.sheet #openTheme::after{content:"▸";margin-left:auto;color:var(--cyan);font-size:14px;position:static;background:none;transform:none;inset:auto}
+.sheet #openTheme:hover,.sheet #openTheme:focus-visible{border-color:var(--cyan)!important}

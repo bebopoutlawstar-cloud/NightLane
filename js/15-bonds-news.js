@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.10.24a", title:"Clearer Look tab 🎨", items:["🎨 Theme & colors in Profile → Look now looks like a button (it used to look like a heading)."]},
     {v:"2026.10.23j", title:"Message button fix 🔧", items:["🔧 The Message button on friends with a nameplate is bright cyan again (it had turned invisible)."]},
     {v:"2026.10.23i", title:"Smoother profiles 🛠️", items:["🛠️ Profile banners, decorations and nameplates no longer flicker or restart while you look at someone's profile.","💻 Neon Breach's code rain now stops just under your name instead of running into the rest of your profile.","🔘 Nameplates in member and friend lists are calmer: the art fades in from the right and holds still, buttons keep their dark fill."]},
     {v:"2026.10.23g", title:"Name Styles: finishing touches 🎁", items:["🎁 Level up into a new font, nameplate, wrap, decoration or effect and you get an Unlocked! pop-up that takes you straight to it.","📋 Name style pieces are in your Unlockables list now, so you can see what's coming on the Level road.","⌨️ Name fonts show in room member lists and friend lists too."]},
