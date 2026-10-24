@@ -153,21 +153,52 @@ function hintOfDay(){   // ONE hint a day: picked once, then locked in until tom
   try{ LS.set("nl-hint-pick",JSON.stringify({day:today,id:pick.id})); }catch(e){}
   return pick;
 }
+/* ===== Clues: every secret you find earns a bonus clue (hold up to 3), and every clue you've seen stays on your clue board ===== */
+const CLUE_MAX=3;
+const clueKey=()=>"nl-clues-"+(user?.id||"");
+function clueData(){ try{ const d=JSON.parse(LS.get(clueKey())||"null"); if(d) return d; }catch(e){} return {tokens:1,seen:[]}; }   // everyone starts with one bonus clue
+function clueSave(d){ try{ LS.set(clueKey(),JSON.stringify(d)); }catch(e){} }
+function clueSeen(id){ const d=clueData(); if(!d.seen.includes(id)){ d.seen.push(id); clueSave(d); } }
+function clueEarn(){ const d=clueData(); if(d.tokens<CLUE_MAX){ d.tokens++; clueSave(d); } }
+function clueSpend(){
+  const d=clueData(); if(d.tokens<1) return null;
+  const today=hintOfDay()?.id;
+  const pool=SECRET_LIST.filter(s=>HINTS[s.id]&&!hasSecret(s.id)&&s.id!==today&&!d.seen.includes(s.id)); if(!pool.length) return null;
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  d.tokens--; d.seen.push(pick.id); clueSave(d); return pick;
+}
 function paintHint(){
   const h=hintOfDay(), box=$("hintBox");
   if(!h){ box.textContent="🏆 You've found every secret. Legend."; return; }
-  box.innerHTML="";
-  if(hasSecret(h.id)){ box.append(el("b","","✅ You found today's secret!"),el("small",""," · new hint tomorrow")); return; }
-  box.append(el("b","","🔍 Today's hint: "),el("span","",HINTS[h.id]));
-  const left=SECRET_LIST.filter(s=>!hasSecret(s.id)).length; box.append(el("small","",` · ${left} still hidden · new hint tomorrow`));
+  box.innerHTML=""; clueSeen(h.id);
+  if(hasSecret(h.id)) box.append(el("b","","✅ You found today's secret!"),el("small",""," · new hint tomorrow"));
+  else { box.append(el("b","","🔍 Today's hint: "),el("span","",HINTS[h.id]));
+    const left=SECRET_LIST.filter(s=>!hasSecret(s.id)).length; box.append(el("small","",` · ${left} still hidden · new hint tomorrow`)); }
+  /* bonus clue button */
+  const d=clueData(), more=el("button","clue-btn",d.tokens>0?`🔍 Get another clue (${d.tokens} left)`:"🔒 Find a secret to earn another clue"); more.type="button"; more.disabled=d.tokens<1;
+  more.onclick=()=>{ const c=clueSpend(); if(!c){ nlToast("sys","No more clues to give right now. You've seen them all!"); return; } paintHint(); nlToast("ok","New clue added to your clue board 🔍"); };
+  box.append(more);
+  /* the clue board: every clue you've seen, solved ones ticked */
+  const seen=clueData().seen.filter(id=>HINTS[id]);
+  if(seen.length>1||seen.some(id=>id!==h.id)){
+    const det=document.createElement("details"); det.className="clue-board";
+    const open=seen.filter(id=>!hasSecret(id)).length;
+    det.append(el("summary","",`📜 Your clue board · ${open} unsolved`));
+    const ul=el("ul","");
+    seen.slice().reverse().forEach(id=>{ const done=hasSecret(id), li=el("li",done?"solved":""); li.append(el("span","cb-ic",done?"✅":"🔍"),el("span","",HINTS[id])); ul.append(li); });
+    det.append(ul); box.append(det);
+  }
 }
+/* finding a secret earns a bonus clue */
+const _clueDiscover=discoverSecret;
+discoverSecret=function(id){ const had=hasSecret(id); const r=_clueDiscover.apply(this,arguments); try{ if(!had&&hasSecret(id)){ clueEarn(); if($("hintBox")) paintHint(); } }catch(e){} return r; };
 function hintNudge(){
   const h=hintOfDay(); if(!h||hasSecret(h.id)) return;
   const key="nl-hint-"+dayNum(); try{ if(LS.get(key)) return; LS.set(key,"1"); }catch(e){}
   setTimeout(()=>{
     const t=el("button","toast"); t.type="button"; const body=el("span","tbody");
     body.append(el("div","ttitle","🔍 Daily secret hint"), el("div","ttext",HINTS[h.id]));
-    t.append(el("span","sx-lock","🔍"),body); t.onclick=()=>{ t.remove(); openProfile(); profTab("me"); setTimeout(()=>$("hintBox").scrollIntoView({behavior:"smooth",block:"center"}),300); };
+    t.append(el("span","sx-lock","🔍"),body); t.onclick=()=>{ t.remove(); openProfile(); profTab("me"); setTimeout(()=>{ const d=$("hintBox").closest("details"); if(d) d.open=true; $("hintBox").scrollIntoView({behavior:"smooth",block:"center"}); },300); };
     $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },7000);
   },2500);
 }
@@ -561,11 +592,12 @@ function gainXP(kind,mult=1){
   const now=xpLevel(d.xp);
   if(!$("profile").classList.contains("hidden")) paintXP(); paintHomeLevel();
   if(now.lvl>before) whenEffectsQuiet(()=>{   // wait for any easter egg on screen to finish first, so they don't pile up
+    sfx("levelup");
     setTimeout(checkUnlocks,2500); setTimeout(()=>growCelebrate(before,now.lvl),4800); if(fxEnabled()&&typeof QX!=="undefined"&&!reducedMotion()) QX.levelup();
     const t=el("div","toast mention"); const body=el("span","tbody"); body.append(el("div","ttitle",`⬆ Level ${now.lvl} · ${LEVEL_TITLES[Math.min(now.lvl-1,LEVEL_TITLES.length-1)]}`), el("div","ttext","Keep going, you're on a roll."));
     { const ic=el("span","sx-lock"); ic.append(pxIcon("goldkey",32,"")); t.append(ic,body); } $("toasts").prepend(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); },5000);
     if(navigator.vibrate) navigator.vibrate([30,40,30,40,120]);
-  }); else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
+  }); else if(amt>=15&&Date.now()-lastXpToast>4000){ lastXpToast=Date.now(); sfx("xp"); const f=el("div","xpfloat","+"+amt+" XP"); $("toasts").append(f); setTimeout(()=>f.remove(),1400); }
 }
 /* is an easter egg / screen effect playing right now? (the effects layer has something in it, or the confetti canvas is running) */
 function effectsBusy(){
