@@ -1,4 +1,5 @@
-// NightLane service worker (v23): push notifications + fast repeat loads, and quick opens on a weak signal.
+// NightLane service worker (v24): push notifications + fast repeat loads, and quick opens on a weak signal.
+// (v24: a new version only takes over once all its code is saved, so bad Wi-Fi never leaves you half-loaded.)
 // (v22: the app's code now lives in js/ and css/. The cache keeps its old name on purpose, so nobody loses
 //  their saved sign-in, badge count or settings that live in it.)
 const CACHE="nightlane-v21";
@@ -43,15 +44,21 @@ async function privateFile(req, url) {
   return fetch(req);
 }
 
-// save a fresh copy of the app page, then drop saved js/css versions that page no longer points to
+// save a fresh copy of the app page, then drop saved js/css versions that page no longer points to.
+// ✈️ The new page only takes over once every code file it needs is saved too, so a new version can never
+// strand you half-downloaded on bad Wi-Fi: until then you keep opening the last complete version.
 async function saveShell(resp) {
   try {
     const c = await caches.open(CACHE); const html = await resp.clone().text();
+    const links = codeLinks(html);
+    const got = await Promise.all(links.map(u => c.match(u, { ignoreVary: true }).then(hit => hit ? true : fetch(u).then(x => x.ok ? c.put(u, x).then(() => true) : false)).catch(() => false)));
+    if (!got.every(Boolean)) return false;
     await c.put("shell", resp);
-    const keep = new Set(codeLinks(html).map(u => new URL(u, self.registration.scope).href));
-    if (!keep.size) return;
+    const keep = new Set(links.map(u => new URL(u, self.registration.scope).href));
+    if (!keep.size) return true;
     for (const k of await c.keys()) { const u = new URL(k.url); if (CODE.test(u.pathname) && !keep.has(u.href)) await c.delete(k); }
-  } catch (e) {}
+    return true;
+  } catch (e) { return false; }
 }
 
 self.addEventListener("fetch", e => {
@@ -78,7 +85,7 @@ self.addEventListener("fetch", e => {
     // Network first, so you always get the latest upload, but never wait more than 3 seconds on a weak signal:
     // after that, open the saved copy right away and keep downloading the new one in the background for next time.
     e.respondWith((async () => {
-      const net = fetch(req).then(async r => { if (r.ok) await saveShell(r.clone()); return r; });
+      const net = fetch(req).then(async r => { if (!r.ok) return r; if (await saveShell(r.clone())) return r; return (await caches.match("shell")) || r; });
       const cached = await caches.match("shell");
       if (!cached) return net.catch(() => caches.match("shell"));
       const quick = await Promise.race([net.catch(() => null), new Promise(res => setTimeout(() => res(null), 3000))]);

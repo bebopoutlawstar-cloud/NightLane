@@ -217,9 +217,28 @@ function savedLoginUser(){
   if(!SUPABASE_URL) return null;
   try{ const k="sb-"+new URL(SUPABASE_URL).hostname.split(".")[0]+"-auth-token"; const s=JSON.parse(LS.get(k)||"null"); return s?.user||s?.currentSession?.user||null; }catch(e){ return null; }
 }
+let bootSlow=false;   // signed in, but the first load is crawling (plane Wi-Fi): saved chats are showing while it catches up
 function paintOffline(){
-  const off=isOffline(); show($("offlineBar"),off&&!!user);
-  if(off) $("offlineText").textContent=offlineMode&&navigator.onLine!==false?"Reconnecting… showing your saved chats.":"You're offline. Showing your saved chats.";
+  const off=isOffline()||bootSlow; show($("offlineBar"),off&&!!user);
+  if(off) $("offlineText").textContent=navigator.onLine!==false&&(offlineMode||bootSlow)?"Weak signal… showing your saved chats while it catches up.":"You're offline. Showing your saved chats.";
+}
+function retrySlowInbox(wait=8000){   // keep quietly retrying the chat list until it gets through (backs off up to 1 min)
+  clearTimeout(retrySlowInbox.t);
+  retrySlowInbox.t=setTimeout(async()=>{
+    if(!user||!bootSlow) return;
+    if(navigator.onLine===false) return retrySlowInbox(wait);
+    await loadInbox();
+    if(loadInbox.failed) retrySlowInbox(Math.min(wait*2,60000));
+    else { bootSlow=false; paintOffline(); loadContacts().catch(()=>{}); refreshMe().catch(()=>{}); }
+  },wait);
+}
+function paintSavedFront(){   // the logged-in front screen from what's saved on this device, no network needed
+  let cached=null; try{ cached=JSON.parse(LS.get("nl-me-cache")||"null"); }catch(e){}
+  if(!meProfile||meProfile.id!==user.id) meProfile=(cached&&cached.id===user.id)?cached:{id:user.id,username:user.user_metadata?.username||"you",avatar_url:null};
+  cache.set(user.id,meProfile); paintMe(); applyTheme(meProfile.theme||savedTheme());
+  show($("authCard"),false); show($("roomCard")); $("front").classList.add("logged");
+  loadInbox(true); paintOffline(); hideSplash(); appReady();
+  try{ const t=LS.get("nl-front-tab"); if(["chats","lanes","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
 }
 function offlineNotice(){
   const t=el("div","toast"); const body=el("span","tbody");
@@ -228,13 +247,8 @@ function offlineNotice(){
 }
 function startOffline(saved,slow){   // show your saved chats right away; the real login takes over when the connection's back
   if(user) return;
-  offlineMode=true; user=saved;
-  let cached=null; try{ cached=JSON.parse(LS.get("nl-me-cache")||"null"); }catch(e){}
-  meProfile=(cached&&cached.id===saved.id)?cached:{id:saved.id,username:saved.user_metadata?.username||"you",avatar_url:null};
-  cache.set(user.id,meProfile); paintMe(); applyTheme(meProfile.theme||savedTheme());
-  show($("authCard"),false); show($("roomCard")); $("front").classList.add("logged");
-  loadInbox(); paintOffline(); hideSplash(); appReady();
-  try{ const t=LS.get("nl-front-tab"); if(["chats","lanes","dms","contacts"].includes(t)) setFrontTab(t); }catch(e){}
+  offlineMode=true; user=saved; meProfile=null;
+  paintSavedFront();
 }
 addEventListener("offline",()=>paintOffline());
 addEventListener("online",async()=>{

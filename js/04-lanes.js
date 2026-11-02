@@ -37,13 +37,16 @@ const LANE_BANNERS=[["city","Neon City"],["drive","Night Drive"],["moon","Moonri
 function laneBanner(node,b){ LANE_BANNERS.forEach(([k])=>node.classList.remove("lbn-"+k)); node.style.backgroundImage=""; node.classList.toggle("hasbn",!!b);
   if(!b) return; if(LANE_BANNERS.some(([k])=>k===b)) node.classList.add("lbn-"+b); else node.style.backgroundImage=`url("${b.replace(/"/g,"")}")`; }
 const LANE_TAGS=[["nl:chat","General"],["nl:game","Games"],["nl:film","Movies"],["nl:tv","Shows"],["nl:music","Music"],["nl:camera","Pics"],["nl:ghost","Memes"],["nl:cal","Plans"],["nl:star","Art"],["nl:book","Books"],["nl:pizza","Food"],["nl:code","Tech"],["nl:flame","Hype"],["nl:moon","Late night"]];
-async function loadLanes(){
+async function loadLanes(cacheOnly){
   if(!user) return;
-  try{
+  const key="nl-lanes-cache-"+user.id;
+  const use=(ls,rs)=>{ myLanesList=ls.map(l=>({...l,rooms:rs.filter(r=>r.lane===l.id).sort((a,b)=>(a.lane_pos||0)-(b.lane_pos||0))})); laneByRoom=new Map(rs.map(r=>[r.code,r])); };
+  if(!cacheOnly&&!isOffline()) try{
     const ls=await api.myLanes(), rs=ls.length?await api.laneRooms(ls.map(l=>l.id)):[];
-    myLanesList=ls.map(l=>({...l,rooms:rs.filter(r=>r.lane===l.id).sort((a,b)=>(a.lane_pos||0)-(b.lane_pos||0))}));
-    laneByRoom=new Map(rs.map(r=>[r.code,r]));
-  }catch(e){}   // offline: keep what we had
+    use(ls,rs); try{ LS.set(key,JSON.stringify({ls,rs})); }catch(e){}
+    return;
+  }catch(e){}
+  if(!myLanesList.length) try{ const c=JSON.parse(LS.get(key)||"null"); if(c) use(c.ls||[],c.rs||[]); }catch(e){}   // offline / bad signal: the last saved lanes
 }
 /* 🔊 voice lounges: who's in each one, watched from outside (presence only, so nobody gets pinged) */
 const loungeWho=new Map(), loungeLines=new Map();

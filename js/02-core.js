@@ -1330,7 +1330,12 @@ async function handleAuth(u){
     return;
   }
   if(offlineMode){ offlineMode=false; paintOffline(); }
+  const run=handleAuth.run=(handleAuth.run||0)+1, stale=()=>run!==handleAuth.run||user!==u;
+  /* ✈️ terrible Wi-Fi: if the first load hasn't finished in 4 seconds, open your saved chats now and let the real data
+     slide in when it gets through (instead of sitting on the loading screen) */
+  const quick=setTimeout(()=>{ if(stale()||appIsReady) return; bootSlow=true; paintSavedFront(); },4000);
   await Promise.all([refreshMe(), syncProgress(), api.blocks().then(b=>{ blocked=new Set(b); }).catch(()=>{})]);
+  if(stale()){ clearTimeout(quick); return; }
   if(!LS.ok&&!window.__lsWarned){ window.__lsWarned=true; setTimeout(()=>{
     const t=el("div","toast long"); const body=el("span","tbody");
     body.append(el("div","ttitle","⚠️ Your browser is blocking saved data"), el("div","ttext","Your progress still saves to your account, but settings reset each visit. Turn off Private Browsing or \"Block All Cookies\", or add NightLane to your Home Screen."));
@@ -1338,7 +1343,11 @@ async function handleAuth(u){
   show($("authCard"),false); show($("roomCard"));
   try{ const last=LS.get("nl-room")||""; $("room").value=last.startsWith("dm-")?"":last; }catch(e){}
   $("front").classList.add("logged");
-  await Promise.all([ensureProfiles([...blocked]), loadContacts(), loadInbox()]); appReady(); startPresence(); owlBack(); partnerSoon(2500);
+  await Promise.all([ensureProfiles([...blocked]), loadContacts().catch(()=>{}), loadInbox()]);
+  clearTimeout(quick); if(stale()) return;
+  if(loadInbox.failed&&navigator.onLine!==false){ bootSlow=true; paintOffline(); retrySlowInbox(); }   // still couldn't get through: keep the saved chats and keep trying
+  else if(bootSlow){ bootSlow=false; paintOffline(); }
+  appReady(); startPresence(); owlBack(); partnerSoon(2500);
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));   // let the real front screen actually paint first
   hideSplash();
   try{ LS.set("nl-welcomed-lane","1"); }catch(e){}

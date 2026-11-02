@@ -1,17 +1,18 @@
 /* ================= INBOX ================= */
 const inboxCacheKey=()=>"nl-inbox-cache-"+(user?.id||"");
-async function loadInbox(){
+async function loadInbox(cacheOnly){   // cacheOnly: paint the saved copy right now, no network (bad signal on boot)
   if(!user) return;
   let list=null;
-  if(navigator.onLine!==false&&!offlineMode){ try{ const [l,icons]=await Promise.all([api.myRooms(),api.roomIcons().catch(()=>[])]); list=l; icons.forEach(i=>roomIcons.set(i.code,i.icon_url)); LS.set(inboxCacheKey(),JSON.stringify(list.slice(0,80))); }catch(e){ list=null; } }
+  if(navigator.onLine!==false&&!offlineMode&&!cacheOnly){ try{ const [l,icons]=await Promise.all([api.myRooms(),api.roomIcons().catch(()=>[])]); list=l; icons.forEach(i=>roomIcons.set(i.code,i.icon_url)); LS.set(inboxCacheKey(),JSON.stringify(list.slice(0,80))); }catch(e){ list=null; } }
+  if(!cacheOnly) loadInbox.failed=list===null;
   if(list===null){   // offline or failed: keep what's on screen, or the last saved copy, never wipe it to "No rooms"
     if(inboxRows.length) list=inboxRows; else { try{ list=JSON.parse(LS.get(inboxCacheKey())||"[]"); }catch(e){ list=[]; } }
     paintOffline();
   }
   inboxRows=list;
-  await loadLanes();
+  await loadLanes(cacheOnly);
   show($("markAllRead"),list.some(r=>+r.unread>0));
-  if(!isOffline()&&list.some(r=>r.dm_user)) await ensureProfiles(list.map(r=>r.dm_user).filter(Boolean));   // offline: use the names/pictures saved with the list
+  if(!cacheOnly&&!isOffline()&&list.some(r=>r.dm_user)) await ensureProfiles(list.map(r=>r.dm_user).filter(Boolean));   // offline: use the names/pictures saved with the list
   const roomRows=list.filter(r=>!r.is_dm&&!laneByRoom.has(r.code)), dmRows=list.filter(r=>r.is_dm), laneRows=list.filter(r=>laneByRoom.has(r.code));
   show($("inboxWrap"),roomRows.length>0); show($("inboxEmpty"),!roomRows.length); show($("dmEmpty"),!dmRows.length);
   const unreadOf=rows=>rows.filter(r=>r.notify!=="off").reduce((n,r)=>n+(+r.unread||0),0);
