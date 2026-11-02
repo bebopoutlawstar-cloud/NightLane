@@ -649,7 +649,7 @@ function buildMsg(m,index,noAnim){
     b.append(i); b.onclick=e=>{ e.stopPropagation(); openLightbox([img],0); }; bub.append(b);
     if(m.spoiler) makeSpoiler(b,m.id); }
   const media=safeImg(m.media_url);
-  if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.playsInline=true; v.preload="metadata"; bub.append(v); }
+  if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.setAttribute("controlsList","nodownload"); v.playsInline=true; v.preload="metadata"; bub.append(v); }
   if(media&&m.media_type==="audio") bub.append(voicePlayer(media,m.media_duration));
   if(media&&(m.media_type==="pdf"||m.kind==="file")) bub.append(pdfCard(media));
   if(m.kind==="sticker"&&STICKERS[m.sticker]) bub.append(stickerEl(m.sticker));
@@ -664,7 +664,7 @@ function buildMsg(m,index,noAnim){
     if(typeof m.id==="number"&&diceIn(m.text)){ const n=diceIn(m.text), r=dNFor(m,n); { const chip=el("div","d20chip"+(r===n&&n>1?" nat20":r===1&&n>1?" nat1":""),n===2?`🪙 d2 → ${r===1?"heads":"tails"}`:`${DICE_ICON["d"+n]?"":"🎲 "}d${n} → ${r}${r===n&&n>1?" MAX!":""}`); dchipIcon(chip,"d"+n); bub.append(chip); } }
     if(/(^|[^a-z])roll(s|ed|ing)? (a |the |me a )?d20([^a-z0-9]|$)/i.test(m.text)&&typeof m.id==="number"){ const n=d20For(m); const chip=el("div","d20chip"+(n===20?" nat20":n===1?" nat1":""),`d20 → ${n}${n===20?" NAT 20!":n===1?" crit fail":""}`); dchipIcon(chip,"d20"); bub.append(chip); } }
   bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
-  bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } });   // right-click on a computer
+  bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } else if(e.target.closest("img,video")) e.preventDefault(); });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
   if(m.edited_at&&m.kind!=="sticker"&&m.kind!=="call"){ const en=el("span","ednote",`✏️ ${m.user_id===user?.id?"You":nameOf(m.user_id)} edited this`); en.title="Edited "+new Date(m.edited_at).toLocaleString(); bub.append(en); }
   col.append(tag,bub);
@@ -780,6 +780,7 @@ function openMenu(m){
   const more=el("button","more","+"); more.type="button"; more.setAttribute("aria-label","More reactions");
   more.onclick=()=>{ show($("msgMenu"),false); openEmojiPicker(m); }; row.append(more);
   show($("menuWho"),!!reactionsById.get(m.id)?.size);
+  { const sv=savableOf(m); show($("menuSave"),!!sv.length); $("menuSave").textContent=sv.length>1?`💾 Save ${sv.length} photos`:m.media_type==="video"?"💾 Save video":"💾 Save photo"; }
   show($("menuCopy"),!!m.text&&m.kind!=="sticker"); show($("menuCal"),!!m.text&&m.kind==="text");
   show($("menuTranslate"),aiOn()&&!!m.text&&m.kind!=="sticker"&&m.kind!=="poll"&&m.kind!=="game"&&!mine);
   show($("menuFx"),!!(secretFor(m.text)||fxFor(m.text))&&m.kind!=="poll"&&m.kind!=="game");
@@ -958,6 +959,7 @@ function attachSwipe(node,m){
   };
   node.addEventListener("touchend",end); node.addEventListener("touchcancel",end);
 }
+$("menuSave").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); saveMediaList(savableOf(m)); };
 $("menuCopy").onclick=async()=>{ show($("msgMenu"),false); try{ await navigator.clipboard.writeText(menuMsg.text); $("status").textContent="Copied."; }catch(e){} };
 $("menuDelete").onclick=()=>{ const m=menuMsg; show($("msgMenu"),false); deleteMessageFlow(m); };
 /* ---------- edit your own message ---------- */

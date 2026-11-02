@@ -262,6 +262,43 @@ function lbPaintCount(){ $("lbCount").textContent=lbAlbum?`${lbIndex+1} / ${lbAl
 $("lbPrev").onclick=e=>{ e.stopPropagation(); lbStep(-1); };
 $("lbNext").onclick=e=>{ e.stopPropagation(); lbStep(1); };
 $("lbClose").onclick=e=>{ e.stopPropagation(); show($("lightbox"),false); };
+$("lbSave").onclick=e=>{ e.stopPropagation(); saveMediaList([lbAlbum?lbAlbum[lbIndex]:$("lightImg").src]); };
+$("lightImg").addEventListener("contextmenu",e=>e.preventDefault());   // Chrome's own "Download image" can't open private chat photos
+/* 💾 Save a photo or video to the phone. Chat files are private, so the browser's own Download gets a locked-out
+   error file instead (the paused ".json" download). We ask the server for a short-lived download link instead. */
+function savableOf(m){
+  const list=[]; if(!m) return list;
+  if(m.image_urls?.length) m.image_urls.forEach(u=>list.push(u)); else if(m.image_url&&!isBlCard(m)) list.push(m.image_url);
+  if(m.media_url&&m.media_type==="video") list.push(m.media_url);
+  return list.map(safeImg).filter(Boolean);
+}
+function saveName(url,i){
+  const ext=(String(url).split(/[?#]/)[0].match(/\.(\w{2,5})$/)||[])[1]||"jpg";
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `NightLane-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}${i?"-"+(i+1):""}.${ext.toLowerCase()}`;
+}
+async function saveMedia(url,i=0){
+  const name=saveName(url,i);
+  const a=document.createElement("a"); a.download=name; a.rel="noopener"; a.style.display="none";
+  const m=String(url).match(PRIVATE_FILE_RE);
+  if(m&&sb){
+    const {data,error}=await sb.storage.from(m[1]).createSignedUrl(decodeURIComponent(m[2]),600,{download:name});
+    if(error||!data?.signedUrl) throw error||new Error("no link");
+    a.href=data.signedUrl;
+  } else {
+    const r=await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status);
+    a.href=URL.createObjectURL(await r.blob()); setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+  }
+  document.body.append(a); a.click(); a.remove();
+}
+async function saveMediaList(urls){
+  if(!urls?.length) return;
+  if(isOffline()){ $("status").textContent="You're offline. Save it once you're back online."; return; }
+  $("status").textContent=urls.length>1?`Saving ${urls.length} photos…`:"Saving…";
+  try{ for(let i=0;i<urls.length;i++){ await saveMedia(urls[i],urls.length>1?i:0); if(i<urls.length-1) await new Promise(r=>setTimeout(r,500)); }
+    $("status").textContent=urls.length>1?`Saved ${urls.length} photos 💾 (check your Downloads)`:"Saved 💾 (check your Downloads)";
+  }catch(e){ $("status").textContent="Couldn't save that. Check your connection and try again."; }
+}
 /* zoom + pan: the photo is scaled by lbZ and moved by lbX/lbY (pixels from the center) */
 let lbZ=1, lbX=0, lbY=0;
 const LB_MAX=5;

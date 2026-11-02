@@ -455,6 +455,8 @@ body.desktop #front.logged .deskhol:not(.hidden){display:flex;align-items:center
 .lbbar{justify-content:space-between;padding-top:calc(env(safe-area-inset-top) + 10px)}
 .lbfoot{justify-content:center;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)}
 .lbcount{font-family:var(--tech);font-size:13px;color:var(--cyan);letter-spacing:1px;min-height:1em}
+.lbbtns{display:flex;gap:10px;align-items:center}
+.lbsave{height:44px;background:none;border:2px solid var(--cyan);color:var(--white);font:700 15px var(--body);padding:0 14px;cursor:pointer}
 .lbclose{width:44px;height:44px;background:none;border:2px solid var(--cyan);color:var(--white);font-size:20px;line-height:1;padding:0}
 .lbnav{width:52px;height:44px;background:rgba(7,4,26,.7);border:2px solid var(--cyan);color:var(--white);font-size:18px;padding:0}
 .lbhint{flex:1;max-width:240px;text-align:center;font-size:13px;color:var(--muted)}
