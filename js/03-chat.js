@@ -649,7 +649,8 @@ function buildMsg(m,index,noAnim){
     b.append(i); b.onclick=e=>{ e.stopPropagation(); openLightbox([img],0); }; bub.append(b);
     if(m.spoiler) makeSpoiler(b,m.id); }
   const media=safeImg(m.media_url);
-  if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.setAttribute("controlsList","nodownload"); v.playsInline=true; v.preload="metadata"; bub.append(v); }
+  if(media&&m.media_type==="video"){ const v=document.createElement("video"); v.className="vid"; v.src=media; v.controls=true; v.setAttribute("controlsList","nodownload"); v.playsInline=true; v.preload="metadata"; bub.append(v);
+    const sv=el("button","vidsave","💾 Save video"); sv.type="button"; sv.onclick=e=>{ e.stopPropagation(); saveMediaList([media]); }; bub.append(sv); }   // a Save right under the video (Chrome's own one can't open private files)
   if(media&&m.media_type==="audio") bub.append(voicePlayer(media,m.media_duration));
   if(media&&(m.media_type==="pdf"||m.kind==="file")) bub.append(pdfCard(media));
   if(m.kind==="sticker"&&STICKERS[m.sticker]) bub.append(stickerEl(m.sticker));
@@ -663,7 +664,7 @@ function buildMsg(m,index,noAnim){
     if(/el psy (k|c)ongroo|(^|[^a-z])world ?line([^a-z]|$)/i.test(m.text)&&typeof m.id==="number") bub.append(el("div","d20chip wlchip",`⚗️ world line ${worldLineFor(m)}`));
     if(typeof m.id==="number"&&diceIn(m.text)){ const n=diceIn(m.text), r=dNFor(m,n); { const chip=el("div","d20chip"+(r===n&&n>1?" nat20":r===1&&n>1?" nat1":""),n===2?`🪙 d2 → ${r===1?"heads":"tails"}`:`${DICE_ICON["d"+n]?"":"🎲 "}d${n} → ${r}${r===n&&n>1?" MAX!":""}`); dchipIcon(chip,"d"+n); bub.append(chip); } }
     if(/(^|[^a-z])roll(s|ed|ing)? (a |the |me a )?d20([^a-z0-9]|$)/i.test(m.text)&&typeof m.id==="number"){ const n=d20For(m); const chip=el("div","d20chip"+(n===20?" nat20":n===1?" nat1":""),`d20 → ${n}${n===20?" NAT 20!":n===1?" crit fail":""}`); dchipIcon(chip,"d20"); bub.append(chip); } }
-  bub.onclick=e=>{ if(e.target.closest("a,video,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
+  bub.onclick=e=>{ if(e.target.closest("a,video,.vidsave,.voice,.poll button,.gamecard button,.datechip,.trbox,.blmsg button,.ecard.closed")) return; bubbleTap(bub,m); };
   bub.addEventListener("contextmenu",e=>{ if(e.pointerType==="mouse"||e.button===2){ e.preventDefault(); openMenu(m); } else if(e.target.closest("img,video")) e.preventDefault(); });   // right-click on a computer
   bub.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openMenu(m); } };
   if(m.edited_at&&m.kind!=="sticker"&&m.kind!=="call"){ const en=el("span","ednote",`✏️ ${m.user_id===user?.id?"You":nameOf(m.user_id)} edited this`); en.title="Edited "+new Date(m.edited_at).toLocaleString(); bub.append(en); }
