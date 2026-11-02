@@ -186,12 +186,62 @@ async function isHeic(file){
 let heicLib=null;
 function loadHeicLib(){ return heicLib||(heicLib=new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
   sc.onload=()=>window.heic2any?res(window.heic2any):rej(new Error("converter didn't load")); sc.onerror=()=>{ heicLib=null; rej(new Error("check your connection")); }; document.head.append(sc); })); }
+/* ---------- every photo/video format phones hand us ----------
+   iPhones (and the Files app) sometimes give files with no type, or types like image/heif, video/x-m4v, image/x-adobe-dng.
+   asMediaFile() works out what a file really is (from its type, its name, or its first bytes) and gives it a proper type. */
+const EXT_TYPE={jpg:"image/jpeg",jpeg:"image/jpeg",jfif:"image/jpeg",png:"image/png",gif:"image/gif",webp:"image/webp",heic:"image/heic",heif:"image/heif",hif:"image/heif",avif:"image/avif",bmp:"image/bmp",tif:"image/tiff",tiff:"image/tiff",dng:"image/x-adobe-dng",
+  mov:"video/quicktime",qt:"video/quicktime",mp4:"video/mp4",m4v:"video/x-m4v",hevc:"video/quicktime","3gp":"video/3gpp","3g2":"video/3gpp2",webm:"video/webm",mkv:"video/x-matroska"};
+async function sniffType(file){
+  try{ const b=new Uint8Array(await file.slice(0,16).arrayBuffer()), s=String.fromCharCode(...b);
+    if(b[0]===0xFF&&b[1]===0xD8) return "image/jpeg";
+    if(b[0]===0x89&&s.slice(1,4)==="PNG") return "image/png";
+    if(s.startsWith("GIF8")) return "image/gif";
+    if(s.startsWith("RIFF")&&s.slice(8,12)==="WEBP") return "image/webp";
+    if(s.startsWith("BM")) return "image/bmp";
+    if(s.startsWith("II*\0")||s.startsWith("MM\0*")) return "image/tiff";
+    if(s.slice(4,8)==="ftyp"){ const brand=s.slice(8,12);
+      if(/^(heic|heix|hevc|hevx|heim|heis)/.test(brand)) return "image/heic";
+      if(/^(mif1|msf1)/.test(brand)) return "image/heif";
+      if(/^(avif|avis)/.test(brand)) return "image/avif";
+      if(/^qt/.test(brand)) return "video/quicktime";
+      if(/^M4V/.test(brand)) return "video/x-m4v";
+      if(/^3g/.test(brand)) return "video/3gpp";
+      return "video/mp4"; }
+    if(b[0]===0x1A&&b[1]===0x45&&b[2]===0xDF&&b[3]===0xA3) return "video/webm";
+  }catch(e){}
+  return "";
+}
+async function asMediaFile(file){
+  if(!file) return null;
+  let t=(file.type||"").toLowerCase();
+  if(!t.startsWith("image/")&&!t.startsWith("video/")){
+    const ext=((file.name||"").match(/\.([a-z0-9]+)$/i)||[])[1];
+    t=(ext&&EXT_TYPE[ext.toLowerCase()])||await sniffType(file);
+  }
+  if(!t.startsWith("image/")&&!t.startsWith("video/")) return null;
+  if(t===file.type) return file;
+  try{ return new File([file],file.name||("upload."+(t.split("/")[1]||"bin")),{type:t,lastModified:file.lastModified}); }catch(e){ return file; }
+}
+/* turn a photo the browser can open into a normal JPG (big phone photos are capped at 4096px so iPhones don't run out of canvas memory) */
+async function nativeToJpeg(file){
+  const img=await loadImg(file), k=Math.min(1,4096/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height,1));
+  const c=document.createElement("canvas"); c.width=Math.max(1,Math.round((img.naturalWidth||img.width)*k)); c.height=Math.max(1,Math.round((img.naturalHeight||img.height)*k));
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  const b=await new Promise(r=>c.toBlob(r,"image/jpeg",.9)); if(!b) throw new Error("couldn't convert");
+  return new File([b],(file.name||"photo").replace(/\.\w+$/,"")+".jpg",{type:"image/jpeg"});
+}
+const isRawPhoto=f=>/dng|x-raw|tiff/i.test(f.type||"")||/\.(dng|tiff?)$/i.test(f.name||"");
 async function readableImage(file){
-  if(!(await isHeic(file))) return file;
+  const heic=await isHeic(file), raw=isRawPhoto(file);
+  if(!heic&&!raw) return file;
+  try{ return await nativeToJpeg(file); }catch(e){}   // iPhones/Macs open HEIC (and TIFF) themselves: fastest, nothing to download
+  if(raw) throw new Error("That's a RAW photo (ProRAW/DNG), which browsers can't open. In Photos tap Share → Options → Most Compatible, or send a normal photo.");
   try{ const conv=await loadHeicLib(); let out=await conv({blob:file,toType:"image/jpeg",quality:.9}); if(Array.isArray(out)) out=out[0];
        return new File([out],(file.name||"photo").replace(/\.\w+$/,"")+".jpg",{type:"image/jpeg"}); }
   catch(e){ throw new Error("That photo is in HEIC format and couldn't be converted ("+(e.message||"unknown error")+"). Try again, or turn off High efficiency pictures in your camera settings."); }
 }
+/* iPhone videos (.mov, usually HEVC) don't play on many Android phones: those always get re-recorded as H.264 MP4 */
+const needsH264=f=>/quicktime|x-m4v|hevc|3gpp|matroska/i.test(f.type||"")||/\.(mov|qt|m4v|hevc|3gp|3g2|mkv)$/i.test(f.name||"");
 async function shrink(file,max,square){
   file=await readableImage(file);
   if(file.type==="image/gif" && !square && file.size<5e6) return file;
@@ -315,7 +365,7 @@ const live = {
   async saveStyle(uid,style){ must(await sb.from("profiles").update(style).eq("id",uid)); },
   async upload(bucket,uid,blob,name,onProgress){
     const t=(blob.type||"image/jpeg").split(";")[0];
-    const ext={"image/gif":"gif","image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov","audio/mp4":"m4a","audio/webm":"webm","audio/ogg":"ogg","audio/mpeg":"mp3","audio/aac":"aac","application/pdf":"pdf"}[t]||"bin";
+    const ext={"image/gif":"gif","image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov","video/x-m4v":"m4v","video/3gpp":"3gp","image/avif":"avif","image/heic":"heic","image/heif":"heif","audio/mp4":"m4a","audio/webm":"webm","audio/ogg":"ogg","audio/mpeg":"mp3","audio/aac":"aac","application/pdf":"pdf"}[t]||"bin";
     const path=name?`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}/${name}`:`${uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
     if(onProgress) await uploadWithProgress(bucket,path,blob,t,onProgress);   // same upload, but it reports how far along it is
     else must(await sb.storage.from(bucket).upload(path,blob,{contentType:t}));

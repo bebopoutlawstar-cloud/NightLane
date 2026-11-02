@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.11.02a", title:"Every iPhone photo and video 📱", items:["📱 iPhone photos in every format now send: HEIC/HEIF, Live Photo stills, AVIF, big 48 MP shots (up to 60 MB) and files picked from the Files app.","🎬 iPhone videos (.mov, usually HEVC) are converted to MP4 before sending, so they play on Android phones and computers too.","🖼️ RAW (ProRAW/DNG) photos get a clear message on how to share them instead of failing quietly."]},
     {v:"2026.10.24b", title:"More clues 🔍", items:["🔍 Stuck on secrets? Every secret you find now earns a bonus clue (hold up to 3). Tap Get another clue under today's hint on your profile.","📜 Every clue you've seen is kept on your clue board, so you can come back to the ones you haven't cracked yet. Solved ones get ticked off."]},
     {v:"2026.10.24a", title:"Clearer Look tab 🎨", items:["🎨 Theme & colors in Profile → Look now looks like a button (it used to look like a heading)."]},
     {v:"2026.10.23j", title:"Message button fix 🔧", items:["🔧 The Message button on friends with a nameplate is bright cyan again (it had turned invisible)."]},

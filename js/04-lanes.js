@@ -698,10 +698,12 @@ function videoDuration(file){ return new Promise(res=>{ const v=document.createE
 $("picker").onchange=e=>{ const files=[...e.target.files]; e.target.value=""; addPicked(files); };
 async function addPicked(files){
   if(!files.length) return;
+  { const n=files.length; files=(await Promise.all(files.map(asMediaFile))).filter(Boolean); if(!files.length){ $("status").textContent="Only photos and videos can be attached."; return; } if(files.length<n) nlToast("warn",`${n-files.length} file${n-files.length>1?"s":""} skipped // not a photo or video`); }
   if(files.length===1&&!pendingImages.length&&!pendingVideos.length&&!pendingFile){ takeFile(files[0]); return; }
-  if((await Promise.all(files.map(isHeic))).some(Boolean)){
+  if((await Promise.all(files.map(async f=>isRawPhoto(f)||await isHeic(f)))).some(Boolean)){
     $("status").textContent="Converting photos…";
-    files=(await Promise.all(files.map(f=>readableImage(f).catch(()=>null)))).filter(Boolean); $("status").textContent="";
+    const conv=await Promise.all(files.map(f=>readableImage(f).catch(err=>({err})))); const bad=conv.filter(x=>x&&x.err);
+    files=conv.filter(x=>x&&!x.err); $("status").textContent=""; if(bad.length) nlToast("err",bad[0].err.message);
   }
   const imgs=files.filter(f=>f.type.startsWith("image/")), vids=files.filter(f=>f.type.startsWith("video/"));
   if(!imgs.length&&!vids.length){ $("status").textContent="Only photos and videos can be attached."; return; }
@@ -710,7 +712,7 @@ async function addPicked(files){
   if(imgs.length){
     const room=PENDING_MAX-pendingImages.length;
     if(room<=0) notes.push(`You can send up to ${PENDING_MAX} photos at once.`);
-    else { if(imgs.some(f=>f.size>15e6)) nlToast("err","photo skipped // over 15 MB"); pendingImages.push(...imgs.filter(f=>f.size<=15e6).slice(0,room)); }
+    else { if(imgs.some(f=>f.size>60e6)) nlToast("err","photo skipped // over 60 MB"); pendingImages.push(...imgs.filter(f=>f.size<=60e6).slice(0,room)); }
   }
   for(const f of vids){
     if(pendingVideos.length>=VIDEO_MAX){ notes.push(`You can send up to ${VIDEO_MAX} videos at once.`); break; }
@@ -720,8 +722,9 @@ async function addPicked(files){
   paintPendingMulti();
 };
 async function takeFile(f){
-  const heic=await isHeic(f);
-  if(!heic&&!f.type.startsWith("image/")&&!f.type.startsWith("video/")){ $("status").textContent="Only photos and videos can be attached."; return; }
+  f=await asMediaFile(f);
+  if(!f){ $("status").textContent="Only photos and videos can be attached."; return; }
+  const heic=await isHeic(f)||isRawPhoto(f);
   if(heic){ $("status").textContent="Converting photo…"; try{ f=await readableImage(f); $("status").textContent=""; }catch(err){ $("status").textContent=err.message; return; } }
   if(f.type.startsWith("video/")){
     const v=await checkVideo(f); if(typeof v==="string"){ $("status").textContent=v; return; }
@@ -732,14 +735,14 @@ async function takeFile(f){
     }
     pendingVideos=[v]; showOneVideo(v);
   } else {
-    if(f.size>15e6){ $("status").textContent="Photo is over 15 MB."; return; }
+    if(f.size>60e6){ $("status").textContent="Photo is over 60 MB."; return; }
     pendingFile=f; pendingKind="image"; $("pendingImg").src=URL.createObjectURL(f); show($("pendingImg")); show($("pendingVid"),false); $("pendingLabel").textContent="Photo ready"; show($("pending"));
   }
 }
 $("box").addEventListener("paste",e=>{
   const items=[...(e.clipboardData?.items||[])];
-  const file=items.filter(i=>i.kind==="file").map(i=>i.getAsFile()).find(f=>f&&(f.type.startsWith("image/")||f.type.startsWith("video/")))
-          || [...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/")||f.type.startsWith("video/"));
+  const file=items.filter(i=>i.kind==="file").map(i=>i.getAsFile()).find(f=>f&&(f.type.startsWith("image/")||f.type.startsWith("video/")||EXT_TYPE[(f.name||"").split(".").pop().toLowerCase()]))
+          || [...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/")||f.type.startsWith("video/")||EXT_TYPE[(f.name||"").split(".").pop().toLowerCase()]);
   if(!file) return;
   e.preventDefault();
   takeFile(file.name?file:new File([file],"pasted."+(file.type.split("/")[1]||"png"),{type:file.type}));
@@ -747,7 +750,7 @@ $("box").addEventListener("paste",e=>{
 ["dragover","drop"].forEach(t=>$("chat").addEventListener(t,e=>{
   if(![...(e.dataTransfer?.types||[])].includes("Files")) return;
   e.preventDefault();
-  if(t==="drop"){ const f=[...e.dataTransfer.files].find(f=>f.type.startsWith("image/")||f.type.startsWith("video/")); if(f) takeFile(f); }
+  if(t==="drop"){ const fs=[...e.dataTransfer.files]; if(fs.length>1) addPicked(fs); else if(fs[0]) takeFile(fs[0]); }
 }));
 $("unpick").onclick=clearPending;
 
@@ -806,10 +809,12 @@ $("sendForm").addEventListener("submit",async e=>{
     for(let i=0;i<vids.length;i++){   // 🎬 then each video as its own message, one after another
       const v=vids[i], tag=vids.length>1?`Video ${i+1} of ${vids.length} · `:"Video · ";
       let vid=v.file;
-      if(vid.size>MAX_VIDEO_BYTES){
-        setProg(tag+"shrinking {p}",0);
-        try{ vid=await shrinkVideo(vid,k=>setProg(tag+"shrinking {p}",k)); }
-        catch(err){ throw new Error(err.message||"couldn't shrink that video. Try a shorter clip."); }
+      const convert=needsH264(vid);   // iPhone .mov (HEVC) → H.264 MP4 so it plays on every phone
+      if(vid.size>MAX_VIDEO_BYTES||convert){
+        const word=vid.size>MAX_VIDEO_BYTES?"shrinking":"converting";
+        setProg(tag+word+" {p}",0);
+        try{ vid=await shrinkVideo(vid,k=>setProg(tag+word+" {p}",k)); }
+        catch(err){ if(vid.size>MAX_VIDEO_BYTES) throw new Error(err.message||"couldn't shrink that video. Try a shorter clip."); }   // small clip that couldn't convert: send it as it is
         if(vid.size>MAX_VIDEO_BYTES) throw new Error("even after shrinking it's over 25 MB. Try a shorter clip.");
       }
       setProg(tag+"uploading {p}",0);
