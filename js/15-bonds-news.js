@@ -561,6 +561,7 @@ $("bondsClose").onclick=()=>show($("bondsSheet"),false);
 
 const CHANGELOG=[
   
+    {v:"2026.11.12a", title:"Every link gets a card 🔗", items:["🔗 Links to private Google Docs, Sheets, Slides, Drive, Canva, Notion and other sites that hide their title now get a NightLane link card too (like 📄 Google Doc), instead of just plain text."]},
     {v:"2026.11.10a", title:"Link fix 🔗", items:["🔗 Messages with a link and its preview card no longer spill off the side of the screen on smaller phones."]},
     {v:"2026.11.02d", title:"Easier video saving 💾", items:["💾 Videos in chats now have a Save video button right underneath, so you don't have to hunt for it."]},
     {v:"2026.11.02c", title:"Save photos & videos 💾", items:["💾 Save photos and videos from chats: hold a message and tap Save, or tap 💾 Save in the photo viewer. Albums save every photo at once.","🔧 Fixes the stuck download (a paused \".json\" file) you got from the browser's own Download button. That button is gone, and Save gets the real file."]},

@@ -494,11 +494,34 @@ function previewCard(url,p){
   body.append(t); a.append(body);
   a.setAttribute("aria-label",`${p.title||host} on ${host}, opens in a new tab`); a.onclick=e=>e.stopPropagation(); return a;
 }
+/* when a site won't share its title (private Google Docs, sign-in walls, sites that block previews),
+   still show the card, labelled with what kind of link it is */
+const KNOWN_LINKS=[
+  [/docs\.google\.com\/document/,"📄 Google Doc","Google Docs"],
+  [/docs\.google\.com\/spreadsheets/,"📊 Google Sheet","Google Sheets"],
+  [/docs\.google\.com\/presentation/,"📽️ Google Slides","Google Slides"],
+  [/docs\.google\.com\/forms|forms\.gle/,"📝 Google Form","Google Forms"],
+  [/drive\.google\.com/,"📁 Google Drive file","Google Drive"],
+  [/canva\.com\/design/,"🎨 Canva design","Canva"],
+  [/figma\.com/,"🎨 Figma file","Figma"],
+  [/notion\.(so|site)/,"🗒️ Notion page","Notion"],
+  [/onedrive\.live\.com|1drv\.ms|sharepoint\.com/,"📁 OneDrive file","OneDrive"],
+  [/dropbox\.com/,"📦 Dropbox file","Dropbox"],
+  [/github\.com/,"💻 GitHub","GitHub"],
+  [/discord\.(gg|com)/,"💬 Discord","Discord"]
+];
+function usablePreview(url,p){
+  const junk=t=>!t||/^(sign[ -]?in|log ?in|access denied|just a moment|attention required|403|404|error)\b|: sign-in$|^google (docs|drive|sheets|slides)$/i.test(String(t).trim());
+  if(p&&!junk(p.title)) return p;
+  const k=KNOWN_LINKS.find(([re])=>re.test(url));
+  let host=""; try{ host=new URL(url).hostname.replace(/^www\./,""); }catch(e){ return null; }
+  return k?{title:k[1],site:k[2],description:"Tap to open"}:{title:host,site:host,description:"Tap to open"};
+}
 function attachPreview(bub,m){
   if(m.kind!=="text"||!m.text) return; const url=firstUrl(m.text); if(!url) return;
   if(/giphy\.com|tenor\.com|klipy\.com|\.(png|jpe?g|gif|webp)(\?|$)/i.test(url)) return;
   if(location.origin&&url.startsWith(location.origin+location.pathname)) return;
-  fetchPreview(url).then(p=>{ if(!p||!p.title) return; const node=elById.get(m.id); const b=node?.querySelector(".bubble"); if(b&&!b.querySelector(".lpcard")) b.append(previewCard(url,p)); });
+  fetchPreview(url).then(p=>{ p=usablePreview(url,p); if(!p) return; const node=elById.get(m.id); const b=node?.querySelector(".bubble"); if(b&&!b.querySelector(".lpcard")) b.append(previewCard(url,p)); });
 }
 
 /* ================= PERSONAL INVITE LINKS ================= */
